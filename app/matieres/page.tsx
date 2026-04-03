@@ -31,8 +31,8 @@ type Matiere = {
 const MATIERES_STANDARD: Matiere[] = [
   { nom: "Français",        emoji: "📖", couleur: "#C05C2A", bg: "#FDF0E0", border: "#EED4AA" },
   { nom: "Mathématiques",   emoji: "📐", couleur: "#2D7A4F", bg: "#EBF5EE", border: "#B8DFC5" },
-  { nom: "Histoire-Géo",    emoji: "🌍", couleur: "#5A6E8A", bg: "#EEF1F8", border: "#C0CAD8" },
-  { nom: "SVT",             emoji: "🌿", couleur: "#3A7A4A", bg: "#EBF5EE", border: "#A8D8B5" },
+  { nom: "Histoire-Géographie",            emoji: "🌍", couleur: "#5A6E8A", bg: "#EEF1F8", border: "#C0CAD8" },
+  { nom: "Sciences de la Vie et de la Terre", emoji: "🌿", couleur: "#3A7A4A", bg: "#EBF5EE", border: "#A8D8B5" },
   { nom: "Physique-Chimie", emoji: "⚗️", couleur: "#6A4A8A", bg: "#F3EEFA", border: "#C8B0E0" },
   { nom: "Anglais",         emoji: "🇬🇧", couleur: "#C05C2A", bg: "#FDF0E0", border: "#EED4AA" },
   { nom: "Espagnol",        emoji: "🇪🇸", couleur: "#B04020", bg: "#FDEAE4", border: "#E8BFB0" },

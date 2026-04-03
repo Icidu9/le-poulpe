@@ -108,7 +108,7 @@ export async function POST(req: Request) {
             `Tu peux anticiper les devoirs ou exercices liés à ces matières si cela est pertinent.\n\n`
           : "") +
         `Emploi du temps de la semaine :\n${edtLines.join("\n")}\n\n` +
-        `Utilise ces informations pour contextualiser la session (ex: "Tu as eu Maths aujourd'hui — est-ce qu'il y a des exercices de ce cours à revoir ?"). ` +
+        `Utilise ces informations pour contextualiser la session (ex: "Tu as eu Mathématiques aujourd'hui — est-ce qu'il y a des exercices de ce cours à revoir ?"). ` +
         `Ne mentionne pas l'EDT si ce n'est pas pertinent pour la question posée.`;
     }
   }

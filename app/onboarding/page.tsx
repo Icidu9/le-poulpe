@@ -131,7 +131,7 @@ function SelectWithOther({
 // ── Données ───────────────────────────────────────────────────────────────────
 
 const CLASSES   = ["6ème", "5ème", "4ème", "3ème", "2nde", "1ère", "Terminale"];
-const MATIERES  = ["Maths", "Français", "Histoire-Géo", "SVT", "Physique-Chimie", "Anglais"];
+const MATIERES  = ["Mathématiques", "Français", "Histoire-Géographie", "Sciences de la Vie et de la Terre", "Physique-Chimie", "Anglais"];
 const DIAGNO    = ["HPI", "Dyslexie", "Dyspraxie", "Dysorthographie", "TDAH", "TSA (autisme)", "Aucun / je ne sais pas"];
 
 const COMPORTEMENT = [

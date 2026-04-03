@@ -159,13 +159,13 @@ const TOUR_STEPS: { target: string | null; emoji: string; title: string; message
     target: "workspace",
     emoji: "💬",
     title: "Réviser avec moi",
-    message: "C'est ici qu'on bosse ensemble ! Tu me poses tes questions, tu m'envoies tes exercices ou une photo de ton cours — je t'explique tout, à ton rythme.",
+    message: "C'est ici qu'on travaille ensemble ! Tu me poses tes questions, tu m'envoies tes exercices ou une photo de ton cours — je t'explique tout, à ton rythme.",
   },
   {
     target: "matieres",
     emoji: "📚",
     title: "Mes matières",
-    message: "Choisis ta matière ici — Maths, Français, SVT, Anglais... Tu passes de l'une à l'autre sans tout recommencer.",
+    message: "Choisis ta matière ici — Mathématiques, Français, Sciences de la Vie et de la Terre, Anglais... Tu passes de l'une à l'autre sans tout recommencer.",
   },
   {
     target: "planning",
@@ -177,7 +177,7 @@ const TOUR_STEPS: { target: string | null; emoji: string; title: string; message
     target: "progression",
     emoji: "📈",
     title: "Ma progression",
-    message: "Tes failles identifiées dans tes copies s'accumulent ici, matière par matière. T'es meilleur(e) que tu le crois — et tu vas le voir. 💪",
+    message: "Tes points à renforcer, identifiés dans tes copies, s'accumulent ici, matière par matière. Tu es meilleur(e) que tu le crois — et tu vas le voir. 💪",
   },
 ];
 
@@ -280,12 +280,12 @@ export default function Home() {
       } else if (coursJour.length > 0) {
         const liste = coursJour.join(", ");
         firstMsg = nom
-          ? `Salut ${nom} ! Aujourd'hui t'avais ${liste}.\nPar laquelle tu veux commencer ?`
-          : `Salut ! Aujourd'hui t'avais ${liste}.\nPar laquelle tu veux commencer ?`;
+          ? `Bonjour ${nom} ! Aujourd'hui tu avais ${liste}.\nPar laquelle tu veux commencer ?`
+          : `Bonjour ! Aujourd'hui tu avais ${liste}.\nPar laquelle tu veux commencer ?`;
       } else {
         firstMsg = nom
-          ? `Salut ${nom} ! T'as quoi comme devoirs ce soir ?\nDis-moi la matière, ou envoie-moi direct une photo de l'exercice 📷`
-          : `Salut ! T'as quoi comme devoirs ce soir ?\nDis-moi la matière, ou envoie-moi direct une photo de l'exercice 📷`;
+          ? `Bonjour ${nom} ! Qu'est-ce que tu as comme devoirs ce soir ?\nDis-moi la matière, ou envoie-moi une photo de l'exercice 📷`
+          : `Bonjour ! Qu'est-ce que tu as comme devoirs ce soir ?\nDis-moi la matière, ou envoie-moi une photo de l'exercice 📷`;
       }
       setMessages([{ role: "assistant", content: firstMsg }]);
     }

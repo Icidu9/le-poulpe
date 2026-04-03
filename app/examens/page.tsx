@@ -57,7 +57,7 @@ const CRITICITE_COLORS = {
   faible:  { bg: "#F0F5F0", text: "#5A8A6A", border: "#C0D8C8" },
 };
 
-const MATIERES = ["Maths", "Français", "Histoire-Géo", "SVT", "Physique-Chimie", "Anglais"];
+const MATIERES = ["Mathématiques", "Français", "Histoire-Géographie", "Sciences de la Vie et de la Terre", "Physique-Chimie", "Anglais"];
 
 // ── Poulpe ────────────────────────────────────────────────────────────────────
 
