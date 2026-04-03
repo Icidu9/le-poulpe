@@ -3,29 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// ── Types Web Speech API ───────────────────────────────────────────────────────
-interface ISpeechRecognition extends EventTarget {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  onstart:  (() => void) | null;
-  onend:    (() => void) | null;
-  onerror:  (() => void) | null;
-  onresult: ((e: ISpeechRecognitionEvent) => void) | null;
-  start(): void;
-  stop():  void;
-}
-interface ISpeechRecognitionResult  { [i: number]: { transcript: string }; readonly length: number; }
-interface ISpeechRecognitionResultList { [i: number]: ISpeechRecognitionResult; readonly length: number; }
-interface ISpeechRecognitionEvent extends Event { readonly results: ISpeechRecognitionResultList; }
-interface ISpeechRecognitionCtor   { new(): ISpeechRecognition; }
-
-declare global {
-  interface Window {
-    SpeechRecognition:       ISpeechRecognitionCtor;
-    webkitSpeechRecognition: ISpeechRecognitionCtor;
-  }
-}
 
 interface Message {
   role: "user" | "assistant";
@@ -202,12 +179,13 @@ export default function Home() {
   const [loading, setLoading]   = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<{ base64: string; mimeType: string; preview: string } | null>(null);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
-  const [isRecording,  setIsRecording]  = useState(false);
-  const [voiceReady,   setVoiceReady]   = useState(false); // transcript prêt mais pas encore envoyé
-  const bottomRef      = useRef<HTMLDivElement>(null);
-  const textareaRef    = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef   = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<ISpeechRecognition | null>(null);
+  const [isRecording,    setIsRecording]    = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const bottomRef        = useRef<HTMLDivElement>(null);
+  const textareaRef      = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef     = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef   = useRef<Blob[]>([]);
 
   // Charge profil + session + tour au montage
   useEffect(() => {
@@ -372,56 +350,61 @@ export default function Home() {
     e.target.value = "";
   }
 
-  // ── Vocal ─────────────────────────────────────────────────────────────────
+  // ── Vocal (Whisper via Groq) ──────────────────────────────────────────────
 
-  function toggleVoice() {
+  async function toggleVoice() {
+    // Arrêter l'enregistrement en cours
     if (isRecording) {
-      recognitionRef.current?.stop();
-      setIsRecording(false);
+      mediaRecorderRef.current?.stop();
       return;
     }
 
-    const SR = (typeof window !== "undefined")
-      ? (window.SpeechRecognition || window.webkitSpeechRecognition)
-      : null;
-
-    if (!SR) {
-      alert("La reconnaissance vocale n'est pas disponible sur ce navigateur.\nUtilise Chrome ou Safari.");
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      alert("Accès au microphone refusé. Autorise le micro dans ton navigateur.");
       return;
     }
 
-    const recognition = new SR();
-    recognition.lang            = "fr-FR";
-    recognition.continuous      = false;
-    recognition.interimResults  = true;
+    audioChunksRef.current = [];
+    const recorder = new MediaRecorder(stream);
+    mediaRecorderRef.current = recorder;
 
-    recognition.onstart = () => setIsRecording(true);
-
-    recognition.onresult = (event: ISpeechRecognitionEvent) => {
-      // Si la ref a été annulée (sendMessage en cours), ignorer ce résultat
-      if (recognitionRef.current !== recognition) return;
-      let transcript = "";
-      for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-      setInput(transcript);
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunksRef.current.push(e.data);
     };
 
-    recognition.onend   = () => { setIsRecording(false); setVoiceReady(false); };
-    recognition.onerror = () => { setIsRecording(false); setVoiceReady(false); };
+    recorder.onstop = async () => {
+      stream.getTracks().forEach((t) => t.stop());
+      setIsRecording(false);
+      setIsTranscribing(true);
 
-    recognition.start();
-    recognitionRef.current = recognition;
+      const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+      const form = new FormData();
+      form.append("audio", blob, "enregistrement.webm");
+
+      try {
+        const res = await fetch("/api/transcribe", { method: "POST", body: form });
+        if (res.ok) {
+          const text = await res.text();
+          if (text.trim()) setInput(text.trim());
+        }
+      } catch {}
+      setIsTranscribing(false);
+    };
+
+    recorder.start();
+    setIsRecording(true);
   }
 
   // ── Chat ──────────────────────────────────────────────────────────────────
 
   async function sendMessage(quickContent?: string) {
-    // Arrête l'enregistrement — null d'abord pour ignorer les événements onresult tardifs
-    const rec = recognitionRef.current;
-    recognitionRef.current = null;
-    if (rec) rec.stop();
-    setIsRecording(false);
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
+    }
 
     const content = quickContent !== undefined ? quickContent : input;
     if ((!content.trim() && !selectedPhoto) || loading) return;
@@ -435,7 +418,6 @@ export default function Home() {
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
-    setVoiceReady(false);
     setSelectedPhoto(null);
     setLoading(true);
 
@@ -745,13 +727,22 @@ export default function Home() {
               </div>
             )}
 
-            {/* Indicateur d'enregistrement vocal */}
+            {/* Indicateur vocal */}
             {isRecording && (
               <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl"
                 style={{ background: "#FDEAEA", border: "1px solid #F0C0C0" }}>
                 <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "#D94040" }} />
                 <span className="text-xs font-medium" style={{ color: "#C03030" }}>
-                  J'écoute... Parle clairement, je transcris en temps réel.
+                  J'écoute... Appuie à nouveau sur le micro pour terminer.
+                </span>
+              </div>
+            )}
+            {isTranscribing && (
+              <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl"
+                style={{ background: "#FDF0E0", border: "1px solid #EED4AA" }}>
+                <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "#E8922A" }} />
+                <span className="text-xs font-medium" style={{ color: "#C05C2A" }}>
+                  Transcription en cours...
                 </span>
               </div>
             )}
@@ -781,12 +772,13 @@ export default function Home() {
               <button type="button"
                 className="flex-shrink-0 mb-0.5 p-1.5 rounded-lg transition-all"
                 style={{
-                  color: isRecording ? "#D94040" : C.warmGray,
-                  background: isRecording ? "#FDEAEA" : "transparent",
+                  color: isRecording ? "#D94040" : isTranscribing ? "#E8922A" : C.warmGray,
+                  background: isRecording ? "#FDEAEA" : isTranscribing ? "#FDF0E0" : "transparent",
                   borderRadius: "8px",
                 }}
                 title={isRecording ? "Arrêter l'enregistrement" : "Parler au lieu d'écrire"}
-                onClick={toggleVoice}>
+                onClick={toggleVoice}
+                disabled={isTranscribing}>
                 <IconMic recording={isRecording} />
               </button>
               <textarea
@@ -795,8 +787,10 @@ export default function Home() {
                 style={{ color: C.charcoal, minHeight: "24px", maxHeight: "120px", lineHeight: "1.5" }}
                 rows={1}
                 placeholder={
-                  isRecording
-                    ? "Je transcris ce que tu dis..."
+                  isTranscribing
+                    ? "Transcription en cours..."
+                    : isRecording
+                    ? "Parle, puis appuie à nouveau sur le micro..."
                     : selectedPhoto
                     ? "Ajoute un commentaire (optionnel)..."
                     : "Écris ou parle 🎙️..."
