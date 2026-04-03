@@ -6,6 +6,24 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// ── Rate limiting simple en mémoire (par IP) ─────────────────────────────────
+// Max 30 messages par heure par IP. Resets au redémarrage du serveur.
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 30;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 heure
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
+
 // Initialisation lazy pour éviter l'erreur "supabaseUrl is required" au build
 function getSupabase() {
   return createClient(
@@ -56,6 +74,12 @@ function toAnthropicMessages(messages: IncomingMessage[]): Anthropic.MessagePara
 }
 
 export async function POST(req: Request) {
+  // Rate limiting
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!checkRateLimit(ip)) {
+    return new Response("Trop de messages. Réessaie dans une heure.", { status: 429 });
+  }
+
   const { messages, failles, sessionId, childName, emploiDuTemps } = (await req.json()) as {
     messages: IncomingMessage[];
     failles: Record<string, unknown>;
@@ -64,8 +88,10 @@ export async function POST(req: Request) {
     emploiDuTemps?: Record<string, string[]>;
   };
 
-  // Injecte les failles identifiées dans le system prompt
-  let systemPrompt = ARTHUR_SYSTEM_PROMPT;
+  const nom = childName || "Arthur";
+
+  // Adapte le system prompt au prénom de l'enfant
+  let systemPrompt = ARTHUR_SYSTEM_PROMPT.replaceAll("Arthur", nom);
   if (failles && typeof failles === "object" && Object.keys(failles).length > 0) {
     const faillesText = Object.entries(failles)
       .map(([mat, data]: [string, any]) => {
@@ -82,7 +108,7 @@ export async function POST(req: Request) {
 
     systemPrompt +=
       `\n\n---\n\n## FAILLES IDENTIFIÉES PAR ANALYSE DES COPIES\n\n` +
-      `Ces lacunes ont été extraites des copies réelles d'Arthur. Utilise-les comme RADAR — pas comme curriculum.\n` +
+      `Ces lacunes ont été extraites des copies réelles de ${nom}. Utilise-les comme RADAR — pas comme curriculum.\n` +
       `Ne les travaille pas hors contexte. Quand elles apparaissent naturellement pendant le devoir du moment, traite-les IN SITU.\n\n` +
       faillesText;
   }
