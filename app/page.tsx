@@ -186,6 +186,15 @@ export default function Home() {
   const fileInputRef     = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef   = useRef<Blob[]>([]);
+  const micStreamRef     = useRef<MediaStream | null>(null);
+
+  // Pré-chargement silencieux du micro pour éliminer le délai au 1er clic
+  useEffect(() => {
+    navigator.mediaDevices?.getUserMedia({ audio: true })
+      .then((stream) => { micStreamRef.current = stream; })
+      .catch(() => {}); // Permission refusée = on gère au clic
+    return () => { micStreamRef.current?.getTracks().forEach((t) => t.stop()); };
+  }, []);
 
   // Charge profil + session + tour au montage
   useEffect(() => {
@@ -359,12 +368,16 @@ export default function Home() {
       return;
     }
 
-    let stream: MediaStream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      alert("Accès au microphone refusé. Autorise le micro dans ton navigateur.");
-      return;
+    // Utilise le stream pré-chargé ou en demande un nouveau
+    let stream = micStreamRef.current;
+    if (!stream || stream.getTracks().some((t) => t.readyState === "ended")) {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micStreamRef.current = stream;
+      } catch {
+        alert("Accès au microphone refusé. Autorise le micro dans ton navigateur.");
+        return;
+      }
     }
 
     audioChunksRef.current = [];
@@ -376,7 +389,6 @@ export default function Home() {
     };
 
     recorder.onstop = async () => {
-      stream.getTracks().forEach((t) => t.stop());
       setIsRecording(false);
       setIsTranscribing(true);
 
@@ -394,7 +406,7 @@ export default function Home() {
       setIsTranscribing(false);
     };
 
-    recorder.start();
+    recorder.start(100); // chunks de 100ms pour ne pas perdre le début
     setIsRecording(true);
   }
 
