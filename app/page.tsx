@@ -1,65 +1,906 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+// ── Types Web Speech API ───────────────────────────────────────────────────────
+interface ISpeechRecognition extends EventTarget {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onstart:  (() => void) | null;
+  onend:    (() => void) | null;
+  onerror:  (() => void) | null;
+  onresult: ((e: ISpeechRecognitionEvent) => void) | null;
+  start(): void;
+  stop():  void;
+}
+interface ISpeechRecognitionResult  { [i: number]: { transcript: string }; readonly length: number; }
+interface ISpeechRecognitionResultList { [i: number]: ISpeechRecognitionResult; readonly length: number; }
+interface ISpeechRecognitionEvent extends Event { readonly results: ISpeechRecognitionResultList; }
+interface ISpeechRecognitionCtor   { new(): ISpeechRecognition; }
+
+declare global {
+  interface Window {
+    SpeechRecognition:       ISpeechRecognitionCtor;
+    webkitSpeechRecognition: ISpeechRecognitionCtor;
+  }
+}
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+  imageBase64?: string;
+  imageMimeType?: string;
+}
+
+// ── Palette ──────────────────────────────────────────────────────────────────
+const C = {
+  amber:        "#E8922A",
+  terracotta:   "#C05C2A",
+  cream:        "#FAF7F2",
+  parchment:    "#F2ECE3",
+  parchmentDark:"#EAE0D3",
+  charcoal:     "#1E1A16",
+  warmGray:     "#6B6258",
+  sage:         "#5A8A6A",
+  amberLight:   "#FDF0E0",
+  amberBorder:  "#EED4AA",
+};
+
+// ── Icônes ───────────────────────────────────────────────────────────────────
+
+function IconHome() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  );
+}
+function IconBook() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+    </svg>
+  );
+}
+function IconChat() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+  );
+}
+function IconCalendar() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+  );
+}
+function IconChart() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+  );
+}
+function IconSend() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+    </svg>
+  );
+}
+function IconPhoto() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+    </svg>
+  );
+}
+
+function IconMic({ recording }: { recording?: boolean }) {
+  return recording ? (
+    // Icône stop (carré) quand enregistrement en cours
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="6" y="6" width="12" height="12" rx="2"/>
+    </svg>
+  ) : (
+    // Icône micro
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  );
+}
+
+// ── Mascotte poulpe ───────────────────────────────────────────────────────────
+
+function Poulpe({ size = 32 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="#C05C2A" />
+      <circle cx="19" cy="18" r="2.5" fill="white" />
+      <circle cx="29" cy="18" r="2.5" fill="white" />
+      <circle cx="19.8" cy="18.5" r="1.2" fill="#1E1A16" />
+      <circle cx="29.8" cy="18.5" r="1.2" fill="#1E1A16" />
+      <path d="M14 30 Q11 36 13 40" stroke="#C05C2A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M18 32 Q16 39 18 43" stroke="#C05C2A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M24 33 Q24 40 24 44" stroke="#C05C2A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M30 32 Q32 39 30 43" stroke="#C05C2A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M34 30 Q37 36 35 40" stroke="#C05C2A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+}
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+
+const NAV = [
+  { id: "accueil",      label: "Accueil",        icon: <IconHome />,     path: "/accueil"    },
+  { id: "matieres",     label: "Mes matières",   icon: <IconBook />,     path: "/matieres"   },
+  { id: "workspace",    label: "Réviser",        icon: <IconChat />,     path: "/"           },
+  { id: "planning",     label: "Mon planning",   icon: <IconCalendar />, path: "/planning"   },
+  { id: "progression",  label: "Ma progression", icon: <IconChart />,    path: "/progression"},
+];
+
+// ── Étapes du tour ────────────────────────────────────────────────────────────
+
+const TOUR_STEPS: { target: string | null; emoji: string; title: string; message: string }[] = [
+  {
+    target: null,
+    emoji: "👋",
+    title: "Bienvenue !",
+    message: "", // rempli dynamiquement avec le prénom
+  },
+  {
+    target: "workspace",
+    emoji: "💬",
+    title: "Réviser avec moi",
+    message: "C'est ici qu'on bosse ensemble ! Tu me poses tes questions, tu m'envoies tes exercices ou une photo de ton cours — je t'explique tout, à ton rythme.",
+  },
+  {
+    target: "matieres",
+    emoji: "📚",
+    title: "Mes matières",
+    message: "Choisis ta matière ici — Maths, Français, SVT, Anglais... Tu passes de l'une à l'autre sans tout recommencer.",
+  },
+  {
+    target: "planning",
+    emoji: "📅",
+    title: "Mon planning",
+    message: "Ton planning de révisions est là, basé sur tes matières prioritaires. 2 blocs de 20 min par jour, c'est tout ce qu'il faut.",
+  },
+  {
+    target: "progression",
+    emoji: "📈",
+    title: "Ma progression",
+    message: "Tes failles identifiées dans tes copies s'accumulent ici, matière par matière. T'es meilleur(e) que tu le crois — et tu vas le voir. 💪",
+  },
+];
+
+// ── Page principale ──────────────────────────────────────────────────────────
 
 export default function Home() {
+  const router = useRouter();
+
+  const [prenom, setPrenom]   = useState("toi");
+  const [classe, setClasse]   = useState("beta");
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const [failles, setFailles] = useState<Record<string, unknown>>({});
+  const [nbFailles, setNbFailles] = useState(0);
+  const [emploiDuTemps, setEmploiDuTemps] = useState<Record<string, string[]>>({});
+  const [matieresDuJour, setMatieresDuJour] = useState<string[]>([]);
+  const [matieresDiff,   setMatieresDiff]   = useState<string[]>([]);
+  const [matiereActive,  setMatiereActive]  = useState("");
+  const [restoredSession, setRestoredSession] = useState(false);
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput]       = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<{ base64: string; mimeType: string; preview: string } | null>(null);
+  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+  const [isRecording,  setIsRecording]  = useState(false);
+  const [voiceReady,   setVoiceReady]   = useState(false); // transcript prêt mais pas encore envoyé
+  const bottomRef      = useRef<HTMLDivElement>(null);
+  const textareaRef    = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef   = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<ISpeechRecognition | null>(null);
+
+  // Charge profil + session + tour au montage
+  useEffect(() => {
+    const done = localStorage.getItem("poulpe_onboarding_done");
+    if (!done) { router.replace("/onboarding"); return; }
+
+    const p = localStorage.getItem("poulpe_prenom") || "";
+    const profileRaw = localStorage.getItem("poulpe_profile");
+    const profile = profileRaw ? JSON.parse(profileRaw) : null;
+
+    if (p) setPrenom(p);
+    if (profile?.parent?.pClasse) setClasse(profile.parent.pClasse);
+    if (profile?.parent?.pMatieresDiff) {
+      setMatieresDiff(profile.parent.pMatieresDiff.filter((m: string) => m !== "__autre__"));
+    }
+
+    // Charge l'emploi du temps
+    const edtRaw = localStorage.getItem("poulpe_emploi_du_temps");
+    let edtParsed: Record<string, string[]> = {};
+    if (edtRaw) { try { edtParsed = JSON.parse(edtRaw); } catch {} }
+    setEmploiDuTemps(edtParsed);
+
+    // Cours d'aujourd'hui depuis l'EDT
+    const JOURS_MAP: Record<number, string> = {
+      1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi",
+    };
+    const todayKey  = JOURS_MAP[new Date().getDay()] || "";
+    const coursJour = todayKey ? (edtParsed[todayKey] || []) : [];
+    setMatieresDuJour(coursJour);
+
+    // Matière active sélectionnée depuis /matieres ou /accueil
+    const matActive = localStorage.getItem("poulpe_matiere_active") || "";
+    if (matActive) setMatiereActive(matActive);
+
+    // Charge les failles
+    const f = localStorage.getItem("poulpe_failles");
+    if (f) {
+      try {
+        const parsed = JSON.parse(f);
+        setFailles(parsed);
+        const total = Object.values(parsed).reduce((s: number, m: any) => s + (m.failles?.length || 0), 0);
+        setNbFailles(total as number);
+      } catch {}
+    }
+
+    // Tente de restaurer la session précédente pour cette matière
+    const chatKey = `poulpe_chat_${matActive || "general"}`;
+    const savedChatRaw = localStorage.getItem(chatKey);
+    let restoredMsgs: Message[] = [];
+    if (savedChatRaw) {
+      try {
+        const parsed = JSON.parse(savedChatRaw);
+        if (Array.isArray(parsed) && parsed.length >= 2) restoredMsgs = parsed;
+      } catch {}
+    }
+
+    const nom = p || "";
+
+    if (restoredMsgs.length >= 2) {
+      // Restaure la conversation précédente
+      setRestoredSession(true);
+      setMessages(restoredMsgs);
+    } else {
+      // Nouvelle session — message d'accueil contextuel selon matière + EDT
+      let firstMsg: string;
+      if (matActive) {
+        firstMsg = nom
+          ? `Salut ${nom} ! On travaille sur **${matActive}** — t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷`
+          : `Salut ! On travaille sur **${matActive}** — t'as quoi comme exercice ?`;
+      } else if (coursJour.length > 0) {
+        const liste = coursJour.join(", ");
+        firstMsg = nom
+          ? `Salut ${nom} ! Aujourd'hui t'avais ${liste}.\nPar laquelle tu veux commencer ?`
+          : `Salut ! Aujourd'hui t'avais ${liste}.\nPar laquelle tu veux commencer ?`;
+      } else {
+        firstMsg = nom
+          ? `Salut ${nom} ! T'as quoi comme devoirs ce soir ?\nDis-moi la matière, ou envoie-moi direct une photo de l'exercice 📷`
+          : `Salut ! T'as quoi comme devoirs ce soir ?\nDis-moi la matière, ou envoie-moi direct une photo de l'exercice 📷`;
+      }
+      setMessages([{ role: "assistant", content: firstMsg }]);
+    }
+
+    // Lance le tour si c'est la première connexion
+    if (localStorage.getItem("poulpe_tour_pending")) {
+      setTourStep(0);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  }, [input]);
+
+  // Sauvegarde automatique de la conversation (dès 2 messages échangés)
+  useEffect(() => {
+    if (messages.length <= 1) return;
+    // Ne sauvegarde pas si le Poulpe est encore en train de répondre (message vide)
+    const last = messages[messages.length - 1];
+    if (last?.role === "assistant" && !last.content) return;
+    const key = `poulpe_chat_${matiereActive || "general"}`;
+    const toSave = messages.slice(-60).map((m) => ({ role: m.role, content: m.content }));
+    try { localStorage.setItem(key, JSON.stringify(toSave)); } catch {}
+  }, [messages, matiereActive]);
+
+  // ── Tour ──────────────────────────────────────────────────────────────────
+
+  function nextTourStep() {
+    if (tourStep === null) return;
+    if (tourStep >= TOUR_STEPS.length - 1) {
+      finishTour();
+    } else {
+      setTourStep(tourStep + 1);
+    }
+  }
+
+  function finishTour() {
+    localStorage.removeItem("poulpe_tour_pending");
+    setTourStep(null);
+  }
+
+  function newSession() {
+    const key = `poulpe_chat_${matiereActive || "general"}`;
+    localStorage.removeItem(key);
+    setRestoredSession(false);
+    const nom = prenom;
+    let firstMsg: string;
+    if (matiereActive) {
+      firstMsg = nom
+        ? `Nouvelle session ! Salut ${nom} — on repart sur **${matiereActive}**. T'as quoi comme exercice ?`
+        : `Nouvelle session ${matiereActive} — t'as quoi comme exercice ?`;
+    } else {
+      firstMsg = nom
+        ? `Nouvelle session ! Salut ${nom} — t'as quoi comme devoirs ce soir ?`
+        : `Nouvelle session — t'as quoi comme devoirs ce soir ?`;
+    }
+    setMessages([{ role: "assistant", content: firstMsg }]);
+  }
+
+  const tourActive      = tourStep !== null;
+  const tourTargetId    = tourActive ? TOUR_STEPS[tourStep].target : null;
+
+  // ── Photo ─────────────────────────────────────────────────────────────────
+
+  function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.split(",")[1];
+      const mimeType = file.type || "image/jpeg";
+      setSelectedPhoto({ base64, mimeType, preview: dataUrl });
+    };
+    reader.readAsDataURL(file);
+    // Reset input so same file can be selected again
+    e.target.value = "";
+  }
+
+  // ── Vocal ─────────────────────────────────────────────────────────────────
+
+  function toggleVoice() {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    const SR = (typeof window !== "undefined")
+      ? (window.SpeechRecognition || window.webkitSpeechRecognition)
+      : null;
+
+    if (!SR) {
+      alert("La reconnaissance vocale n'est pas disponible sur ce navigateur.\nUtilise Chrome ou Safari.");
+      return;
+    }
+
+    const recognition = new SR();
+    recognition.lang            = "fr-FR";
+    recognition.continuous      = false;
+    recognition.interimResults  = true;
+
+    recognition.onstart = () => setIsRecording(true);
+
+    recognition.onresult = (event: ISpeechRecognitionEvent) => {
+      // Si la ref a été annulée (sendMessage en cours), ignorer ce résultat
+      if (recognitionRef.current !== recognition) return;
+      let transcript = "";
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setInput(transcript);
+    };
+
+    recognition.onend   = () => { setIsRecording(false); setVoiceReady(false); };
+    recognition.onerror = () => { setIsRecording(false); setVoiceReady(false); };
+
+    recognition.start();
+    recognitionRef.current = recognition;
+  }
+
+  // ── Chat ──────────────────────────────────────────────────────────────────
+
+  async function sendMessage(quickContent?: string) {
+    // Arrête l'enregistrement — null d'abord pour ignorer les événements onresult tardifs
+    const rec = recognitionRef.current;
+    recognitionRef.current = null;
+    if (rec) rec.stop();
+    setIsRecording(false);
+
+    const content = quickContent !== undefined ? quickContent : input;
+    if ((!content.trim() && !selectedPhoto) || loading) return;
+
+    const userMessage: Message = {
+      role: "user",
+      content,
+      imageBase64: selectedPhoto?.base64,
+      imageMimeType: selectedPhoto?.mimeType,
+    };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setInput("");
+    setVoiceReady(false);
+    setSelectedPhoto(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: newMessages.map((m) => ({
+            role: m.role,
+            content: m.content,
+            imageBase64: m.imageBase64,
+            imageMimeType: m.imageMimeType,
+          })),
+          failles,
+          sessionId,
+          childName: prenom,
+          emploiDuTemps,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Erreur API");
+
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      setLoading(false);
+
+      const reader  = response.body!.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const text = decoder.decode(value);
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          return [...prev.slice(0, -1), { ...last, content: last.content + text }];
+        });
+      }
+    } catch {
+      setLoading(false);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Une erreur s'est produite. Réessaie dans un instant." },
+      ]);
+    }
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  // Message de la première étape du tour (personnalisé avec prénom)
+  const tourMessages = TOUR_STEPS.map((step, i) =>
+    i === 0
+      ? { ...step, message: `Salut ${prenom} ! Je suis Le Poulpe, ton tuteur IA. Laisse-moi te montrer comment ça marche — 30 secondes et c'est parti ! 🎉` }
+      : step
+  );
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex h-screen overflow-hidden" style={{ background: C.cream, fontFamily: '"Inter", system-ui, sans-serif', color: C.charcoal }}>
+
+      {/* ── SIDEBAR — z-50 pour passer au-dessus du tour overlay ─────────── */}
+      <aside className="relative z-50 flex flex-col w-56 flex-shrink-0 border-r"
+        style={{ background: C.parchment, borderColor: C.parchmentDark }}>
+
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 px-5 py-5 border-b" style={{ borderColor: C.parchmentDark }}>
+          <Poulpe size={34} />
+          <div>
+            <div className="font-semibold text-sm" style={{ color: C.charcoal }}>Le Poulpe</div>
+            <div className="text-[10px]" style={{ color: C.amber }}>Tuteur personnel</div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
+          {NAV.map((item) => {
+            const isTourTarget = tourActive && item.id === tourTargetId;
+            const isTourDimmed = tourActive && tourTargetId !== null && item.id !== tourTargetId;
+            const isActive = item.id === "workspace" && !tourActive;
+
+            return (
+              <button
+                key={item.id}
+                onClick={() => router.push(item.path)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
+                style={{
+                  ...(isTourTarget
+                    ? {
+                        background: C.amberLight,
+                        color: C.terracotta,
+                        fontWeight: 700,
+                        outline: `2.5px solid ${C.amber}`,
+                        outlineOffset: "2px",
+                        boxShadow: `0 0 0 4px rgba(232,146,42,0.18)`,
+                      }
+                    : isActive
+                    ? { background: C.amberLight, color: C.terracotta, fontWeight: 600 }
+                    : {
+                        color: C.warmGray,
+                        opacity: isTourDimmed ? 0.3 : 1,
+                      }),
+                }}
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+                {isTourTarget && (
+                  <span className="ml-auto text-[10px] font-bold" style={{ color: C.amber }}>←</span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Lien examens */}
+        <div className="px-3 pb-2">
+          <button
+            onClick={() => router.push("/examens")}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-colors text-left"
+            style={{ background: nbFailles > 0 ? "#FDEAEA" : C.amberLight, color: nbFailles > 0 ? "#D94040" : C.terracotta }}>
+            <span>📤</span>
+            <span className="font-medium text-xs">Mes examens</span>
+            {nbFailles > 0 && (
+              <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                style={{ background: "#D94040", color: "white" }}>
+                {nbFailles}
+              </span>
+            )}
+          </button>
         </div>
-      </main>
+
+        {/* Profil */}
+        <div className="px-4 py-4 border-t" style={{ borderColor: C.parchmentDark }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
+              style={{ background: C.amber, color: "white" }}>
+              {prenom.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div className="text-xs font-medium" style={{ color: C.charcoal }}>{prenom}</div>
+              <div className="text-[10px]" style={{ color: C.warmGray }}>{classe} · beta</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* ── CONTENU PRINCIPAL ───────────────────────────────────────────── */}
+      <div className="flex flex-col flex-1 min-w-0">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0"
+          style={{ background: C.cream, borderColor: C.parchmentDark }}>
+          <div>
+            <h1 className="font-semibold text-base" style={{ color: C.charcoal }}>Réviser</h1>
+            <p className="text-xs" style={{ color: C.warmGray }}>
+              {restoredSession ? "Session précédente reprise ↩" : "Session avec Le Poulpe"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Badge matière — cliquable pour changer */}
+            <button
+              onClick={() => router.push("/matieres")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-75"
+              style={{ background: C.amberLight, color: C.terracotta, border: `1px solid ${C.amberBorder}` }}
+            >
+              <span>🐙</span>
+              <span>{matiereActive || "Toutes matières"}</span>
+              {matiereActive && (
+                <span className="text-[10px] font-normal" style={{ color: C.warmGray }}>· changer</span>
+              )}
+            </button>
+            {/* Nouvelle session — visible dès qu'il y a une conversation */}
+            {messages.length > 1 && (
+              <button
+                onClick={newSession}
+                className="px-3 py-1.5 rounded-full text-xs font-medium transition-opacity hover:opacity-75"
+                style={{ background: C.parchment, color: C.warmGray, border: `1px solid ${C.parchmentDark}` }}
+                title="Effacer la conversation et recommencer"
+              >
+                + Nouvelle
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-6 py-6" style={{ background: C.cream }}>
+          <div className="max-w-[680px] mx-auto space-y-4">
+            {/* Bannière session restaurée */}
+            {restoredSession && (
+              <div className="flex items-center gap-3 py-1">
+                <div className="h-px flex-1" style={{ background: C.parchmentDark }} />
+                <span className="text-[11px] whitespace-nowrap" style={{ color: C.warmGray }}>
+                  ↩ Conversation précédente reprise
+                </span>
+                <div className="h-px flex-1" style={{ background: C.parchmentDark }} />
+              </div>
+            )}
+            {messages.map((msg, i) => (
+              <div key={i} className={`flex items-end gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                {msg.role === "assistant" && (
+                  <div className="flex-shrink-0 mb-1"><Poulpe size={26} /></div>
+                )}
+                <div className="max-w-sm md:max-w-lg flex flex-col gap-1.5" style={{ alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                  {/* Photo si présente */}
+                  {msg.imageBase64 && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`data:${msg.imageMimeType || "image/jpeg"};base64,${msg.imageBase64}`}
+                      alt="Photo envoyée"
+                      className="rounded-2xl object-cover"
+                      style={{
+                        maxHeight: "200px",
+                        maxWidth: "260px",
+                        border: `2px solid ${C.amber}`,
+                        borderBottomRightRadius: msg.role === "user" ? 4 : undefined,
+                      }}
+                    />
+                  )}
+                  {/* Texte si présent */}
+                  {msg.content && (
+                    <div
+                      className="text-sm leading-relaxed rounded-2xl px-4 py-3"
+                      style={
+                        msg.role === "user"
+                          ? { background: C.amber, color: "white", borderBottomRightRadius: 4 }
+                          : { background: C.amberLight, color: C.charcoal, border: `1px solid ${C.amberBorder}`, borderBottomLeftRadius: 4, boxShadow: "0 1px 4px rgba(200,130,60,0.10)" }
+                      }
+                    >
+                      {msg.content}
+                    </div>
+                  )}
+                  {/* Chips de démarrage rapide — premier message seulement, avant toute réponse */}
+                  {i === 0 && msg.role === "assistant" && messages.length === 1 && !loading && (
+                    <div className="flex flex-wrap gap-2 mt-1.5">
+                      {/* Matières du jour (EDT) ou matières difficiles en fallback */}
+                      {(matieresDuJour.length > 0 ? matieresDuJour : matieresDiff.slice(0, 4)).map((mat) => (
+                        <button
+                          key={mat}
+                          onClick={() => sendMessage(mat)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-75"
+                          style={{ background: C.amberLight, border: `1px solid ${C.amberBorder}`, color: C.terracotta }}
+                        >
+                          {mat}
+                        </button>
+                      ))}
+                      {/* Chip photo */}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-75"
+                        style={{ background: C.parchment, border: `1px solid ${C.parchmentDark}`, color: C.warmGray }}
+                      >
+                        📷 Envoyer un exercice
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="flex items-end gap-2.5 justify-start">
+                <div className="flex-shrink-0 mb-1"><Poulpe size={26} /></div>
+                <div className="rounded-2xl px-4 py-3" style={{ background: C.amberLight, border: `1px solid ${C.amberBorder}`, borderBottomLeftRadius: 4 }}>
+                  <div className="flex gap-1 items-center h-4">
+                    {[0, 150, 300].map((d) => (
+                      <span key={d} className="w-2 h-2 rounded-full animate-bounce"
+                        style={{ background: C.amber, animationDelay: `${d}ms`, opacity: 0.7 }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+        </div>
+
+        {/* Saisie */}
+        <div className="px-6 py-4 border-t flex-shrink-0" style={{ background: C.parchment, borderColor: C.parchmentDark }}>
+          <div className="max-w-[680px] mx-auto">
+
+            {/* Prévisualisation photo */}
+            {selectedPhoto && (
+              <div className="mb-2 flex items-center gap-2">
+                <div className="relative inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedPhoto.preview}
+                    alt="Photo sélectionnée"
+                    className="h-16 w-auto rounded-xl object-cover"
+                    style={{ border: `2px solid ${C.amber}` }}
+                  />
+                  <button
+                    onClick={() => setSelectedPhoto(null)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                    style={{ background: C.terracotta }}
+                  >
+                    ×
+                  </button>
+                </div>
+                <span className="text-xs" style={{ color: C.warmGray }}>Photo prête à envoyer</span>
+              </div>
+            )}
+
+            {/* Indicateur d'enregistrement vocal */}
+            {isRecording && (
+              <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl"
+                style={{ background: "#FDEAEA", border: "1px solid #F0C0C0" }}>
+                <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "#D94040" }} />
+                <span className="text-xs font-medium" style={{ color: "#C03030" }}>
+                  J'écoute... Parle clairement, je transcris en temps réel.
+                </span>
+              </div>
+            )}
+
+            <div className="flex gap-2 items-end rounded-2xl px-3 py-2.5"
+              style={{
+                background: C.cream,
+                border: `1.5px solid ${isRecording ? "#D94040" : selectedPhoto ? C.amber : C.amberBorder}`,
+              }}>
+              {/* Input file caché */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoSelect}
+              />
+              {/* Bouton photo */}
+              <button type="button"
+                className="flex-shrink-0 mb-0.5 p-1.5 rounded-lg transition-opacity hover:opacity-60"
+                style={{ color: selectedPhoto ? C.terracotta : C.amber }}
+                title="Envoyer une photo"
+                onClick={() => fileInputRef.current?.click()}>
+                <IconPhoto />
+              </button>
+              {/* Bouton micro */}
+              <button type="button"
+                className="flex-shrink-0 mb-0.5 p-1.5 rounded-lg transition-all"
+                style={{
+                  color: isRecording ? "#D94040" : C.warmGray,
+                  background: isRecording ? "#FDEAEA" : "transparent",
+                  borderRadius: "8px",
+                }}
+                title={isRecording ? "Arrêter l'enregistrement" : "Parler au lieu d'écrire"}
+                onClick={toggleVoice}>
+                <IconMic recording={isRecording} />
+              </button>
+              <textarea
+                ref={textareaRef}
+                className="flex-1 resize-none bg-transparent text-sm outline-none"
+                style={{ color: C.charcoal, minHeight: "24px", maxHeight: "120px", lineHeight: "1.5" }}
+                rows={1}
+                placeholder={
+                  isRecording
+                    ? "Je transcris ce que tu dis..."
+                    : selectedPhoto
+                    ? "Ajoute un commentaire (optionnel)..."
+                    : "Écris ou parle 🎙️..."
+                }
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+              <button onClick={() => sendMessage()} disabled={(!input.trim() && !selectedPhoto) || loading}
+                className="flex-shrink-0 mb-0.5 w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+                style={{ background: (input.trim() || selectedPhoto) && !loading ? C.amber : C.parchmentDark, color: "white" }}>
+                <IconSend />
+              </button>
+            </div>
+            <p className="text-[11px] text-center mt-2" style={{ color: "#B8A898" }}>
+              Entrée pour envoyer · Shift+Entrée pour nouvelle ligne · 🎙️ pour parler
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Poulpe flottant décoratif */}
+      {!tourActive && (
+        <div className="fixed bottom-6 right-6 pointer-events-none" style={{ opacity: 0.15 }}>
+          <Poulpe size={48} />
+        </div>
+      )}
+
+      {/* ── TOUR OVERLAY ──────────────────────────────────────────────────── */}
+      {tourActive && (
+        <>
+          {/* Fond sombre — z-40, sous la sidebar (z-50) */}
+          <div
+            className="fixed inset-0"
+            style={{ background: "rgba(30, 26, 22, 0.68)", zIndex: 40 }}
+          />
+
+          {/* Bulle du tour — z-60, au-dessus de tout */}
+          <div
+            className="fixed left-1/2 -translate-x-1/2 w-full px-4"
+            style={{ bottom: "40px", zIndex: 60, maxWidth: "420px" }}
+          >
+            <div
+              className="rounded-3xl p-5 space-y-4"
+              style={{
+                background: C.cream,
+                border: `2px solid ${C.amber}`,
+                boxShadow: "0 12px 40px rgba(200,120,50,0.28)",
+              }}
+            >
+              {/* Indicateur de progression */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  {TOUR_STEPS.map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-1.5 rounded-full transition-all duration-300"
+                      style={{
+                        width: i === tourStep ? "20px" : "6px",
+                        background: i === tourStep ? C.amber : i < tourStep! ? C.terracotta : C.parchmentDark,
+                      }}
+                    />
+                  ))}
+                  <span className="ml-1 text-[10px]" style={{ color: C.warmGray }}>
+                    {tourStep! + 1} / {TOUR_STEPS.length}
+                  </span>
+                </div>
+                <button
+                  onClick={finishTour}
+                  className="text-xs px-2 py-1 rounded-lg transition-opacity hover:opacity-60"
+                  style={{ color: C.warmGray }}
+                >
+                  Passer
+                </button>
+              </div>
+
+              {/* Poulpe + message */}
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  <Poulpe size={42} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold mb-1.5" style={{ color: C.terracotta }}>
+                    {tourMessages[tourStep!].emoji} {tourMessages[tourStep!].title}
+                  </p>
+                  <p className="text-sm leading-relaxed" style={{ color: C.charcoal }}>
+                    {tourMessages[tourStep!].message}
+                  </p>
+                </div>
+              </div>
+
+              {/* Bouton suivant */}
+              <button
+                onClick={nextTourStep}
+                className="w-full py-3 rounded-2xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                style={{ background: tourStep! < TOUR_STEPS.length - 1 ? C.amber : C.terracotta }}
+              >
+                {tourStep! < TOUR_STEPS.length - 1 ? "Suivant →" : "🚀 C'est parti !"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
     </div>
   );
 }
