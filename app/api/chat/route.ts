@@ -6,10 +6,13 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Initialisation lazy pour éviter l'erreur "supabaseUrl is required" au build
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
 type IncomingMessage = {
   role: "user" | "assistant";
@@ -113,7 +116,7 @@ export async function POST(req: Request) {
   // Sauvegarde le dernier message utilisateur dans Supabase
   const lastMessage = messages[messages.length - 1];
   if (lastMessage?.role === "user" && sessionId) {
-    await supabase.from("messages").insert({
+    await getSupabase().from("messages").insert({
       session_id: sessionId,
       role: "user",
       content: lastMessage.content || "(photo)",
@@ -147,7 +150,7 @@ export async function POST(req: Request) {
 
       // Sauvegarde la réponse du Poulpe dans Supabase après le stream
       if (sessionId && fullResponse) {
-        await supabase.from("messages").insert({
+        await getSupabase().from("messages").insert({
           session_id: sessionId,
           role: "assistant",
           content: fullResponse,
