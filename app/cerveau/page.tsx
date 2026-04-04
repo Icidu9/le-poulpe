@@ -2,14 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import Sidebar from "../components/Sidebar";
-
-const BrainViewer = dynamic(() => import("../accueil/BrainViewer"), { ssr: false, loading: () => (
-  <div style={{ width: "100%", height: "380px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-    <div style={{ width: 36, height: 36, border: "2px solid rgba(232,146,42,0.3)", borderTopColor: "#E8922A", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
-  </div>
-) });
+import BrainCerveau from "./BrainCerveau";
 
 // ── Region descriptions ───────────────────────────────────────────────────────
 const REGIONS = [
@@ -161,16 +155,12 @@ export default function CerveauPage() {
             <p className="text-sm mt-1" style={{ color: textSub }}>{subtitle}</p>
           </div>
 
-          {/* ── 3D Brain Viewer ───────────────────────────────────────── */}
+          {/* ── Brain SVG ─────────────────────────────────────────────── */}
           <div
             className="rounded-3xl overflow-hidden"
             style={{ ...glass, height: "380px" }}
           >
-            <BrainViewer
-              activeSubjects={workedSubjects}
-              mode="modal"
-              intensityScale={intensityScale}
-            />
+            <BrainCerveau activeSubjects={workedSubjects} isDark={isDark} />
           </div>
 
           {/* ── Region list ───────────────────────────────────────────── */}
@@ -264,11 +254,6 @@ export default function CerveauPage() {
         </div>
       </div>
 
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
