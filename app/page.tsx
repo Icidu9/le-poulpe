@@ -124,7 +124,7 @@ const NAV = [
   { id: "matieres",     label: "Mes matières",   icon: <IconBook />,     path: "/matieres"   },
   { id: "workspace",    label: "Réviser",        icon: <IconChat />,     path: "/"           },
   { id: "planning",     label: "Mon planning",   icon: <IconCalendar />, path: "/planning"   },
-  { id: "progression",  label: "Ce que je travaille", icon: <IconChart />,    path: "/progression"},
+  { id: "progression",  label: "Ma progression", icon: <IconChart />,    path: "/progression"},
 ];
 
 // ── Étapes du tour ────────────────────────────────────────────────────────────
@@ -157,7 +157,7 @@ const TOUR_STEPS: { target: string | null; emoji: string; title: string; message
   {
     target: "progression",
     emoji: "📈",
-    title: "Ce que je travaille",
+    title: "Ma progression",
     message: "Les points qu'on a repérés dans tes copies s'affichent ici, matière par matière. C'est ton radar — pas un jugement, juste ce sur quoi on va travailler ensemble. 💪",
   },
 ];

@@ -114,7 +114,7 @@ export default function ProgressionPage() {
 
           {/* En-tête */}
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: C.charcoal }}>Ce que je travaille</h1>
+            <h1 className="text-2xl font-bold" style={{ color: C.charcoal }}>Ma progression</h1>
             <p className="text-sm mt-1" style={{ color: C.warmGray }}>
               Les points identifiés dans tes copies — matière par matière.
             </p>
