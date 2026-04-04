@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+// Sauvegarde l'email dans un cookie persistant (1 an) — survit au vidage du localStorage par Safari
+function setEmailCookie(email: string) {
+  const expires = new Date();
+  expires.setFullYear(expires.getFullYear() + 1);
+  document.cookie = `poulpe_email=${encodeURIComponent(email)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+}
+
 const C = {
   amber:      "#E8922A",
   terracotta: "#C05C2A",
@@ -418,7 +425,7 @@ export default function Onboarding() {
     const emailToSave = microEmailParent.trim() || localStorage.getItem("poulpe_beta_email") || "";
     if (emailToSave) {
       localStorage.setItem("poulpe_parent_email", emailToSave);
-      // Sauvegarde le profil dans Supabase pour récupération multi-appareils
+      setEmailCookie(emailToSave);
       fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -473,6 +480,7 @@ export default function Onboarding() {
     localStorage.setItem("poulpe_tour_pending", "true");
     const email = localStorage.getItem("poulpe_parent_email") || localStorage.getItem("poulpe_beta_email") || "";
     if (email) {
+      setEmailCookie(email);
       fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -355,7 +355,16 @@ export default function MatieresPage() {
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
-    if (!done) { router.replace("/onboarding"); return; }
+    if (!done) {
+      const cookieEmail = document.cookie.split("; ").find(r => r.startsWith("poulpe_email="))?.split("=")[1];
+      if (cookieEmail) {
+        localStorage.setItem("poulpe_onboarding_done", "true");
+        localStorage.setItem("poulpe_parent_email", decodeURIComponent(cookieEmail));
+      } else {
+        router.replace("/onboarding");
+        return;
+      }
+    }
 
     const savedTheme = localStorage.getItem("poulpe_theme") as "dark" | "light" | null;
     if (savedTheme) setTheme(savedTheme);

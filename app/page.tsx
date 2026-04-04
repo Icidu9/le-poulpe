@@ -221,7 +221,20 @@ export default function Home() {
   // Charge profil + session + tour au montage
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
-    if (!done) { router.replace("/onboarding"); return; }
+    if (!done) {
+      // Safari peut vider le localStorage — vérifier le cookie email persistant
+      const cookieEmail = document.cookie.split("; ").find(r => r.startsWith("poulpe_email="))?.split("=")[1];
+      if (cookieEmail) {
+        // Utilisateur connu : restaurer depuis Supabase et continuer sans onboarding
+        const email = decodeURIComponent(cookieEmail);
+        localStorage.setItem("poulpe_onboarding_done", "true");
+        localStorage.setItem("poulpe_parent_email", email);
+        // Le reste du useEffect va restaurer profil/prenom/failles depuis Supabase ci-dessous
+      } else {
+        router.replace("/onboarding");
+        return;
+      }
+    }
 
     setIsDark(localStorage.getItem("poulpe_theme") === "dark");
 
