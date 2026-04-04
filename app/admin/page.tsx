@@ -22,16 +22,30 @@ type Family = {
   created_at: string;
 };
 
+type BetaRequest = {
+  id: string;
+  parent_name: string;
+  email: string;
+  child_name: string | null;
+  child_class: string | null;
+  message: string | null;
+  status: string;
+  created_at: string;
+};
+
 export default function AdminPage() {
   const [adminKey, setAdminKey]       = useState("");
   const [authed, setAuthed]           = useState(false);
   const [authError, setAuthError]     = useState(false);
   const [families, setFamilies]       = useState<Family[]>([]);
+  const [requests, setRequests]       = useState<BetaRequest[]>([]);
   const [loading, setLoading]         = useState(false);
   const [email, setEmail]             = useState("");
   const [familyName, setFamilyName]   = useState("");
   const [sending, setSending]         = useState(false);
   const [lastResult, setLastResult]   = useState<{ ok: boolean; code?: string; msg?: string } | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
 
   const loadFamilies = useCallback(async (key: string) => {
     const res = await fetch("/api/families", {
@@ -43,13 +57,23 @@ export default function AdminPage() {
     if (data.families) setFamilies(data.families);
   }, []);
 
+  const loadRequests = useCallback(async (key: string) => {
+    const res = await fetch("/api/beta-requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ adminKey: key }),
+    });
+    const data = await res.json();
+    if (data.requests) setRequests(data.requests);
+  }, []);
+
   useEffect(() => {
     const saved = sessionStorage.getItem("poulpe_admin_key");
     if (saved) {
       setAdminKey(saved);
-      loadFamilies(saved).then(() => setAuthed(true)).catch(() => {});
+      Promise.all([loadFamilies(saved), loadRequests(saved)]).then(() => setAuthed(true)).catch(() => {});
     }
-  }, [loadFamilies]);
+  }, [loadFamilies, loadRequests]);
 
   async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
@@ -64,6 +88,7 @@ export default function AdminPage() {
       setAuthed(true);
       setFamilies(data.families);
       sessionStorage.setItem("poulpe_admin_key", adminKey);
+      loadRequests(adminKey);
     } else {
       setAuthError(true);
     }
@@ -105,6 +130,40 @@ export default function AdminPage() {
     await loadFamilies(adminKey);
   }
 
+  async function approveRequest(req: BetaRequest) {
+    setApprovingId(req.id);
+    try {
+      const res = await fetch("/api/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: req.email,
+          familyName: req.parent_name,
+          adminKey,
+          requestId: req.id,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        await Promise.all([loadFamilies(adminKey), loadRequests(adminKey)]);
+      }
+    } catch {}
+    setApprovingId(null);
+  }
+
+  async function rejectRequest(id: string) {
+    setRejectingId(id);
+    try {
+      await fetch("/api/beta-requests", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminKey, id }),
+      });
+      await loadRequests(adminKey);
+    } catch {}
+    setRejectingId(null);
+  }
+
   if (!authed) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6" style={{ background: C.cream }}>
@@ -144,8 +203,11 @@ export default function AdminPage() {
 
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: C.charcoal }}>🐙 Familles bêta</h1>
-            <p className="text-sm mt-1" style={{ color: C.warmGray }}>{families.length} famille{families.length > 1 ? "s" : ""} inscrite{families.length > 1 ? "s" : ""}</p>
+            <h1 className="text-2xl font-bold" style={{ color: C.charcoal }}>🐙 Admin Le Poulpe</h1>
+            <p className="text-sm mt-1" style={{ color: C.warmGray }}>
+              {requests.length > 0 && <span style={{ color: C.amber, fontWeight: 600 }}>{requests.length} demande{requests.length > 1 ? "s" : ""} en attente · </span>}
+              {families.length} famille{families.length > 1 ? "s" : ""} inscrite{families.length > 1 ? "s" : ""}
+            </p>
           </div>
           <button
             onClick={() => { sessionStorage.removeItem("poulpe_admin_key"); setAuthed(false); }}
@@ -156,15 +218,71 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* Formulaire invitation */}
+        {/* Demandes en attente */}
+        {requests.length > 0 && (
+          <div className="rounded-2xl overflow-hidden" style={{ border: `2px solid ${C.amber}` }}>
+            <div className="px-5 py-4" style={{ background: "#FDF0E0", borderBottom: `1px solid #EED4AA` }}>
+              <h2 className="text-base font-semibold" style={{ color: C.charcoal }}>
+                Demandes en attente
+                <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: C.amber, color: "white" }}>{requests.length}</span>
+              </h2>
+            </div>
+            <div style={{ background: "white" }}>
+              {requests.map((r, i) => (
+                <div
+                  key={r.id}
+                  className="px-5 py-4"
+                  style={{ borderTop: i > 0 ? `1px solid ${C.parchmentDark}` : "none" }}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold" style={{ color: C.charcoal }}>{r.parent_name}</p>
+                      <p className="text-xs mt-0.5" style={{ color: C.warmGray }}>{r.email}</p>
+                      {(r.child_name || r.child_class) && (
+                        <p className="text-xs mt-1" style={{ color: C.warmGray }}>
+                          {r.child_name && <span>Enfant : <strong>{r.child_name}</strong></span>}
+                          {r.child_name && r.child_class && " · "}
+                          {r.child_class && <span>Classe : <strong>{r.child_class}</strong></span>}
+                        </p>
+                      )}
+                      {r.message && (
+                        <p className="text-xs mt-2 italic" style={{ color: C.warmGray, lineHeight: 1.5 }}>"{r.message}"</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0 mt-0.5">
+                      <button
+                        onClick={() => rejectRequest(r.id)}
+                        disabled={rejectingId === r.id || approvingId === r.id}
+                        className="text-xs px-3 py-1.5 rounded-lg disabled:opacity-40"
+                        style={{ color: C.red, background: "#FDF0E0", border: `1px solid #EED4AA` }}
+                      >
+                        {rejectingId === r.id ? "..." : "Refuser"}
+                      </button>
+                      <button
+                        onClick={() => approveRequest(r)}
+                        disabled={approvingId === r.id || rejectingId === r.id}
+                        className="text-xs px-3 py-1.5 rounded-lg font-semibold text-white disabled:opacity-40"
+                        style={{ background: C.sage }}
+                      >
+                        {approvingId === r.id ? "Envoi..." : "Approuver →"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Formulaire invitation manuelle */}
         <div className="rounded-2xl p-6" style={{ background: C.parchment, border: `1px solid ${C.parchmentDark}` }}>
-          <h2 className="text-base font-semibold mb-4" style={{ color: C.charcoal }}>Inviter une nouvelle famille</h2>
+          <h2 className="text-base font-semibold mb-4" style={{ color: C.charcoal }}>Inviter une famille manuellement</h2>
           <form onSubmit={handleInvite} className="space-y-3">
             <input
               type="text"
               value={familyName}
               onChange={(e) => setFamilyName(e.target.value)}
-              placeholder="Nom de la famille (ex: Famille Martin)"
+              placeholder="Nom du parent (ex: Marie Dupont)"
               className="w-full px-4 py-3 rounded-xl text-sm outline-none"
               style={{ background: "white", border: `1.5px solid ${C.parchmentDark}`, color: C.charcoal }}
             />

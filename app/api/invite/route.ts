@@ -75,10 +75,11 @@ function buildInviteEmail(familyName: string, email: string, code: string, appUr
 
 export async function POST(req: Request) {
   // Vérification clé admin
-  const { email, familyName, adminKey } = (await req.json()) as {
+  const { email, familyName, adminKey, requestId } = (await req.json()) as {
     email: string;
     familyName: string;
     adminKey: string;
+    requestId?: string;
   };
 
   if (adminKey !== process.env.ADMIN_KEY) {
@@ -126,6 +127,14 @@ export async function POST(req: Request) {
       subject: "Votre accès bêta Le Poulpe 🐙",
       html,
     });
+  }
+
+  // Si cette invitation vient d'une demande, marque-la comme approuvée
+  if (requestId) {
+    void getSupabase()
+      .from("beta_requests")
+      .update({ status: "approved" })
+      .eq("id", requestId);
   }
 
   return Response.json({ ok: true, code });

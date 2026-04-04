@@ -5,11 +5,12 @@ const BETA_COOKIE = "poulpe_beta";
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Laisse passer la page beta, la charte, l'admin et les assets
+  // Laisse passer la page beta, la charte, l'admin, /rejoindre et les assets
   if (
     pathname.startsWith("/beta") ||
     pathname.startsWith("/charte") ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/rejoindre") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/favicon") ||
