@@ -5,135 +5,9 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Sidebar from "../components/Sidebar";
 
-const BrainViewer = dynamic(() => import("./BrainViewer"), { ssr: false, loading: () => (
-  <div style={{ width: "100%", height: "260px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-    <div style={{ width: 36, height: 36, border: "2px solid rgba(232,146,42,0.3)", borderTopColor: "#E8922A", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
-  </div>
-) });
-
-// ── Brain regions — subject → lobe mapping ────────────────────────────────────
-
-// Region defs mirrored for the legend list
-const LEGEND_REGIONS = [
-  { id: "frontal",    label: "Lobe frontal",   sublabel: "Logique & calcul",      color: "#E8922A", subjects: ["mathématiques", "physique", "chimie", "technologie"] },
-  { id: "temporal",   label: "Lobe temporal",  sublabel: "Langage & mémoire",     color: "#EC4899", subjects: ["français", "anglais", "espagnol", "allemand", "latin", "musique"] },
-  { id: "parietal",   label: "Lobe pariétal",  sublabel: "Analyse & espace",      color: "#10B981", subjects: ["sciences de la vie", "svt", "histoire", "géographie"] },
-  { id: "occipital",  label: "Lobe occipital", sublabel: "Vision",                color: "#8B5CF6", subjects: ["arts plastiques", "arts"] },
-  { id: "cerebellum", label: "Cervelet",       sublabel: "Coordination & énergie",color: "#3B82F6", subjects: ["eps", "sport"] },
-];
-
-function matchLegend(subject: string, subjects: string[]): boolean {
-  const s = subject.toLowerCase();
-  return subjects.some((r) => s.includes(r) || r.includes(s.split(" ")[0]));
-}
-
-// ── BrainModal ─────────────────────────────────────────────────────────────────
-function BrainModal({ onClose, activeSubjects }: { onClose: () => void; activeSubjects: string[] }) {
-  const hasActive = activeSubjects.length > 0;
-
-  return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ background: "rgba(6,26,38,0.85)", backdropFilter: "blur(8px)" }}
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-sm rounded-3xl overflow-hidden"
-        style={{ background: "#0B2236", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 40px 80px rgba(0,0,0,0.6)" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="px-6 pt-6 pb-2 flex items-center justify-between">
-          <div>
-            <h2 className="text-white font-bold text-base">Ton cerveau aujourd'hui</h2>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
-              {hasActive
-                ? `${activeRegions.length} zone${activeRegions.length > 1 ? "s" : ""} activée${activeRegions.length > 1 ? "s" : ""} — tourne-moi 🫳`
-                : "Tourne-moi pour explorer tes zones 🫳"}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
-            style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}
-          >✕</button>
-        </div>
-
-        {/* 3D Brain — Three.js */}
-        <div className="px-3 pb-1">
-          <BrainViewer activeSubjects={activeSubjects} />
-        </div>
-
-        {/* Region list */}
-        <div className="px-5 pb-2 space-y-1.5">
-          {LEGEND_REGIONS.map((r) => {
-            const isActive = activeSubjects.some((s) => matchLegend(s, r.subjects));
-            return (
-              <div key={r.id} className="flex items-center gap-3">
-                <div
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{
-                    background: isActive ? r.color : "rgba(255,255,255,0.12)",
-                    boxShadow: isActive ? `0 0 6px ${r.color}` : "none",
-                  }}
-                />
-                <div className="flex-1 flex items-center justify-between min-w-0">
-                  <span className="text-xs font-semibold truncate" style={{ color: isActive ? r.color : "rgba(255,255,255,0.35)" }}>
-                    {r.label}
-                  </span>
-                  <span className="text-[10px] ml-2 flex-shrink-0" style={{ color: "rgba(255,255,255,0.2)" }}>
-                    {r.sublabel}
-                  </span>
-                </div>
-                {isActive && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
-                    style={{ background: `${r.color}22`, color: r.color }}>
-                    actif
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Motivational text */}
-        <div className="mx-5 my-4 px-4 py-3 rounded-2xl" style={{ background: "rgba(232,146,42,0.08)", border: "1px solid rgba(232,146,42,0.2)" }}>
-          <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.7)" }}>
-            {hasActive
-              ? `✨ Tes neurones ont formé de nouvelles connexions aujourd'hui. Même si tu ne le sens pas encore, ton cerveau est en train de consolider ces apprentissages pendant que tu dors.`
-              : `🧠 Chaque session de révision active et renforce tes connexions neuronales. Commence à travailler pour voir ton cerveau s'allumer !`}
-          </p>
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes ping {
-          0% { transform: scale(1); opacity: 0.6; }
-          100% { transform: scale(2.5); opacity: 0; }
-        }
-      `}</style>
-    </div>
-  );
-}
+const BrainViewerBackground = dynamic(() => import("./BrainViewer"), { ssr: false, loading: () => null });
 
 // ── Design System ────────────────────────────────────────────────────────────
-const C = {
-  bg:          "#F4F9FA",
-  card:        "#FFFFFF",
-  primary:     "#E8922A",
-  primaryDark: "#C05C2A",
-  text:        "#0A2030",
-  textMid:     "#5A7A8A",
-  textLight:   "#8ABAD0",
-  border:      "#DCE9ED",
-  borderMid:   "#C8DDE5",
-  success:     "#10B981",
-  successLight:"#D1FAE5",
-  danger:      "#EF4444",
-  dangerLight: "#FEE2E2",
-};
-
-// Subject colors — vibrant, saturated
 const MAT_COLORS: Record<string, { gradient: string; light: string; text: string; border: string }> = {
   "Français":             { gradient: "linear-gradient(135deg, #EF4444, #F87171)", light: "#FEF2F2", text: "#DC2626", border: "#FECACA" },
   "Mathématiques":        { gradient: "linear-gradient(135deg, #2563EB, #60A5FA)", light: "#EFF6FF", text: "#1D4ED8", border: "#BFDBFE" },
@@ -209,24 +83,24 @@ function Poulpe({ size = 56 }: { size?: number }) {
 }
 
 // ── Quick Action Card ─────────────────────────────────────────────────────────
-function QuickCard({ emoji, label, sub, onClick, accent }: {
-  emoji: string; label: string; sub: string; onClick: () => void; accent?: string;
+function QuickCard({ emoji, label, sub, onClick, accent, glass }: {
+  emoji: string; label: string; sub: string; onClick: () => void; accent?: string; glass: React.CSSProperties;
 }) {
   return (
     <button
       onClick={onClick}
       className="flex items-center gap-3 p-4 rounded-2xl text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
-      style={{ background: C.card, border: `1px solid ${C.border}`, boxShadow: "0 1px 8px rgba(15,23,42,0.06)" }}
+      style={glass}
     >
       <span
         className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-        style={{ background: accent ? `${accent}15` : "#F1F5F9" }}
+        style={{ background: accent ? `${accent}20` : "rgba(255,255,255,0.1)" }}
       >
         {emoji}
       </span>
       <div className="min-w-0">
-        <p className="font-semibold text-sm" style={{ color: C.text }}>{label}</p>
-        <p className="text-[11px] mt-0.5 truncate" style={{ color: C.textMid }}>{sub}</p>
+        <p className="font-semibold text-sm" style={{ color: "inherit" }}>{label}</p>
+        <p className="text-[11px] mt-0.5 truncate opacity-60">{sub}</p>
       </div>
     </button>
   );
@@ -244,12 +118,16 @@ export default function AccueilPage() {
   const [flashCount,   setFlashCount]   = useState(0);
   const [lastMatiere,  setLastMatiere]  = useState("");
   const [hasSession,   setHasSession]   = useState(false);
-  const [showBrain,    setShowBrain]    = useState(false);
   const [workedSubjects, setWorkedSubjects] = useState<string[]>([]);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
     if (!done) { router.replace("/onboarding"); return; }
+
+    // Read theme
+    const savedTheme = localStorage.getItem("poulpe_theme") as "dark" | "light" | null;
+    if (savedTheme) setTheme(savedTheme);
 
     const p = localStorage.getItem("poulpe_prenom") || "";
     if (p) setPrenom(p);
@@ -307,56 +185,96 @@ export default function AccueilPage() {
     }
   }, [router]);
 
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    localStorage.setItem("poulpe_theme", next);
+  };
+
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
   const dateStr = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   const dateCap = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
-  // XP gamification (computed from activity)
+  // XP gamification
   const xp = sessionCount * 50 + flashCount * 5 + streak * 20;
   const level = Math.floor(xp / 300) + 1;
   const xpInLevel = xp % 300;
   const xpToNext = 300;
   const xpPct = Math.min(100, Math.round((xpInLevel / xpToNext) * 100));
+  const intensityScale = Math.min(1, Math.max(0.2, level * 0.2));
 
   const streakEmoji = streak >= 14 ? "🔥" : streak >= 7 ? "⚡" : streak >= 3 ? "✨" : "📅";
-  const streakColor = streak >= 7 ? "#F97316" : streak >= 3 ? "#8B5CF6" : C.textMid;
+
+  // ── Theme tokens ──────────────────────────────────────────────────────────
+  const isDark = theme === "dark";
+  const bgColor = isDark ? "#030D18" : "#EBF4F8";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
+  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
+  const glass: React.CSSProperties = isDark
+    ? { background: "rgba(6,26,38,0.55)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.08)" }
+    : { background: "rgba(255,255,255,0.62)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.5)" };
+  const streakColor = streak >= 7 ? "#F97316" : streak >= 3 ? "#8B5CF6" : textSub;
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: C.bg, fontFamily: '"Inter", system-ui, sans-serif' }}>
-      {showBrain && <BrainModal onClose={() => setShowBrain(false)} activeSubjects={workedSubjects} />}
-      <Sidebar />
+    <div className="flex h-screen overflow-hidden" style={{ fontFamily: '"Inter", system-ui, sans-serif', position: "relative", background: bgColor }}>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* ── Brain background (absolute, z-0) ──────────────────────── */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+        <BrainViewerBackground
+          activeSubjects={workedSubjects}
+          mode="background"
+          intensityScale={intensityScale}
+        />
+      </div>
+
+      {/* ── Sidebar ───────────────────────────────────────────────── */}
+      <div style={{ position: "relative", zIndex: 50, flexShrink: 0 }}>
+        <Sidebar />
+      </div>
+
+      {/* ── Main content ──────────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto" style={{ position: "relative", zIndex: 10 }}>
         <div className="max-w-lg mx-auto px-6 py-7 space-y-6">
 
           {/* ── Header ─────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-medium" style={{ color: C.textLight }}>{dateCap}</p>
-              <h1 className="text-2xl font-bold mt-0.5 tracking-tight" style={{ color: C.text }}>
+              <p className="text-xs font-medium" style={{ color: textSub }}>{dateCap}</p>
+              <h1 className="text-2xl font-bold mt-0.5 tracking-tight" style={{ color: textMain }}>
                 {greeting}, {prenom} 👋
               </h1>
             </div>
-            {/* Streak badge */}
-            <div
-              className="flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl flex-shrink-0"
-              style={{
-                background: streak >= 3 ? "rgba(249,115,22,0.1)" : C.card,
-                border: `1.5px solid ${streak >= 3 ? "rgba(249,115,22,0.3)" : C.border}`,
-              }}
-            >
-              <span className="text-xl">{streakEmoji}</span>
-              <p className="text-base font-bold leading-none" style={{ color: streakColor }}>{streak}</p>
-              <p className="text-[9px] font-medium" style={{ color: C.textLight }}>jours</p>
+            <div className="flex items-center gap-2">
+              {/* Streak badge */}
+              <div
+                className="flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl flex-shrink-0"
+                style={{
+                  ...glass,
+                  border: streak >= 3 ? "1.5px solid rgba(249,115,22,0.3)" : glass.border,
+                }}
+              >
+                <span className="text-xl">{streakEmoji}</span>
+                <p className="text-base font-bold leading-none" style={{ color: streakColor }}>{streak}</p>
+                <p className="text-[9px] font-medium" style={{ color: textSub }}>jours</p>
+              </div>
+              {/* Theme toggle */}
+              <button
+                onClick={toggleTheme}
+                className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg transition-all hover:scale-110 active:scale-95 flex-shrink-0"
+                style={glass}
+                title={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
+              >
+                {isDark ? "🌙" : "☀️"}
+              </button>
             </div>
           </div>
 
           {/* ── Level / XP bar ─────────────────────────────────────── */}
           <button
             className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all hover:scale-[1.01] active:scale-[0.99] text-left"
-            style={{ background: C.card, border: `1px solid ${C.border}`, boxShadow: "0 1px 8px rgba(15,23,42,0.04)" }}
-            onClick={() => setShowBrain(true)}
+            style={glass}
+            onClick={() => router.push("/cerveau")}
             title="Voir ton cerveau"
           >
             <div
@@ -367,10 +285,10 @@ export default function AccueilPage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1.5">
-                <p className="text-xs font-semibold" style={{ color: C.text }}>Niveau {level}</p>
-                <p className="text-[10px] font-medium" style={{ color: C.textMid }}>{xp} XP</p>
+                <p className="text-xs font-semibold" style={{ color: textMain }}>Niveau {level}</p>
+                <p className="text-[10px] font-medium" style={{ color: textSub }}>{xp} XP</p>
               </div>
-              <div className="h-2 rounded-full overflow-hidden" style={{ background: "#F1F5F9" }}>
+              <div className="h-2 rounded-full overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}>
                 <div
                   className="h-full rounded-full transition-all duration-700"
                   style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #E8922A, #F5A552)" }}
@@ -378,8 +296,8 @@ export default function AccueilPage() {
               </div>
             </div>
             <div className="flex flex-col items-center flex-shrink-0">
-              <p className="text-[10px]" style={{ color: C.textLight }}>+{xpToNext - xpInLevel} XP</p>
-              <p className="text-[9px] mt-0.5" style={{ color: "rgba(232,146,42,0.6)" }}>🧠 voir</p>
+              <p className="text-[10px]" style={{ color: textSub }}>+{xpToNext - xpInLevel} XP</p>
+              <p className="text-[9px] mt-0.5" style={{ color: "rgba(232,146,42,0.8)" }}>🧠 cerveau</p>
             </div>
           </button>
 
@@ -422,11 +340,11 @@ export default function AccueilPage() {
               <div
                 key={s.label}
                 className="rounded-2xl p-4 text-center"
-                style={{ background: C.card, border: `1px solid ${C.border}`, boxShadow: "0 1px 6px rgba(15,23,42,0.05)" }}
+                style={glass}
               >
                 <p className="text-2xl">{s.icon}</p>
-                <p className="text-2xl font-bold mt-1.5 tracking-tight" style={{ color: C.text }}>{s.value}</p>
-                <p className="text-[11px] mt-0.5 font-medium" style={{ color: C.textMid }}>{s.label}</p>
+                <p className="text-2xl font-bold mt-1.5 tracking-tight" style={{ color: textMain }}>{s.value}</p>
+                <p className="text-[11px] mt-0.5 font-medium" style={{ color: textSub }}>{s.label}</p>
               </div>
             ))}
           </div>
@@ -435,10 +353,10 @@ export default function AccueilPage() {
           {matieresDiff.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold" style={{ color: C.text }}>Matières à travailler</h2>
+                <h2 className="text-sm font-bold" style={{ color: textMain }}>Matières à travailler</h2>
                 <button
                   className="text-xs font-semibold"
-                  style={{ color: C.primary }}
+                  style={{ color: "#E8922A" }}
                   onClick={() => router.push("/matieres")}
                 >
                   Tout voir →
@@ -458,7 +376,7 @@ export default function AccueilPage() {
                         router.push("/");
                       }}
                       className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
-                      style={{ background: C.card, border: `1px solid ${C.border}`, boxShadow: "0 1px 8px rgba(15,23,42,0.05)" }}
+                      style={glass}
                     >
                       <span
                         className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
@@ -467,14 +385,14 @@ export default function AccueilPage() {
                         {emoji}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm" style={{ color: C.text }}>{mat}</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: C.textMid }}>
+                        <p className="font-semibold text-sm" style={{ color: textMain }}>{mat}</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: textSub }}>
                           {chatExists ? "Session en cours · Reprendre →" : "Commencer une session →"}
                         </p>
                       </div>
                       <div
                         className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ background: chatExists ? C.success : C.textLight }}
+                        style={{ background: chatExists ? "#10B981" : textSub }}
                       />
                     </button>
                   );
@@ -485,12 +403,12 @@ export default function AccueilPage() {
 
           {/* ── Accès rapide ─────────────────────────────────────────── */}
           <div>
-            <h2 className="text-sm font-bold mb-3" style={{ color: C.text }}>Accès rapide</h2>
+            <h2 className="text-sm font-bold mb-3" style={{ color: textMain }}>Accès rapide</h2>
             <div className="grid grid-cols-2 gap-2.5">
-              <QuickCard emoji="📚" label="Programme" sub="Cours & chapitres" onClick={() => router.push("/matieres")} accent="#3B82F6" />
-              <QuickCard emoji="🃏" label="Flashcards" sub={flashCount > 0 ? `${flashCount} cartes` : "Révise tes fiches"} onClick={() => router.push("/flashcards")} accent="#8B5CF6" />
-              <QuickCard emoji="📷" label="Mes copies" sub="Analyser & corriger" onClick={() => router.push("/examens")} accent="#F97316" />
-              <QuickCard emoji="📈" label="Progression" sub="Points forts & lacunes" onClick={() => router.push("/progression")} accent="#10B981" />
+              <QuickCard emoji="📚" label="Programme" sub="Cours & chapitres" onClick={() => router.push("/matieres")} accent="#3B82F6" glass={{ ...glass, color: textMain }} />
+              <QuickCard emoji="🃏" label="Flashcards" sub={flashCount > 0 ? `${flashCount} cartes` : "Révise tes fiches"} onClick={() => router.push("/flashcards")} accent="#8B5CF6" glass={{ ...glass, color: textMain }} />
+              <QuickCard emoji="📷" label="Mes copies" sub="Analyser & corriger" onClick={() => router.push("/examens")} accent="#F97316" glass={{ ...glass, color: textMain }} />
+              <QuickCard emoji="📈" label="Progression" sub="Points forts & lacunes" onClick={() => router.push("/progression")} accent="#10B981" glass={{ ...glass, color: textMain }} />
             </div>
           </div>
 
@@ -498,10 +416,10 @@ export default function AccueilPage() {
           {matieresFort && (
             <div
               className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
-              style={{ background: "#ECFDF5", border: "1px solid #A7F3D0" }}
+              style={{ ...glass, border: "1px solid rgba(16,185,129,0.3)" }}
             >
               <span className="text-xl">⭐</span>
-              <p className="text-xs font-medium" style={{ color: "#065F46" }}>
+              <p className="text-xs font-medium" style={{ color: isDark ? "rgba(255,255,255,0.8)" : "#065F46" }}>
                 Point fort : <strong>{matieresFort}</strong> — continue comme ça !
               </p>
             </div>
@@ -509,6 +427,12 @@ export default function AccueilPage() {
 
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

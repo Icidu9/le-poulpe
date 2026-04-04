@@ -69,11 +69,15 @@ function matchRegion(subject: string, subjects: string[]): boolean {
 
 interface Props {
   activeSubjects: string[];
+  mode?: "background" | "modal";
+  intensityScale?: number;
 }
 
-export default function BrainViewer({ activeSubjects }: Props) {
+export default function BrainViewer({ activeSubjects, mode = "modal", intensityScale = 0.5 }: Props) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [webglFailed, setWebglFailed] = useState(false);
+
+  const isBackground = mode === "background";
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -123,8 +127,10 @@ export default function BrainViewer({ activeSubjects }: Props) {
     const brainGroup = new THREE.Group();
     scene.add(brainGroup);
 
-    // Main brain body
-    const brainGeo = new THREE.SphereGeometry(1, 40, 30);
+    // Main brain body — reduced polygons in background mode
+    const brainGeo = isBackground
+      ? new THREE.SphereGeometry(1, 24, 18)
+      : new THREE.SphereGeometry(1, 40, 30);
     brainGeo.scale(1.15, 0.95, 1.0);
     const brainMat = new THREE.MeshPhongMaterial({
       color: 0x122840,
@@ -137,7 +143,9 @@ export default function BrainViewer({ activeSubjects }: Props) {
     brainGroup.add(brain);
 
     // Brain wireframe overlay (subtle grid lines = convolutions feel)
-    const wireGeo = new THREE.SphereGeometry(1.01, 14, 10);
+    const wireGeo = isBackground
+      ? new THREE.SphereGeometry(1.01, 14, 10)
+      : new THREE.SphereGeometry(1.01, 14, 10);
     wireGeo.scale(1.15, 0.95, 1.0);
     const wireMat = new THREE.MeshBasicMaterial({
       color: 0x2A5A8A,
@@ -169,6 +177,7 @@ export default function BrainViewer({ activeSubjects }: Props) {
 
     // ── Region markers + lights ───────────────────────────────────────────────
     const activeLights: THREE.PointLight[] = [];
+    const glowMeshes: THREE.Mesh[] = [];
 
     REGION_DEFS.forEach((region) => {
       const isActive = activeSubjects.some((s) => matchRegion(s, region.subjects));
@@ -186,30 +195,34 @@ export default function BrainViewer({ activeSubjects }: Props) {
       brainGroup.add(marker);
 
       if (isActive) {
-        // Outer glow sphere
+        // Outer glow sphere — intensity scaled by intensityScale
+        const glowOpacity = 0.12 * intensityScale * 2;
         const glowGeo = new THREE.SphereGeometry(0.22, 16, 12);
         const glowMat = new THREE.MeshBasicMaterial({
           color: region.color,
           transparent: true,
-          opacity: 0.12,
+          opacity: glowOpacity,
         });
         const glow = new THREE.Mesh(glowGeo, glowMat);
         glow.position.set(x, y, z);
         brainGroup.add(glow);
+        glowMeshes.push(glow);
 
         // Middle glow ring
+        const midOpacity = 0.22 * intensityScale * 2;
         const midGeo = new THREE.SphereGeometry(0.14, 16, 12);
         const midMat = new THREE.MeshBasicMaterial({
           color: region.color,
           transparent: true,
-          opacity: 0.22,
+          opacity: midOpacity,
         });
         const mid = new THREE.Mesh(midGeo, midMat);
         mid.position.set(x, y, z);
         brainGroup.add(mid);
 
         // Point light illuminates brain surface around the region
-        const light = new THREE.PointLight(region.color, 1.8, 1.6);
+        const lightIntensity = 1.8 * intensityScale * 2;
+        const light = new THREE.PointLight(region.color, lightIntensity, 1.6);
         light.position.set(x, y, z);
         brainGroup.add(light);
         activeLights.push(light);
@@ -242,7 +255,7 @@ export default function BrainViewer({ activeSubjects }: Props) {
       brainGroup.add(new THREE.Line(lineGeo, lineMat));
     }
 
-    // ── Mouse / touch interaction ─────────────────────────────────────────────
+    // ── Mouse / touch interaction (modal mode only) ───────────────────────────
     let isDragging = false;
     let prevX = 0;
     let prevY = 0;
@@ -270,9 +283,11 @@ export default function BrainViewer({ activeSubjects }: Props) {
     };
     const onPointerUp = () => { isDragging = false; };
 
-    mount.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
+    if (!isBackground) {
+      mount.addEventListener("pointerdown", onPointerDown);
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+    }
 
     // ── Animation loop ────────────────────────────────────────────────────────
     let animId: number;
@@ -280,22 +295,28 @@ export default function BrainViewer({ activeSubjects }: Props) {
     brainGroup.rotation.x = -0.15;
     brainGroup.rotation.y = 0.4;
 
+    // Auto-rotation speed: slower in background mode
+    const autoRotateSpeed = isBackground ? 0.001 : 0.003;
+
     const animate = () => {
       animId = requestAnimationFrame(animate);
       time += 0.012;
 
-      // Auto-rotate when not dragging (with inertia)
+      // Auto-rotate (no drag in background mode)
       if (!isDragging) {
-        velX *= 0.96; // inertia decay
-        velY *= 0.96;
-        brainGroup.rotation.y += velX + 0.003;
+        if (!isBackground) {
+          velX *= 0.96; // inertia decay
+          velY *= 0.96;
+        }
+        brainGroup.rotation.y += velX + autoRotateSpeed;
         brainGroup.rotation.x += velY;
         brainGroup.rotation.x = Math.max(-0.8, Math.min(0.8, brainGroup.rotation.x));
       }
 
       // Pulse active region lights
       activeLights.forEach((light, i) => {
-        light.intensity = 1.4 + 0.5 * Math.sin(time * 1.8 + i * 1.4);
+        const basePulse = 1.4 + 0.5 * Math.sin(time * 1.8 + i * 1.4);
+        light.intensity = basePulse * intensityScale * 2;
       });
 
       renderer.render(scene, camera);
@@ -304,16 +325,18 @@ export default function BrainViewer({ activeSubjects }: Props) {
 
     return () => {
       cancelAnimationFrame(animId);
-      mount.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
+      if (!isBackground) {
+        mount.removeEventListener("pointerdown", onPointerDown);
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
+      }
       renderer.dispose();
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
     } catch {
       setWebglFailed(true);
     }
-  }, [activeSubjects]);
+  }, [activeSubjects, isBackground, intensityScale]);
 
   if (webglFailed) {
     return (
@@ -334,7 +357,14 @@ export default function BrainViewer({ activeSubjects }: Props) {
   return (
     <div
       ref={mountRef}
-      style={{ width: "100%", height: "260px", cursor: "grab", borderRadius: "12px", overflow: "hidden" }}
+      style={{
+        width: "100%",
+        height: isBackground ? "100%" : "260px",
+        cursor: isBackground ? "default" : "grab",
+        borderRadius: isBackground ? "0" : "12px",
+        overflow: "hidden",
+        opacity: isBackground ? 0.55 : 1,
+      }}
     />
   );
 }
