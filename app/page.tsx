@@ -586,6 +586,20 @@ export default function Home() {
     setMessages([{ role: "assistant", content: firstMsg }]);
   }
 
+  function switchMatiere(mat: string) {
+    localStorage.setItem("poulpe_matiere_active", mat);
+    setMatiereActive(mat);
+    const chatKey = `poulpe_chat_${mat}`;
+    localStorage.removeItem(chatKey);
+    setRestoredSession(false);
+    setIsSessionClosed(false);
+    const nom = prenom;
+    const firstMsg = nom
+      ? `Salut ${nom} ! On travaille sur **${mat}** — t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷`
+      : `Salut ! On travaille sur **${mat}** — t'as quoi comme exercice ?`;
+    setMessages([{ role: "assistant", content: firstMsg }]);
+  }
+
   const tourActive      = tourStep !== null;
   const tourTargetId    = tourActive ? TOUR_STEPS[tourStep].target : null;
 
@@ -653,9 +667,17 @@ export default function Home() {
         const res = await fetch("/api/transcribe", { method: "POST", body: form });
         if (res.ok) {
           const text = await res.text();
-          if (text.trim()) setInput(text.trim());
+          if (text.trim()) {
+            setIsTranscribing(false);
+            sendMessage(text.trim());
+            return;
+          }
+        } else {
+          setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Transcription indisponible — la clé GROQ n'est pas configurée sur ce serveur. Tape ton message à la place." }]);
         }
-      } catch {}
+      } catch {
+        setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Impossible de transcrire l'audio. Réessaie ou tape ton message." }]);
+      }
       setIsTranscribing(false);
     };
 
@@ -973,7 +995,7 @@ export default function Home() {
                       {(matieresDuJour.length > 0 ? matieresDuJour : matieresDiff.slice(0, 4)).map((mat) => (
                         <button
                           key={mat}
-                          onClick={() => sendMessage(mat)}
+                          onClick={() => switchMatiere(mat)}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-75"
                           style={{ background: C.amberLight, border: `1px solid ${C.amberBorder}`, color: C.terracotta }}
                         >
