@@ -215,14 +215,6 @@ export default function Home() {
   const audioChunksRef   = useRef<Blob[]>([]);
   const micStreamRef     = useRef<MediaStream | null>(null);
 
-  // Pré-chargement silencieux du micro pour éliminer le délai au 1er clic
-  useEffect(() => {
-    navigator.mediaDevices?.getUserMedia({ audio: true })
-      .then((stream) => { micStreamRef.current = stream; })
-      .catch(() => {}); // Permission refusée = on gère au clic
-    return () => { micStreamRef.current?.getTracks().forEach((t) => t.stop()); };
-  }, []);
-
   // Charge profil + session + tour au montage
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -1140,7 +1132,7 @@ export default function Home() {
               <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl"
                 style={{ background: "#FDEAEA", border: "1px solid #F0C0C0" }}>
                 <span className="text-xs font-medium" style={{ color: "#C03030" }}>
-                  🎙️ Micro non autorisé. Va dans les réglages de ton navigateur pour l'activer.
+                  🎙️ Micro bloqué. Clique sur l'icône 🔒 à gauche de l'adresse du site, puis autorise le microphone et recharge la page.
                 </span>
               </div>
             )}
