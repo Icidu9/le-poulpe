@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
+import { getChapitres, findMatiereInProgramme, type Chapitre } from "../../lib/curriculum";
 
 const C = {
   amber:        "#E8922A",
@@ -60,14 +61,21 @@ function isFort(mat: Matiere, fort: string) {
 
 // ── Hub modal par matière ─────────────────────────────────────────────────────
 
-function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, onClose, onAction }: {
+function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClose, onAction }: {
   mat: Matiere;
   hasSession: boolean;
   hasFlashcards: boolean;
   hasFailles: boolean;
+  classe: string;
   onClose: () => void;
-  onAction: (action: "reviser" | "nouvelle" | "examens" | "flashcards" | "progression") => void;
+  onAction: (action: "reviser" | "nouvelle" | "examens" | "flashcards" | "progression" | "chapitre", chapitre?: Chapitre) => void;
 }) {
+  const [view, setView] = useState<"main" | "programme">("main");
+
+  const matiereProgramme = findMatiereInProgramme(mat.nom);
+  const chapitres = matiereProgramme ? getChapitres(matiereProgramme, classe) : [];
+  const hasProgramme = chapitres.length > 0;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center"
@@ -75,17 +83,29 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, onClose, onAct
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-t-3xl px-6 pt-6 pb-10 space-y-3"
-        style={{ background: C.cream }}
+        className="w-full max-w-lg rounded-t-3xl px-6 pt-6 pb-10"
+        style={{ background: C.cream, maxHeight: "85vh", overflowY: "auto" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* En-tête */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
+            {view === "programme" && (
+              <button
+                onClick={() => setView("main")}
+                className="text-sm px-2 py-1 rounded-lg mr-1"
+                style={{ color: C.warmGray, background: C.parchment }}
+              >
+                ←
+              </button>
+            )}
             <span className="text-3xl">{mat.emoji}</span>
             <div>
-              <h2 className="text-base font-bold" style={{ color: C.charcoal }}>{mat.nom}</h2>
-              {hasSession && <p className="text-xs" style={{ color: C.sage }}>Session en cours</p>}
+              <h2 className="text-base font-bold" style={{ color: C.charcoal }}>
+                {view === "programme" ? `Programme ${mat.nom}` : mat.nom}
+              </h2>
+              {view === "main" && hasSession && <p className="text-xs" style={{ color: C.sage }}>Session en cours</p>}
+              {view === "programme" && <p className="text-xs" style={{ color: C.warmGray }}>{classe} — {chapitres.length} chapitres</p>}
             </div>
           </div>
           <button
@@ -97,81 +117,128 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, onClose, onAct
           </button>
         </div>
 
-        {/* Actions */}
-        <div className="space-y-2.5">
+        {view === "main" && (
+          <div className="space-y-2.5">
 
-          {/* Reprendre / Réviser */}
-          <button
-            onClick={() => onAction("reviser")}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-opacity hover:opacity-90"
-            style={{ background: C.amber }}
-          >
-            <span className="text-2xl">🐙</span>
-            <div>
-              <p className="font-semibold text-white text-sm">
-                {hasSession ? "Reprendre la session" : "Réviser avec Le Poulpe"}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.75)" }}>
-                {hasSession ? "Continue là où tu t'es arrêté(e)" : "Pose tes questions, envoie tes devoirs"}
-              </p>
-            </div>
-          </button>
-
-          {hasSession && (
+            {/* Reprendre / Réviser */}
             <button
-              onClick={() => onAction("nouvelle")}
+              onClick={() => onAction("reviser")}
+              className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-opacity hover:opacity-90"
+              style={{ background: C.amber }}
+            >
+              <span className="text-2xl">🐙</span>
+              <div>
+                <p className="font-semibold text-white text-sm">
+                  {hasSession ? "Reprendre la session" : "Réviser avec Le Poulpe"}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.75)" }}>
+                  {hasSession ? "Continue là où tu t'es arrêté(e)" : "Pose tes questions, envoie tes devoirs"}
+                </p>
+              </div>
+            </button>
+
+            {/* Programme officiel */}
+            {hasProgramme && (
+              <button
+                onClick={() => setView("programme")}
+                className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-opacity hover:opacity-90"
+                style={{ background: "#EEF3FF", border: "1.5px solid #C0CEF0" }}
+              >
+                <span className="text-2xl">📚</span>
+                <div>
+                  <p className="font-semibold text-sm" style={{ color: "#3A5AAA" }}>Programme officiel</p>
+                  <p className="text-xs mt-0.5" style={{ color: "#6A80BB" }}>
+                    {chapitres.length} chapitres · Programme {classe} Éducation Nationale
+                  </p>
+                </div>
+                <span className="ml-auto text-sm" style={{ color: "#3A5AAA" }}>›</span>
+              </button>
+            )}
+
+            {hasSession && (
+              <button
+                onClick={() => onAction("nouvelle")}
+                className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-opacity hover:opacity-90"
+                style={{ background: C.parchment, border: `1.5px solid ${C.parchmentDark}` }}
+              >
+                <span className="text-2xl">✨</span>
+                <div>
+                  <p className="font-semibold text-sm" style={{ color: C.charcoal }}>Nouvelle session</p>
+                  <p className="text-xs mt-0.5" style={{ color: C.warmGray }}>Repartir de zéro sur cette matière</p>
+                </div>
+              </button>
+            )}
+
+            <button
+              onClick={() => onAction("examens")}
               className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-opacity hover:opacity-90"
               style={{ background: C.parchment, border: `1.5px solid ${C.parchmentDark}` }}
             >
-              <span className="text-2xl">✨</span>
+              <span className="text-2xl">📷</span>
               <div>
-                <p className="font-semibold text-sm" style={{ color: C.charcoal }}>Nouvelle session</p>
-                <p className="text-xs mt-0.5" style={{ color: C.warmGray }}>Repartir de zéro sur cette matière</p>
+                <p className="font-semibold text-sm" style={{ color: C.charcoal }}>Analyser une copie</p>
+                <p className="text-xs mt-0.5" style={{ color: C.warmGray }}>
+                  {hasFailles ? "Tu as des copies analysées → voir les lacunes" : "Envoie une copie notée pour comprendre tes erreurs"}
+                </p>
               </div>
             </button>
-          )}
 
-          <button
-            onClick={() => onAction("examens")}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-opacity hover:opacity-90"
-            style={{ background: C.parchment, border: `1.5px solid ${C.parchmentDark}` }}
-          >
-            <span className="text-2xl">📷</span>
-            <div>
-              <p className="font-semibold text-sm" style={{ color: C.charcoal }}>Analyser une copie</p>
-              <p className="text-xs mt-0.5" style={{ color: C.warmGray }}>
-                {hasFailles ? "Tu as des copies analysées → voir les lacunes" : "Envoie une copie notée pour comprendre tes erreurs"}
-              </p>
-            </div>
-          </button>
+            <button
+              onClick={() => onAction("flashcards")}
+              className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-opacity hover:opacity-90"
+              style={{ background: C.parchment, border: `1.5px solid ${C.parchmentDark}` }}
+            >
+              <span className="text-2xl">🃏</span>
+              <div>
+                <p className="font-semibold text-sm" style={{ color: C.charcoal }}>Flashcards</p>
+                <p className="text-xs mt-0.5" style={{ color: C.warmGray }}>
+                  {hasFlashcards ? "Révise avec tes flashcards générées" : "Crée des flashcards depuis ta dernière session"}
+                </p>
+              </div>
+            </button>
 
-          <button
-            onClick={() => onAction("flashcards")}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-opacity hover:opacity-90"
-            style={{ background: C.parchment, border: `1.5px solid ${C.parchmentDark}` }}
-          >
-            <span className="text-2xl">🃏</span>
-            <div>
-              <p className="font-semibold text-sm" style={{ color: C.charcoal }}>Flashcards</p>
-              <p className="text-xs mt-0.5" style={{ color: C.warmGray }}>
-                {hasFlashcards ? "Révise avec tes flashcards générées" : "Crée des flashcards depuis ta dernière session"}
-              </p>
-            </div>
-          </button>
+            <button
+              onClick={() => onAction("progression")}
+              className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-opacity hover:opacity-90"
+              style={{ background: C.parchment, border: `1.5px solid ${C.parchmentDark}` }}
+            >
+              <span className="text-2xl">📈</span>
+              <div>
+                <p className="font-semibold text-sm" style={{ color: C.charcoal }}>Mes progrès</p>
+                <p className="text-xs mt-0.5" style={{ color: C.warmGray }}>Points forts, lacunes identifiées, évolution</p>
+              </div>
+            </button>
 
-          <button
-            onClick={() => onAction("progression")}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-opacity hover:opacity-90"
-            style={{ background: C.parchment, border: `1.5px solid ${C.parchmentDark}` }}
-          >
-            <span className="text-2xl">📈</span>
-            <div>
-              <p className="font-semibold text-sm" style={{ color: C.charcoal }}>Mes progrès</p>
-              <p className="text-xs mt-0.5" style={{ color: C.warmGray }}>Points forts, lacunes identifiées, évolution</p>
-            </div>
-          </button>
+          </div>
+        )}
 
-        </div>
+        {view === "programme" && (
+          <div className="space-y-2">
+            <p className="text-xs mb-3" style={{ color: C.warmGray }}>
+              Clique sur un chapitre pour que le Poulpe te l'enseigne directement.
+            </p>
+            {chapitres.map((ch, i) => (
+              <button
+                key={ch.id}
+                onClick={() => onAction("chapitre", ch)}
+                className="w-full flex items-start gap-4 px-4 py-3.5 rounded-2xl text-left transition-opacity hover:opacity-80"
+                style={{ background: C.parchment, border: `1.5px solid ${C.parchmentDark}` }}
+              >
+                <span
+                  className="flex-shrink-0 w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold mt-0.5"
+                  style={{ background: "#EEF3FF", color: "#3A5AAA" }}
+                >
+                  {i + 1}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm" style={{ color: C.charcoal }}>{ch.titre}</p>
+                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: C.warmGray }}>{ch.description}</p>
+                </div>
+                <span className="ml-auto flex-shrink-0 text-sm mt-1" style={{ color: C.amber }}>›</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -229,23 +296,36 @@ export default function MatieresPage() {
   const difficiles = matieres.filter((m) => isDifficile(m, matieresDiff));
   const autres     = matieres.filter((m) => !isDifficile(m, matieresDiff));
 
-  function handleAction(action: "reviser" | "nouvelle" | "examens" | "flashcards" | "progression") {
+  function handleAction(action: "reviser" | "nouvelle" | "examens" | "flashcards" | "progression" | "chapitre", chapitre?: Chapitre) {
     if (!hubMat) return;
     setHubMat(null);
     localStorage.setItem("poulpe_matiere_active", hubMat.nom);
 
     if (action === "reviser") {
+      localStorage.removeItem("poulpe_chapitre_actif");
       router.push("/");
     } else if (action === "nouvelle") {
       localStorage.removeItem(`poulpe_chat_${hubMat.nom}`);
+      localStorage.removeItem("poulpe_chapitre_actif");
       router.push("/");
     } else if (action === "examens") {
       router.push("/examens");
     } else if (action === "flashcards") {
       localStorage.setItem("poulpe_matiere_active", hubMat.nom);
+      localStorage.removeItem("poulpe_chapitre_actif");
       router.push("/");
     } else if (action === "progression") {
       router.push("/progression");
+    } else if (action === "chapitre" && chapitre) {
+      // Stocke le chapitre actif + démarre une nouvelle session sur ce chapitre
+      localStorage.setItem("poulpe_chapitre_actif", JSON.stringify({
+        matiere: hubMat.nom,
+        chapitre: chapitre.titre,
+        description: chapitre.description,
+        niveau: classe,
+      }));
+      localStorage.removeItem(`poulpe_chat_${hubMat.nom}`);
+      router.push("/");
     }
   }
 
@@ -344,6 +424,7 @@ export default function MatieresPage() {
           hasSession={savedSessions.has(hubMat.nom)}
           hasFlashcards={flashcardSets.has(hubMat.nom)}
           hasFailles={faillesKeys.has(hubMat.nom)}
+          classe={classe}
           onClose={() => setHubMat(null)}
           onAction={handleAction}
         />

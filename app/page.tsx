@@ -179,6 +179,7 @@ export default function Home() {
   const [matieresDuJour, setMatieresDuJour] = useState<string[]>([]);
   const [matieresDiff,   setMatieresDiff]   = useState<string[]>([]);
   const [matiereActive,  setMatiereActive]  = useState("");
+  const [chapitreActif, setChapitreActif] = useState<{ matiere: string; chapitre: string; description: string; niveau: string } | null>(null);
   const [restoredSession, setRestoredSession] = useState(false);
 
   const [messages, setMessages]           = useState<Message[]>([]);
@@ -283,6 +284,13 @@ export default function Home() {
     const matActive = localStorage.getItem("poulpe_matiere_active") || "";
     if (matActive) setMatiereActive(matActive);
 
+    // Chapitre du programme officiel sélectionné depuis /matieres
+    const chapRaw = localStorage.getItem("poulpe_chapitre_actif");
+    let chapActif: { matiere: string; chapitre: string; description: string; niveau: string } | null = null;
+    if (chapRaw) {
+      try { chapActif = JSON.parse(chapRaw); setChapitreActif(chapActif); } catch {}
+    }
+
     // Charge les failles
     const f = localStorage.getItem("poulpe_failles");
     if (f) {
@@ -331,9 +339,13 @@ export default function Home() {
         }
       }
 
-      // Nouvelle session — message d'accueil contextuel selon matière + EDT
+      // Nouvelle session — message d'accueil contextuel selon chapitre / matière / EDT
       let firstMsg: string;
-      if (matActive) {
+      if (chapActif) {
+        firstMsg = nom
+          ? `Salut ${nom} ! On attaque le chapitre **${chapActif.chapitre}** en ${chapActif.matiere}. 📚\nTu l'as déjà vu en classe, ou on part de zéro ?`
+          : `On attaque le chapitre **${chapActif.chapitre}** en ${chapActif.matiere}. 📚\nTu l'as déjà vu en classe, ou on part de zéro ?`;
+      } else if (matActive) {
         firstMsg = nom
           ? `Salut ${nom} ! On travaille sur **${matActive}** — t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷${failleHint}`
           : `Salut ! On travaille sur **${matActive}** — t'as quoi comme exercice ?${failleHint}`;
@@ -411,6 +423,7 @@ export default function Home() {
           profile,
           memory: childMemory,
           parentEmail,
+          chapitre: chapitreActif,
         }),
       });
       if (!response.ok) throw new Error("Erreur API");
@@ -614,6 +627,7 @@ export default function Home() {
           profile,
           memory: childMemory,
           parentEmail,
+          chapitre: chapitreActif,
         }),
       });
 

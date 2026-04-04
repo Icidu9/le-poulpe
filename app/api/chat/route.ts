@@ -175,7 +175,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession, profile, memory, parentEmail } = (await req.json()) as {
+  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession, profile, memory, parentEmail, chapitre } = (await req.json()) as {
     messages: IncomingMessage[];
     failles: Record<string, unknown>;
     sessionId?: string;
@@ -185,6 +185,7 @@ export async function POST(req: Request) {
     profile?: Record<string, unknown> | null;
     memory?: string | null;
     parentEmail?: string;
+    chapitre?: { matiere: string; chapitre: string; description: string; niveau: string } | null;
   };
 
   const nom = childName || "Arthur";
@@ -199,6 +200,23 @@ export async function POST(req: Request) {
       `\n\n---\n\n## MÉMOIRE DE L'ÉLÈVE (sessions précédentes)\n\n` +
       `Ce qui suit est une synthèse des sessions passées avec cet élève. Utilise-la pour personnaliser ton approche : rappelle-toi de ses lacunes, de ses progrès, de sa façon de travailler.\n\n` +
       memory.trim();
+  }
+
+  // Injecte le chapitre du programme officiel si l'élève a cliqué sur un chapitre
+  if (chapitre && chapitre.chapitre) {
+    systemPrompt +=
+      `\n\n---\n\n## CHAPITRE EN COURS — PROGRAMME OFFICIEL\n\n` +
+      `L'élève a choisi de travailler sur un chapitre spécifique du programme de ${chapitre.niveau}.\n\n` +
+      `**Matière :** ${chapitre.matiere}\n` +
+      `**Chapitre :** ${chapitre.chapitre}\n` +
+      `**Contenu :** ${chapitre.description}\n\n` +
+      `INSTRUCTIONS POUR CE MODE :\n` +
+      `1. Commence par demander où en est l'élève sur ce chapitre (déjà vu en classe ? exercices faits ? ce qui bloque ?).\n` +
+      `2. Enseigne ce chapitre de façon progressive et interactive — ne donne pas tout d'un coup.\n` +
+      `3. Pose des questions pour vérifier la compréhension à chaque étape.\n` +
+      `4. Adapte le rythme au niveau ${chapitre.niveau} et au profil de l'élève.\n` +
+      `5. Propose des exercices concrets après chaque notion expliquée.\n` +
+      `6. Reste dans le périmètre de ce chapitre — ne digresse pas vers d'autres notions sauf si l'élève demande.`;
   }
 
   if (failles && typeof failles === "object" && Object.keys(failles).length > 0) {
