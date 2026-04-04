@@ -1,114 +1,39 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Sidebar from "../components/Sidebar";
 
+const BrainViewer = dynamic(() => import("./BrainViewer"), { ssr: false, loading: () => (
+  <div style={{ width: "100%", height: "260px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ width: 36, height: 36, border: "2px solid rgba(232,146,42,0.3)", borderTopColor: "#E8922A", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+  </div>
+) });
+
 // ── Brain regions — subject → lobe mapping ────────────────────────────────────
-const BRAIN_REGIONS = [
-  {
-    id: "frontal",
-    label: "Lobe frontal",
-    sublabel: "Logique & raisonnement",
-    subjects: ["mathématiques", "physique", "chimie", "technologie", "informatique"],
-    // SVG ellipse params (side view brain, 320×240 viewBox)
-    cx: 90, cy: 82, rx: 62, ry: 50,
-    textX: 90, textY: 76,
-    color: "#E8922A",
-  },
-  {
-    id: "temporal",
-    label: "Lobe temporal",
-    sublabel: "Langage & mémoire",
-    subjects: ["français", "anglais", "espagnol", "allemand", "latin", "musique", "langue"],
-    cx: 78, cy: 162, rx: 50, ry: 36,
-    textX: 78, textY: 157,
-    color: "#EC4899",
-  },
-  {
-    id: "parietal",
-    label: "Lobe pariétal",
-    sublabel: "Analyse & espace",
-    subjects: ["sciences de la vie", "svt", "histoire", "géographie", "géo"],
-    cx: 195, cy: 78, rx: 58, ry: 46,
-    textX: 195, textY: 72,
-    color: "#10B981",
-  },
-  {
-    id: "occipital",
-    label: "Lobe occipital",
-    sublabel: "Vision & représentation",
-    subjects: ["arts plastiques", "arts", "dessin"],
-    cx: 268, cy: 110, rx: 40, ry: 36,
-    textX: 268, textY: 105,
-    color: "#8B5CF6",
-  },
-  {
-    id: "cerebellum",
-    label: "Cervelet",
-    sublabel: "Coordination & énergie",
-    subjects: ["eps", "sport", "éducation physique"],
-    cx: 248, cy: 192, rx: 46, ry: 28,
-    textX: 248, textY: 188,
-    color: "#3B82F6",
-  },
+
+// Region defs mirrored for the legend list
+const LEGEND_REGIONS = [
+  { id: "frontal",    label: "Lobe frontal",   sublabel: "Logique & calcul",      color: "#E8922A", subjects: ["mathématiques", "physique", "chimie", "technologie"] },
+  { id: "temporal",   label: "Lobe temporal",  sublabel: "Langage & mémoire",     color: "#EC4899", subjects: ["français", "anglais", "espagnol", "allemand", "latin", "musique"] },
+  { id: "parietal",   label: "Lobe pariétal",  sublabel: "Analyse & espace",      color: "#10B981", subjects: ["sciences de la vie", "svt", "histoire", "géographie"] },
+  { id: "occipital",  label: "Lobe occipital", sublabel: "Vision",                color: "#8B5CF6", subjects: ["arts plastiques", "arts"] },
+  { id: "cerebellum", label: "Cervelet",       sublabel: "Coordination & énergie",color: "#3B82F6", subjects: ["eps", "sport"] },
 ];
 
-function matchesRegion(matiere: string, subjects: string[]): boolean {
-  const m = matiere.toLowerCase();
-  return subjects.some((s) => m.includes(s) || s.includes(m.split(" ")[0]));
+function matchLegend(subject: string, subjects: string[]): boolean {
+  const s = subject.toLowerCase();
+  return subjects.some((r) => s.includes(r) || r.includes(s.split(" ")[0]));
 }
 
 // ── BrainModal ─────────────────────────────────────────────────────────────────
 function BrainModal({ onClose, activeSubjects }: { onClose: () => void; activeSubjects: string[] }) {
-  const [rotY, setRotY] = useState(-18);
-  const [rotX, setRotX] = useState(8);
-  const dragging = useRef(false);
-  const lastPos = useRef({ x: 0, y: 0 });
-  const [hovered, setHovered] = useState<string | null>(null);
-  const [pulse, setPulse] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => setPulse((p) => p + 1), 1800);
-    return () => clearInterval(id);
-  }, []);
-
-  const activeRegions = BRAIN_REGIONS.filter((r) =>
-    activeSubjects.some((s) => matchesRegion(s, r.subjects))
-  );
-  // Always show at least frontal + parietal as "slightly active" if no subjects
-  const hasActive = activeRegions.length > 0;
-
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
-    dragging.current = true;
-    lastPos.current = { x: e.clientX, y: e.clientY };
-  }, []);
-  const onMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!dragging.current) return;
-    const dx = e.clientX - lastPos.current.x;
-    const dy = e.clientY - lastPos.current.y;
-    setRotY((r) => Math.max(-60, Math.min(60, r + dx * 0.4)));
-    setRotX((r) => Math.max(-30, Math.min(30, r - dy * 0.3)));
-    lastPos.current = { x: e.clientX, y: e.clientY };
-  }, []);
-  const onMouseUp = useCallback(() => { dragging.current = false; }, []);
-
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    dragging.current = true;
-    lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  }, []);
-  const onTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!dragging.current) return;
-    const dx = e.touches[0].clientX - lastPos.current.x;
-    const dy = e.touches[0].clientY - lastPos.current.y;
-    setRotY((r) => Math.max(-60, Math.min(60, r + dx * 0.4)));
-    setRotX((r) => Math.max(-30, Math.min(30, r - dy * 0.3)));
-    lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  }, []);
+  const hasActive = activeSubjects.length > 0;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
       style={{ background: "rgba(6,26,38,0.85)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
@@ -134,165 +59,15 @@ function BrainModal({ onClose, activeSubjects }: { onClose: () => void; activeSu
           >✕</button>
         </div>
 
-        {/* 3D Brain */}
-        <div
-          className="relative flex items-center justify-center py-4"
-          style={{ perspective: "900px", cursor: dragging.current ? "grabbing" : "grab" }}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          onMouseLeave={onMouseUp}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={() => { dragging.current = false; }}
-        >
-          <div style={{
-            transform: `rotateY(${rotY}deg) rotateX(${rotX}deg)`,
-            transformStyle: "preserve-3d",
-            transition: dragging.current ? "none" : "transform 0.15s ease-out",
-          }}>
-            <svg
-              width="320" height="240" viewBox="0 0 320 240"
-              style={{ userSelect: "none", filter: "drop-shadow(0 8px 32px rgba(0,0,0,0.5))" }}
-            >
-              <defs>
-                {BRAIN_REGIONS.map((r) => (
-                  <filter key={`glow-${r.id}`} id={`glow-${r.id}`} x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="6" result="blur"/>
-                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-                  </filter>
-                ))}
-                <filter id="glow-main" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="3" result="blur"/>
-                  <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-                </filter>
-              </defs>
-
-              {/* Brain silhouette — side view of left hemisphere */}
-              <path
-                d="M 310 118 C 312 90, 300 62, 280 48 C 258 32, 228 24, 198 26 C 168 18, 138 14, 110 20 C 82 16, 56 28, 40 48 C 22 66, 16 90, 22 114 C 14 132, 16 155, 28 170 C 42 188, 66 198, 94 200 C 110 202, 130 198, 148 198 C 170 210, 196 218, 222 214 C 252 208, 278 196, 294 178 C 312 158, 316 138, 310 118 Z"
-                fill="#122840"
-                stroke="rgba(255,255,255,0.12)"
-                strokeWidth="1.5"
-              />
-
-              {/* Cerebellum */}
-              <ellipse
-                cx={248} cy={205} rx={52} ry={26}
-                fill="#0D2035"
-                stroke="rgba(255,255,255,0.1)"
-                strokeWidth="1"
-              />
-              <path d="M 205 205 Q 220 195 248 205 Q 268 215 292 205" stroke="rgba(255,255,255,0.12)" strokeWidth="1" fill="none"/>
-              <path d="M 212 210 Q 230 200 248 208 Q 268 216 282 208" stroke="rgba(255,255,255,0.08)" strokeWidth="1" fill="none"/>
-
-              {/* Sulcus lines (brain folds) */}
-              <path d="M 148 22 C 148 60, 145 100, 148 130" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-              <path d="M 50 80 C 80 70, 120 68, 148 72" stroke="rgba(255,255,255,0.1)" strokeWidth="1" fill="none" strokeLinecap="round"/>
-              <path d="M 148 130 C 175 128, 210 125, 235 118" stroke="rgba(255,255,255,0.1)" strokeWidth="1" fill="none" strokeLinecap="round"/>
-              <path d="M 38 155 C 65 145, 100 140, 130 142" stroke="rgba(255,255,255,0.08)" strokeWidth="1" fill="none" strokeLinecap="round"/>
-              <path d="M 240 60 C 258 80, 270 105, 265 130" stroke="rgba(255,255,255,0.1)" strokeWidth="1" fill="none" strokeLinecap="round"/>
-
-              {/* Brain regions */}
-              {BRAIN_REGIONS.map((region) => {
-                const isActive = activeRegions.some((r) => r.id === region.id);
-                const isHovered = hovered === region.id;
-                const glowing = isActive && (pulse % 2 === 0);
-                return (
-                  <g key={region.id} onMouseEnter={() => setHovered(region.id)} onMouseLeave={() => setHovered(null)}>
-                    {/* Glow ring for active regions */}
-                    {isActive && (
-                      <ellipse
-                        cx={region.cx} cy={region.cy} rx={region.rx + 8} ry={region.ry + 8}
-                        fill="none"
-                        stroke={region.color}
-                        strokeWidth="2"
-                        opacity={glowing ? 0.5 : 0.2}
-                        style={{ transition: "opacity 0.9s ease-in-out" }}
-                      />
-                    )}
-                    {/* Region fill */}
-                    <ellipse
-                      cx={region.cx} cy={region.cy} rx={region.rx} ry={region.ry}
-                      fill={isActive
-                        ? `${region.color}28`
-                        : isHovered ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)"}
-                      stroke={isActive ? region.color : "rgba(255,255,255,0.15)"}
-                      strokeWidth={isActive ? "1.5" : "1"}
-                      style={{ transition: "all 0.3s ease" }}
-                    />
-                    {/* Center dot */}
-                    <circle
-                      cx={region.cx} cy={region.cy} r={isActive ? 5 : 3}
-                      fill={isActive ? region.color : "rgba(255,255,255,0.25)"}
-                      style={{
-                        filter: isActive ? `drop-shadow(0 0 6px ${region.color})` : "none",
-                        transition: "all 0.3s ease",
-                      }}
-                    />
-                    {/* Pulse ring */}
-                    {isActive && glowing && (
-                      <circle
-                        cx={region.cx} cy={region.cy} r={10}
-                        fill="none"
-                        stroke={region.color}
-                        strokeWidth="1.5"
-                        opacity="0.6"
-                        style={{ animation: "ping 1.8s ease-out infinite" }}
-                      />
-                    )}
-                    {/* Label (shown on hover or when active) */}
-                    {(isActive || isHovered) && (
-                      <>
-                        <text
-                          x={region.textX} y={region.textY - 8}
-                          textAnchor="middle"
-                          fill={isActive ? region.color : "rgba(255,255,255,0.7)"}
-                          fontSize="9"
-                          fontWeight="700"
-                          fontFamily="Inter, system-ui, sans-serif"
-                          style={{ pointerEvents: "none" }}
-                        >
-                          {region.label}
-                        </text>
-                        <text
-                          x={region.textX} y={region.textY + 2}
-                          textAnchor="middle"
-                          fill="rgba(255,255,255,0.4)"
-                          fontSize="7.5"
-                          fontFamily="Inter, system-ui, sans-serif"
-                          style={{ pointerEvents: "none" }}
-                        >
-                          {region.sublabel}
-                        </text>
-                      </>
-                    )}
-                  </g>
-                );
-              })}
-
-              {/* Neural connections between active regions */}
-              {activeRegions.length >= 2 && activeRegions.slice(0, -1).map((r, i) => {
-                const next = activeRegions[i + 1];
-                return (
-                  <line
-                    key={`conn-${r.id}-${next.id}`}
-                    x1={r.cx} y1={r.cy} x2={next.cx} y2={next.cy}
-                    stroke={r.color}
-                    strokeWidth="0.8"
-                    strokeDasharray="3 5"
-                    opacity="0.35"
-                  />
-                );
-              })}
-            </svg>
-          </div>
+        {/* 3D Brain — Three.js */}
+        <div className="px-3 pb-1">
+          <BrainViewer activeSubjects={activeSubjects} />
         </div>
 
         {/* Region list */}
         <div className="px-5 pb-2 space-y-1.5">
-          {BRAIN_REGIONS.map((r) => {
-            const isActive = activeRegions.some((a) => a.id === r.id);
+          {LEGEND_REGIONS.map((r) => {
+            const isActive = activeSubjects.some((s) => matchLegend(s, r.subjects));
             return (
               <div key={r.id} className="flex items-center gap-3">
                 <div
