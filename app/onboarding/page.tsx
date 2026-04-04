@@ -373,6 +373,7 @@ export default function Onboarding() {
   const [microStep, setMicroStep]                 = useState(0);
   const [microPrenom, setMicroPrenom]             = useState("");
   const [microClasse, setMicroClasse]             = useState("");
+  const [microEmailParent, setMicroEmailParent]   = useState("");
   const [microMatieres, setMicroMatieres]         = useState<string[]>([]);
   const [microMatieresAutre, setMicroMatieresAutre] = useState("");
 
@@ -414,6 +415,9 @@ export default function Onboarding() {
     localStorage.setItem("poulpe_profile", JSON.stringify(profile));
     localStorage.setItem("poulpe_prenom", microPrenom);
     localStorage.setItem("poulpe_tour_pending", "true");
+    if (microEmailParent.trim()) {
+      localStorage.setItem("poulpe_parent_email", microEmailParent.trim());
+    }
     router.push("/");
   }
 
@@ -489,33 +493,22 @@ export default function Onboarding() {
 
         {/* ── WELCOME ─────────────────────────────────────────────────────── */}
         {phase === "welcome" && (
-          <div className="text-center space-y-6">
+          <div className="text-center space-y-5">
             <div className="flex justify-center"><Poulpe size={80} /></div>
             <div>
               <h1 className="text-2xl font-bold" style={{ color: C.charcoal }}>Bienvenue sur Le Poulpe 👋</h1>
               <p className="mt-3 text-sm leading-relaxed" style={{ color: C.warmGray }}>
-                Avant de commencer, on prend 10 minutes pour vraiment apprendre à connaître votre enfant. D'abord vous — parent — puis votre enfant répondra lui-même.
+                2 minutes suffisent pour commencer. On apprend à connaître ton enfant au fil des sessions.
               </p>
             </div>
-            <div className="rounded-2xl p-4 text-sm leading-relaxed" style={{ background: C.amberLight, border: `1px solid #EED4AA`, color: C.terracotta }}>
-              💡 Ces réponses permettent au Poulpe de comprendre la <strong>façon de penser</strong> de votre enfant, son histoire avec l'école, et son profil émotionnel. Plus vous êtes précis(e), plus il sera efficace dès la première session.
-            </div>
-            <Btn label="Commencer — Section parent →" onClick={() => setPhase("parent")} />
-            <div className="flex items-center gap-3 mt-1">
-              <div className="flex-1 h-px" style={{ background: C.parchDark }} />
-              <span className="text-xs" style={{ color: C.warmGray }}>ou</span>
-              <div className="flex-1 h-px" style={{ background: C.parchDark }} />
-            </div>
+            <Btn label="⚡ Démarrage — 2 minutes" onClick={() => setPhase("micro")} />
             <button
-              onClick={() => setPhase("micro")}
-              className="w-full py-3 rounded-2xl text-sm font-medium border transition-opacity hover:opacity-75"
-              style={{ background: C.cream, color: C.warmGray, border: `1.5px solid ${C.parchDark}` }}
+              onClick={() => setPhase("parent")}
+              className="w-full py-2 rounded-2xl text-xs font-medium transition-opacity hover:opacity-75"
+              style={{ color: C.warmGray }}
             >
-              ⚡ Démarrage rapide — 2 minutes
+              Version complète (profil approfondi) →
             </button>
-            <p className="text-xs text-center" style={{ color: C.warmGray }}>
-              Juste le prénom, la classe et les matières — pour commencer tout de suite.
-            </p>
           </div>
         )}
 
@@ -558,6 +551,18 @@ export default function Onboarding() {
                         </button>
                       ))}
                     </div>
+                  </div>
+                  <div>
+                    <Label>Email du parent <span style={{ color: C.warmGray, fontWeight: 400 }}>(facultatif)</span></Label>
+                    <Sub>Pour recevoir le résumé hebdomadaire du Poulpe</Sub>
+                    <input
+                      type="email"
+                      value={microEmailParent}
+                      onChange={(e) => setMicroEmailParent(e.target.value)}
+                      placeholder="ex. maman@gmail.com"
+                      className="w-full px-4 py-2.5 rounded-xl text-sm outline-none mt-2"
+                      style={{ background: C.cream, border: `1.5px solid ${microEmailParent ? C.amber : C.parchDark}`, color: C.charcoal }}
+                    />
                   </div>
                 </div>
               </Card>

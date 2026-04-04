@@ -167,8 +167,9 @@ const TOUR_STEPS: { target: string | null; emoji: string; title: string; message
 export default function Home() {
   const router = useRouter();
 
-  const [prenom, setPrenom]   = useState("toi");
-  const [classe, setClasse]   = useState("beta");
+  const [prenom, setPrenom]         = useState("toi");
+  const [classe, setClasse]         = useState("beta");
+  const [parentEmail, setParentEmail] = useState("");
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [failles, setFailles] = useState<Record<string, unknown>>({});
   const [nbFailles, setNbFailles] = useState(0);
@@ -212,6 +213,8 @@ export default function Home() {
 
     if (p) setPrenom(p);
     if (profile?.parent?.pClasse) setClasse(profile.parent.pClasse);
+    const savedEmail = localStorage.getItem("poulpe_parent_email") || "";
+    if (savedEmail) setParentEmail(savedEmail);
     if (profile?.parent?.pMatieresDiff) {
       setMatieresDiff(profile.parent.pMatieresDiff.filter((m: string) => m !== "__autre__"));
     }
@@ -263,12 +266,31 @@ export default function Home() {
       setRestoredSession(true);
       setMessages(restoredMsgs);
     } else {
+      // Récupère la faille prioritaire pour la matière active (si disponible)
+      let failleHint = "";
+      if (matActive) {
+        const fRaw = localStorage.getItem("poulpe_failles");
+        if (fRaw) {
+          try {
+            const fParsed = JSON.parse(fRaw);
+            // Cherche une faille pour la matière active (correspondance partielle)
+            const matchKey = Object.keys(fParsed).find((k) =>
+              k.toLowerCase().includes(matActive.toLowerCase()) || matActive.toLowerCase().includes(k.toLowerCase())
+            );
+            const topFaille = matchKey && fParsed[matchKey]?.failles?.[0];
+            if (topFaille) {
+              failleHint = `\nOn avait repéré un point à travailler : **${topFaille.concept}**. Si ça revient ce soir, dis-le moi !`;
+            }
+          } catch {}
+        }
+      }
+
       // Nouvelle session — message d'accueil contextuel selon matière + EDT
       let firstMsg: string;
       if (matActive) {
         firstMsg = nom
-          ? `Salut ${nom} ! On travaille sur **${matActive}** — t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷`
-          : `Salut ! On travaille sur **${matActive}** — t'as quoi comme exercice ?`;
+          ? `Salut ${nom} ! On travaille sur **${matActive}** — t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷${failleHint}`
+          : `Salut ! On travaille sur **${matActive}** — t'as quoi comme exercice ?${failleHint}`;
       } else if (coursJour.length > 0) {
         const liste = coursJour.join(", ");
         firstMsg = nom
@@ -357,6 +379,21 @@ export default function Home() {
         });
       }
       setIsSessionClosed(true);
+
+      // Auto-email parent si email configuré
+      if (parentEmail) {
+        const now = new Date().toISOString();
+        const msgsForEmail = messages
+          .filter((m) => m.content && m.content !== "(photo)")
+          .map((m) => ({ role: m.role, content: m.content, created_at: now, session_id: sessionId }));
+        if (msgsForEmail.length > 0) {
+          fetch("/api/email-parent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ parentEmail, childName: prenom, messages: msgsForEmail }),
+          }).catch(() => {});
+        }
+      }
     } catch {
       setLoading(false);
     }

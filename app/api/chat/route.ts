@@ -83,10 +83,14 @@ function toAnthropicMessages(messages: IncomingMessage[]): Anthropic.MessagePara
 }
 
 export async function POST(req: Request) {
-  // Rate limiting
+  // Rate limiting — message doux, pas de blocage brutal
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (!checkRateLimit(ip)) {
-    return new Response("Trop de messages. Réessaie dans une heure.", { status: 429 });
+    const enc = new TextEncoder();
+    const msg = "Tu as vraiment beaucoup travaillé aujourd'hui ! 🐙 C'est très bien. Pour laisser ton cerveau assimiler tout ça, je te propose une pause — reviens dans une heure et on continue là où on s'est arrêtés.";
+    return new Response(new ReadableStream({ start(c) { c.enqueue(enc.encode(msg)); c.close(); } }), {
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
   }
 
   const { messages, failles, sessionId, childName, emploiDuTemps, closeSession } = (await req.json()) as {
