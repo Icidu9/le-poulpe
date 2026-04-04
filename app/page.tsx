@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation";
 interface Message {
   role: "user" | "assistant";
   content: string;
-  imageBase64?: string;
-  imageMimeType?: string;
+  imageBase64?: string;  // legacy
+  imageMimeType?: string; // legacy
+  images?: { base64: string; mimeType: string }[];
 }
 
 // ── Palette ──────────────────────────────────────────────────────────────────
@@ -178,7 +179,7 @@ export default function Home() {
   const [input, setInput]                 = useState("");
   const [loading, setLoading]             = useState(false);
   const [isSessionClosed, setIsSessionClosed] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<{ base64: string; mimeType: string; preview: string } | null>(null);
+  const [selectedPhotos, setSelectedPhotos] = useState<{ base64: string; mimeType: string; preview: string }[]>([]);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
   const [isRecording,    setIsRecording]    = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -383,17 +384,21 @@ export default function Home() {
   // ── Photo ─────────────────────────────────────────────────────────────────
 
   function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      const base64 = dataUrl.split(",")[1];
-      const mimeType = file.type || "image/jpeg";
-      setSelectedPhoto({ base64, mimeType, preview: dataUrl });
-    };
-    reader.readAsDataURL(file);
-    // Reset input so same file can be selected again
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    files.slice(0, 5).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        const base64 = dataUrl.split(",")[1];
+        const mimeType = file.type || "image/jpeg";
+        setSelectedPhotos((prev) => {
+          if (prev.length >= 5) return prev;
+          return [...prev, { base64, mimeType, preview: dataUrl }];
+        });
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   }
 
@@ -457,18 +462,19 @@ export default function Home() {
     }
 
     const content = quickContent !== undefined ? quickContent : input;
-    if ((!content.trim() && !selectedPhoto) || loading) return;
+    if ((!content.trim() && !selectedPhotos.length) || loading) return;
 
     const userMessage: Message = {
       role: "user",
       content,
-      imageBase64: selectedPhoto?.base64,
-      imageMimeType: selectedPhoto?.mimeType,
+      images: selectedPhotos.length > 0
+        ? selectedPhotos.map((p) => ({ base64: p.base64, mimeType: p.mimeType }))
+        : undefined,
     };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
-    setSelectedPhoto(null);
+    setSelectedPhotos([]);
     setLoading(true);
 
     try {
@@ -479,8 +485,7 @@ export default function Home() {
           messages: newMessages.map((m) => ({
             role: m.role,
             content: m.content,
-            imageBase64: m.imageBase64,
-            imageMimeType: m.imageMimeType,
+            images: m.images,
           })),
           failles,
           sessionId,
@@ -689,8 +694,27 @@ export default function Home() {
                   <div className="flex-shrink-0 mb-1"><Poulpe size={26} /></div>
                 )}
                 <div className="max-w-sm md:max-w-lg flex flex-col gap-1.5" style={{ alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
-                  {/* Photo si présente */}
-                  {msg.imageBase64 && (
+                  {/* Photos (nouveau format multiple) */}
+                  {msg.images && msg.images.length > 0 && (
+                    <div className={`flex flex-wrap gap-1.5 ${msg.images.length === 1 ? "" : "max-w-xs"}`}>
+                      {msg.images.map((img, idx) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          key={idx}
+                          src={`data:${img.mimeType || "image/jpeg"};base64,${img.base64}`}
+                          alt={`Photo ${idx + 1}`}
+                          className="rounded-xl object-cover"
+                          style={{
+                            maxHeight: msg.images!.length === 1 ? "200px" : "120px",
+                            maxWidth: msg.images!.length === 1 ? "260px" : "120px",
+                            border: `2px solid ${C.amber}`,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {/* Legacy single image */}
+                  {msg.imageBase64 && !msg.images?.length && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={`data:${msg.imageMimeType || "image/jpeg"};base64,${msg.imageBase64}`}
@@ -794,26 +818,30 @@ export default function Home() {
             {/* Zone de saisie normale */}
             {!isSessionClosed && (
               <>
-            {/* Prévisualisation photo */}
-            {selectedPhoto && (
-              <div className="mb-2 flex items-center gap-2">
-                <div className="relative inline-block">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={selectedPhoto.preview}
-                    alt="Photo sélectionnée"
-                    className="h-16 w-auto rounded-xl object-cover"
-                    style={{ border: `2px solid ${C.amber}` }}
-                  />
-                  <button
-                    onClick={() => setSelectedPhoto(null)}
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                    style={{ background: C.terracotta }}
-                  >
-                    ×
-                  </button>
-                </div>
-                <span className="text-xs" style={{ color: C.warmGray }}>Photo prête à envoyer</span>
+            {/* Prévisualisation photos */}
+            {selectedPhotos.length > 0 && (
+              <div className="mb-2 flex items-center gap-2 flex-wrap">
+                {selectedPhotos.map((photo, idx) => (
+                  <div key={idx} className="relative inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo.preview}
+                      alt={`Photo ${idx + 1}`}
+                      className="h-16 w-auto rounded-xl object-cover"
+                      style={{ border: `2px solid ${C.amber}` }}
+                    />
+                    <button
+                      onClick={() => setSelectedPhotos((prev) => prev.filter((_, i) => i !== idx))}
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                      style={{ background: C.terracotta }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <span className="text-xs" style={{ color: C.warmGray }}>
+                  {selectedPhotos.length} photo{selectedPhotos.length > 1 ? "s" : ""} — max 5
+                </span>
               </div>
             )}
 
@@ -840,20 +868,21 @@ export default function Home() {
             <div className="flex gap-2 items-end rounded-2xl px-3 py-2.5"
               style={{
                 background: C.cream,
-                border: `1.5px solid ${isRecording ? "#D94040" : selectedPhoto ? C.amber : C.amberBorder}`,
+                border: `1.5px solid ${isRecording ? "#D94040" : selectedPhotos.length > 0 ? C.amber : C.amberBorder}`,
               }}>
               {/* Input file caché */}
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
                 onChange={handlePhotoSelect}
               />
               {/* Bouton photo */}
               <button type="button"
                 className="flex-shrink-0 mb-0.5 p-1.5 rounded-lg transition-opacity hover:opacity-60"
-                style={{ color: selectedPhoto ? C.terracotta : C.amber }}
+                style={{ color: selectedPhotos.length > 0 ? C.terracotta : C.amber }}
                 title="Envoyer une photo"
                 onClick={() => fileInputRef.current?.click()}>
                 <IconPhoto />
@@ -881,7 +910,7 @@ export default function Home() {
                     ? "Transcription en cours..."
                     : isRecording
                     ? "Parle, puis appuie à nouveau sur le micro..."
-                    : selectedPhoto
+                    : selectedPhotos.length > 0
                     ? "Ajoute un commentaire (optionnel)..."
                     : "Écris ou parle 🎙️..."
                 }
@@ -889,9 +918,9 @@ export default function Home() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
-              <button onClick={() => sendMessage()} disabled={(!input.trim() && !selectedPhoto) || loading}
+              <button onClick={() => sendMessage()} disabled={(!input.trim() && !selectedPhotos.length) || loading}
                 className="flex-shrink-0 mb-0.5 w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-                style={{ background: (input.trim() || selectedPhoto) && !loading ? C.amber : C.parchmentDark, color: "white" }}>
+                style={{ background: (input.trim() || selectedPhotos.length) && !loading ? C.amber : C.parchmentDark, color: "white" }}>
                 <IconSend />
               </button>
             </div>

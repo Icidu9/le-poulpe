@@ -35,38 +35,47 @@ function getSupabase() {
 type IncomingMessage = {
   role: "user" | "assistant";
   content: string;
-  imageBase64?: string;
-  imageMimeType?: string;
+  imageBase64?: string;   // legacy
+  imageMimeType?: string; // legacy
+  images?: { base64: string; mimeType: string }[];
 };
+
+type ValidMime = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 
 function toAnthropicMessages(messages: IncomingMessage[]): Anthropic.MessageParam[] {
   return messages.map((m) => {
     if (m.role === "assistant") {
       return { role: "assistant" as const, content: m.content };
     }
-    if (!m.imageBase64) {
+
+    // Normalise en tableau (nouveau format) ou legacy
+    const imgs: { base64: string; mimeType: string }[] =
+      m.images?.length
+        ? m.images
+        : m.imageBase64
+        ? [{ base64: m.imageBase64, mimeType: m.imageMimeType || "image/jpeg" }]
+        : [];
+
+    if (imgs.length === 0) {
       return { role: "user" as const, content: m.content };
     }
-    const blocks: Anthropic.ContentBlockParam[] = [
-      {
-        type: "image",
-        source: {
-          type: "base64",
-          media_type: (m.imageMimeType || "image/jpeg") as
-            | "image/jpeg"
-            | "image/png"
-            | "image/gif"
-            | "image/webp",
-          data: m.imageBase64,
-        },
+
+    const blocks: Anthropic.ContentBlockParam[] = imgs.map((img) => ({
+      type: "image" as const,
+      source: {
+        type: "base64" as const,
+        media_type: (img.mimeType || "image/jpeg") as ValidMime,
+        data: img.base64,
       },
-    ];
+    }));
+
+    const photoLabel = imgs.length > 1 ? `${imgs.length} photos` : "une photo";
     if (m.content && m.content.trim()) {
       blocks.push({ type: "text", text: m.content });
     } else {
       blocks.push({
         type: "text",
-        text: "Voici une photo. Applique le protocole : identifie les 3 points principaux que tu comprends et demande confirmation avant de commencer.",
+        text: `Voici ${photoLabel}. Applique le protocole : identifie les 3 points principaux que tu comprends et demande confirmation avant de commencer.`,
       });
     }
     return { role: "user" as const, content: blocks };
