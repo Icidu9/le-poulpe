@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 // ── Region definitions ────────────────────────────────────────────────────────
@@ -73,23 +73,33 @@ interface Props {
 
 export default function BrainViewer({ activeSubjects }: Props) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const [webglFailed, setWebglFailed] = useState(false);
 
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
 
-    const W = mount.clientWidth || 320;
-    const H = mount.clientHeight || 280;
+    // WebGL support check
+    try {
+      const testCanvas = document.createElement("canvas");
+      const ctx = testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
+      if (!ctx) { setWebglFailed(true); return; }
+    } catch { setWebglFailed(true); return; }
 
+    const W = mount.clientWidth || 320;
+    const H = mount.clientHeight || 260;
+
+    let renderer: THREE.WebGLRenderer;
+    try {
     // ── Scene ─────────────────────────────────────────────────────────────────
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 100);
     camera.position.set(0, 0.3, 3.8);
     camera.lookAt(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "low-power" });
     renderer.setSize(W, H);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.setClearColor(0x000000, 0);
     mount.appendChild(renderer.domElement);
 
@@ -114,7 +124,7 @@ export default function BrainViewer({ activeSubjects }: Props) {
     scene.add(brainGroup);
 
     // Main brain body
-    const brainGeo = new THREE.SphereGeometry(1, 80, 60);
+    const brainGeo = new THREE.SphereGeometry(1, 40, 30);
     brainGeo.scale(1.15, 0.95, 1.0);
     const brainMat = new THREE.MeshPhongMaterial({
       color: 0x122840,
@@ -127,7 +137,7 @@ export default function BrainViewer({ activeSubjects }: Props) {
     brainGroup.add(brain);
 
     // Brain wireframe overlay (subtle grid lines = convolutions feel)
-    const wireGeo = new THREE.SphereGeometry(1.01, 18, 14);
+    const wireGeo = new THREE.SphereGeometry(1.01, 14, 10);
     wireGeo.scale(1.15, 0.95, 1.0);
     const wireMat = new THREE.MeshBasicMaterial({
       color: 0x2A5A8A,
@@ -300,7 +310,26 @@ export default function BrainViewer({ activeSubjects }: Props) {
       renderer.dispose();
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
+    } catch {
+      setWebglFailed(true);
+    }
   }, [activeSubjects]);
+
+  if (webglFailed) {
+    return (
+      <div style={{
+        width: "100%", height: "200px", display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", gap: 12,
+        background: "rgba(255,255,255,0.03)", borderRadius: 12,
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}>
+        <span style={{ fontSize: 48 }}>🧠</span>
+        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, textAlign: "center", maxWidth: 220 }}>
+          Visualisation 3D indisponible sur ce navigateur.<br/>Ton cerveau travaille quand même ! ✨
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div
