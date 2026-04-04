@@ -756,12 +756,16 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // Max 30 messages + images seulement sur les 4 derniers — évite de dépasser la limite 4.5MB de Vercel
-          messages: newMessages.slice(-30).map((m, i, arr) => ({
-            role: m.role,
-            content: m.content,
-            images: i >= arr.length - 4 ? m.images : undefined,
-          })),
+          // Envoie tout le texte (mémoire complète) mais strip les images trop anciennes
+          // Les 3 derniers messages avec images sont conservés — les plus anciens sont déjà analysés dans le texte
+          messages: (() => {
+            let imagesKept = 0;
+            return [...newMessages].reverse().map((m) => {
+              const keepImages = m.images?.length && imagesKept < 3;
+              if (keepImages) imagesKept++;
+              return { role: m.role, content: m.content, images: keepImages ? m.images : undefined };
+            }).reverse();
+          })(),
           failles,
           sessionId,
           childName: prenom,
