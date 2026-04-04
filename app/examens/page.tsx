@@ -287,7 +287,7 @@ export default function Examens() {
             {examens.length === 0 && (
               <div className="rounded-2xl p-4 text-sm leading-relaxed"
                 style={{ background: C.amberLight, border: `1px solid ${C.amberBorder}`, color: C.terracotta }}>
-                <strong>📌 Commencez ici.</strong> Uploadez les dernières copies et contrôles notés — bonnes et mauvaises notes. Le Poulpe les analyse et sait exactement sur quoi travailler dès la première session.
+                <strong>📌 Commencez ici.</strong> Déposez les dernières copies et contrôles notés — bonnes et mauvaises notes. Le Poulpe les analyse et sait exactement sur quoi travailler dès la première session.
               </div>
             )}
 
@@ -410,7 +410,7 @@ export default function Examens() {
             {examens.length === 0 ? (
               <div className="text-center py-16 space-y-3">
                 <Poulpe size={56} />
-                <p className="text-sm" style={{ color: C.warmGray }}>Aucun examen uploadé pour l'instant.</p>
+                <p className="text-sm" style={{ color: C.warmGray }}>Aucune copie déposée pour l'instant.</p>
                 <button onClick={() => setActiveTab("upload")}
                   className="text-sm font-medium px-4 py-2 rounded-xl"
                   style={{ background: C.amber, color: "white" }}>
@@ -437,7 +437,7 @@ export default function Examens() {
                 <button onClick={() => setActiveTab("upload")}
                   className="text-sm font-medium px-4 py-2 rounded-xl"
                   style={{ background: C.amber, color: "white" }}>
-                  Uploader une copie →
+                  Déposer une copie →
                 </button>
               </div>
             ) : (

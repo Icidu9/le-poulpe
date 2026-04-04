@@ -119,7 +119,7 @@ export default function AccueilPage() {
               Bonjour {prenom} 👋
             </h1>
             <p className="text-sm mt-0.5" style={{ color: C.warmGray }}>
-              Le Poulpe est là, prêt à bosser avec toi.
+              Ton Poulpe est là, prêt à travailler avec toi.
             </p>
           </div>
 

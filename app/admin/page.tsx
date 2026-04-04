@@ -91,16 +91,27 @@ export default function AdminPage() {
 
   const sessionMessages = messages.filter((m) => m.session_id === selectedSession);
 
-  async function sendEmailToParent() {
-    if (!selectedSession || !parentEmail.trim() || sendingEmail) return;
-    const childName = sessionMessages[0]?.child_name || "L'enfant";
+  async function sendWeeklySummary() {
+    if (!parentEmail.trim() || sendingEmail) return;
+    // Prend les messages des 7 derniers jours pour l'enfant sélectionné dans la session active
+    const childName = selectedSession
+      ? (messages.find((m) => m.session_id === selectedSession)?.child_name || "L'enfant")
+      : "L'enfant";
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const weekMessages = messages.filter(
+      (m) => m.child_name === childName && m.created_at >= sevenDaysAgo
+    );
+    if (weekMessages.length === 0) {
+      setEmailStatus("error");
+      return;
+    }
     setSendingEmail(true);
     setEmailStatus("idle");
     try {
       const res = await fetch("/api/email-parent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parentEmail: parentEmail.trim(), childName, messages: sessionMessages }),
+        body: JSON.stringify({ parentEmail: parentEmail.trim(), childName, messages: weekMessages }),
       });
       setEmailStatus(res.ok ? "ok" : "error");
     } catch {
@@ -226,12 +237,12 @@ export default function AdminPage() {
                   style={{ background: C.parchment, borderColor: C.amberBorder, color: C.charcoal }}
                 />
                 <button
-                  onClick={sendEmailToParent}
+                  onClick={sendWeeklySummary}
                   disabled={!parentEmail.trim() || sendingEmail}
                   className="px-3 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-40"
                   style={{ background: "#E8922A", color: "white" }}
                 >
-                  {sendingEmail ? "Envoi..." : "📧 Envoyer"}
+                  {sendingEmail ? "Génération..." : "📧 Résumé semaine"}
                 </button>
                 {emailStatus === "ok" && (
                   <span className="text-xs font-medium" style={{ color: "#2D7A4F" }}>✓ Envoyé !</span>

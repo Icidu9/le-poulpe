@@ -154,7 +154,7 @@ const TOUR_STEPS: { target: string | null; emoji: string; title: string; message
     target: "progression",
     emoji: "📈",
     title: "Ce que je travaille",
-    message: "Les points qu'on a repérés dans tes copies s'affichent ici, matière par matière. C'est ton radar — pas un jugement, juste ce sur quoi on va bosser ensemble. 💪",
+    message: "Les points qu'on a repérés dans tes copies s'affichent ici, matière par matière. C'est ton radar — pas un jugement, juste ce sur quoi on va travailler ensemble. 💪",
   },
 ];
 
