@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   try {
     const transcription = await getGroq().audio.transcriptions.create({
       file: audioFile,
-      model: "whisper-large-v3-turbo",
+      model: "whisper-large-v3",
       language: "fr",
       response_format: "text",
       prompt: "Élève de collège ou lycée en France. Matières : maths, français, histoire, géographie, physique, chimie, SVT, anglais, espagnol, philosophie. Vocabulaire : verbes, conjugaison, équation, fraction, accord, participe, imparfait, subjonctif, hypothèse, démonstration, exercice, devoir, contrôle, réviser.",

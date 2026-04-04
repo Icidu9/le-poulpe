@@ -677,8 +677,8 @@ export default function Home() {
       const ext = mimeType.includes("mp4") ? "mp4" : "webm";
       const blob = new Blob(audioChunksRef.current, { type: mimeType });
 
-      if (blob.size < 8000) {
-        // Audio trop court ou silence — on n'envoie pas (évite hallucinations Whisper)
+      if (blob.size < 2000) {
+        // Blob vide ou quasi-vide — on n'envoie pas
         setIsTranscribing(false);
         return;
       }
