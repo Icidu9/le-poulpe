@@ -756,10 +756,11 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: newMessages.map((m) => ({
+          // Max 30 messages + images seulement sur les 4 derniers — évite de dépasser la limite 4.5MB de Vercel
+          messages: newMessages.slice(-30).map((m, i, arr) => ({
             role: m.role,
             content: m.content,
-            images: m.images,
+            images: i >= arr.length - 4 ? m.images : undefined,
           })),
           failles,
           sessionId,
