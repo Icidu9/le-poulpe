@@ -571,7 +571,10 @@ export default function Home() {
         }),
       });
 
-      if (!response.ok) throw new Error("Erreur API");
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        throw new Error(`${response.status} — ${errText.slice(0, 300) || "erreur serveur"}`);
+      }
 
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
       setLoading(false);
@@ -588,11 +591,12 @@ export default function Home() {
           return [...prev.slice(0, -1), { ...last, content: last.content + text }];
         });
       }
-    } catch {
+    } catch (err) {
       setLoading(false);
+      const msg = err instanceof Error ? err.message : "Erreur inconnue";
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Une erreur s'est produite. Réessaie dans un instant." },
+        { role: "assistant", content: `⚠️ Erreur : ${msg}` },
       ]);
     }
   }
