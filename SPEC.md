@@ -13,11 +13,12 @@
 4. [Flux utilisateur complet](#4-flux-utilisateur-complet)
 5. [Pages](#5-pages)
 6. [API Routes](#6-api-routes)
-7. [Système de mémoire](#7-système-de-mémoire)
-8. [Accès bêta & admin](#8-accès-bêta--admin)
-9. [Variables d'environnement](#9-variables-denvironnement)
-10. [Règles critiques (bugs évités)](#10-règles-critiques-bugs-évités)
-11. [Déploiement](#11-déploiement)
+7. [Profil persistant multi-appareils](#7-profil-persistant-multi-appareils)
+8. [Système de mémoire](#8-système-de-mémoire)
+9. [Accès bêta & admin](#9-accès-bêta--admin)
+10. [Variables d'environnement](#10-variables-denvironnement)
+11. [Règles critiques (bugs évités)](#11-règles-critiques-bugs-évités)
+12. [Déploiement](#12-déploiement)
 
 ---
 
@@ -121,6 +122,19 @@ create table child_memory (
 );
 ```
 
+#### `child_profiles` — profil complet de l'enfant (multi-appareils)
+```sql
+create table child_profiles (
+  id uuid default gen_random_uuid() primary key,
+  parent_email text unique not null,
+  prenom text,
+  profile_json jsonb,      -- profil onboarding complet (parent + enfant)
+  emploi_du_temps jsonb,   -- EDT par jour de la semaine
+  failles jsonb,           -- lacunes identifiées par analyse de copies
+  updated_at timestamptz default now()
+);
+```
+
 ---
 
 ## 4. Flux utilisateur complet
@@ -142,11 +156,23 @@ Accès app → middleware vérifie cookie "poulpe_beta"
      ↓
 /charte → signer NDA → /api/log-charter → localStorage "poulpe_charte_accepted"
      ↓
-/onboarding → profil enfant → localStorage
+/onboarding → profil enfant → localStorage + Supabase child_profiles
      ↓
 /accueil → tableau de bord
      ↓
 / → chat avec Le Poulpe
+```
+
+### Flux multi-appareils (profil persistant)
+```
+Nouvel appareil → email + code → cookie posé
+     ↓
+page.tsx montage → localStorage vide détecté
+     ↓
+GET /api/profile?email=... → Supabase child_profiles
+     ↓
+Profil restauré dans localStorage + état React automatiquement
+(prénom, classe, matières, EDT, failles — tout retrouvé sans rien retaper)
 ```
 
 ### Flux session de chat
@@ -253,6 +279,16 @@ Corps : `{ email, familyName, adminKey, requestId? }`
 #### `GET /api/memory?email=xxx`
 Retourne `{ memory, sessionCount, lastSession }` depuis `child_memory`.
 
+### Profil persistant
+
+#### `GET /api/profile?email=xxx`
+Retourne `{ profile, prenom, emploiDuTemps, failles }` depuis `child_profiles`.
+
+#### `POST /api/profile`
+Corps : `{ email, prenom?, profile?, emploiDuTemps?, failles? }`
+Upsert partiel — seuls les champs fournis sont mis à jour.
+Appelé depuis : onboarding (profil), planning (EDT), examens (failles).
+
 ### Contenu pédagogique
 
 #### `POST /api/analyse-examen`
@@ -266,7 +302,27 @@ Envoie un résumé de session au parent par email.
 
 ---
 
-## 7. Système de mémoire
+## 7. Profil persistant multi-appareils
+
+### Principe
+Le profil de l'enfant (prénom, classe, matières, EDT, failles) est sauvegardé dans Supabase à chaque modification. Si l'enfant se connecte depuis un nouvel appareil, le profil est restauré automatiquement depuis Supabase sans qu'il ait à refaire l'onboarding.
+
+### Clé d'identification
+`parent_email` (depuis `poulpe_parent_email` ou `poulpe_beta_email` en localStorage).
+
+### Synchronisations automatiques
+| Action | Déclencheur | Données sync |
+|--------|-------------|--------------|
+| Fin onboarding | `saveMicroAndFinish()` / `saveAndFinish()` | profil complet + prénom |
+| Modification EDT | `saveEdt()` dans `/planning` | emploi_du_temps |
+| Analyse de copie | `buildFaillesMap()` dans `/examens` | failles |
+
+### Restauration sur nouvel appareil
+`page.tsx` au montage : si `poulpe_profile` absent du localStorage → `GET /api/profile` → restaure localStorage + état React.
+
+---
+
+## 8. Système de mémoire
 
 ### Principe
 Après chaque session (bouton "Terminer"), Claude Haiku génère une fiche mémoire narrative de 200 mots max. Cette fiche est sauvegardée dans `child_memory` et injectée au début de chaque nouvelle session dans le system prompt du Poulpe.
@@ -298,7 +354,7 @@ L'email du parent (`poulpe_beta_email` ou `poulpe_parent_email` dans localStorag
 
 ---
 
-## 8. Accès bêta & admin
+## 9. Accès bêta & admin
 
 ### Codes d'accès
 - Chaque famille a un code unique (8 chars) lié à son email
@@ -323,7 +379,7 @@ Page `/charte` : NDA en droit français (L.335-2 CPI, art. 1231-1 CC, art. 1366-
 
 ---
 
-## 9. Variables d'environnement
+## 10. Variables d'environnement
 
 | Variable | Obligatoire | Description |
 |----------|-------------|-------------|
@@ -341,7 +397,7 @@ Page `/charte` : NDA en droit français (L.335-2 CPI, art. 1231-1 CC, art. 1366-
 
 ---
 
-## 10. Règles critiques (bugs évités)
+## 11. Règles critiques (bugs évités)
 
 ### Streaming Anthropic
 ```typescript
@@ -377,7 +433,7 @@ void (async () => {
 
 ---
 
-## 11. Déploiement
+## 12. Déploiement
 
 **Hébergement** : Vercel (migré depuis Netlify — limite 125k invocations/mois dépassée)
 
