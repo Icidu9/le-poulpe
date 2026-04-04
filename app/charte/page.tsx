@@ -87,8 +87,8 @@ export default function ChartePage() {
               <li>Utiliser les accès fournis exclusivement à des fins de test, pour le compte du mineur désigné lors de l'inscription.</li>
             </ul>
             <p className="mt-2">
-              Ces obligations s'appliquent pendant toute la durée de la bêta et pour une période de <strong>deux (2) ans</strong> à
-              compter de la fin du programme.
+              Ces obligations s'appliquent pendant toute la durée de la bêta et pour une période de <strong>deux (2) mois</strong> à
+              compter du début de l'utilisation.
             </p>
           </div>
 
