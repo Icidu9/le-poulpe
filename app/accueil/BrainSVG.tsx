@@ -1,23 +1,51 @@
 "use client";
 
-// ── Brain SVG — lateral view, anatomically inspired, highly stylized ──────────
-// Glowing lobe regions based on worked subjects
-// Animated float + pulse
+// ── Holographic Neural Brain — X-ray glass style ────────────────────────────
+// Reference: volumetric blue-lit brain with white glowing neurons
 
 const LOBE_SUBJECTS: Record<string, string[]> = {
-  frontal:    ["mathématiques", "physique", "chimie", "technologie"],
-  temporal:   ["français", "anglais", "espagnol", "allemand", "latin", "musique"],
-  parietal:   ["sciences de la vie", "svt", "histoire", "géographie"],
-  occipital:  ["arts plastiques", "arts"],
-  cerebellum: ["eps", "sport"],
+  frontal:    ["mathématiques","physique","chimie","technologie"],
+  parietal:   ["sciences de la vie","svt","histoire","géographie"],
+  temporal:   ["français","anglais","espagnol","allemand","latin","musique"],
+  occipital:  ["arts plastiques","arts"],
+  cerebellum: ["eps","sport"],
 };
 
-const LOBE_COLORS: Record<string, string> = {
-  frontal:    "#E8922A",
-  temporal:   "#EC4899",
-  parietal:   "#10B981",
-  occipital:  "#8B5CF6",
-  cerebellum: "#3B82F6",
+// [x, y, radius] — all within lateral brain view (680×520 viewBox)
+const NEURONS: Record<string, [number, number, number][]> = {
+  frontal: [
+    [95,150,3.5],[118,118,4.5],[145,95,3],[175,82,3.5],[205,68,3],
+    [232,58,4],[258,52,3.5],[115,185,3],[145,172,3.5],[175,162,3],
+    [205,152,3.5],[232,144,4],[260,136,3],[88,210,3.5],[118,200,3],
+    [148,192,3.5],[178,184,3],[208,178,3.5],[72,238,3],[102,228,3.5],
+    [132,220,3],[162,214,3.5],[62,264,3],[92,256,3.5],[122,250,3],
+  ],
+  parietal: [
+    [295,48,3.5],[325,42,4.5],[355,46,3.5],[385,56,3],[415,70,3.5],
+    [440,90,4],[458,115,3.5],[462,145,3],[450,172,3.5],[428,192,3],
+    [402,178,3.5],[374,164,3],[346,154,3.5],[316,144,3],[308,108,3.5],
+    [335,96,3],[362,100,3.5],[390,112,3],[416,130,3.5],[440,150,3],
+    [305,72,3.5],[332,70,3],[360,76,3.5],[388,88,3],
+  ],
+  temporal: [
+    [162,278,3.5],[192,266,4],[222,256,3.5],[252,248,3],[280,242,3.5],
+    [308,236,3],[336,232,3.5],[364,226,3],[158,304,3.5],[188,296,4],
+    [218,288,3.5],[248,282,3],[275,278,3.5],[302,274,3],[330,270,3.5],
+    [148,328,3],[178,322,3.5],[208,316,3],[238,312,3.5],[266,308,3],
+    [292,305,3.5],[142,350,3],[172,346,3.5],[202,342,3],[230,338,3.5],
+  ],
+  occipital: [
+    [408,196,3.5],[428,216,4],[448,238,3.5],[462,260,3],[468,284,3.5],
+    [466,308,3],[456,330,3.5],[440,348,3],[422,358,3.5],[405,364,3],
+    [416,278,3.5],[434,298,3],[450,320,3.5],[430,340,3],[413,352,3],
+    [440,265,3.5],[455,285,3],[462,305,3.5],
+  ],
+  cerebellum: [
+    [415,372,3],[435,362,3.5],[458,356,4],[480,360,3.5],[502,356,3],
+    [524,362,3.5],[542,370,3],[446,382,3.5],[468,378,3],[490,374,3.5],
+    [514,378,3],[532,384,3.5],[455,396,3],[478,392,3.5],[503,396,3],
+    [527,394,3],[438,410,3.5],[462,408,3],[488,412,3.5],[514,408,3],
+  ],
 };
 
 function matchLobe(subject: string, subjects: string[]): boolean {
@@ -30,276 +58,335 @@ interface Props {
   isDark?: boolean;
 }
 
+const BRAIN_PATH = "M 148 348 C 90 340, 48 295, 42 242 C 36 190, 58 148, 92 115 C 120 84, 158 62, 202 46 C 244 30, 290 24, 336 30 C 380 36, 420 52, 450 78 C 482 106, 498 142, 502 180 C 506 218, 494 252, 476 278 C 456 308, 428 326, 398 338 C 366 350, 330 354, 296 356 C 268 358, 245 355, 224 358 C 200 362, 178 355, 148 348 Z";
+
 export default function BrainSVG({ activeSubjects, isDark = true }: Props) {
   const activeLobes = Object.entries(LOBE_SUBJECTS)
     .filter(([, subjects]) => activeSubjects.some((s) => matchLobe(s, subjects)))
     .map(([id]) => id);
 
-  const baseOpacity = isDark ? 0.18 : 0.12;
-  const strokeOpacity = isDark ? 0.35 : 0.25;
-  const sulcusOpacity = isDark ? 0.22 : 0.15;
+  const act = (lobe: string) => activeLobes.includes(lobe);
+
+  // Line color: yellow for active, blue-white for inactive
+  const lc  = (lobe: string) => act(lobe) ? "rgba(255,220,50,0.62)" : "rgba(100,190,255,0.48)";
+  const lcF = (lobe: string) => act(lobe) ? "rgba(255,220,50,0.35)" : "rgba(100,190,255,0.26)";
+
+  // Active lobe center points (for connection arcs)
+  const CENTERS: Record<string, [number, number]> = {
+    frontal: [178,175], parietal: [378,110], temporal: [215,295],
+    occipital: [440,288], cerebellum: [488,394],
+  };
 
   return (
     <div style={{
-      position: "absolute",
-      inset: 0,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      pointerEvents: "none",
-      overflow: "hidden",
+      position: "absolute", inset: 0, display: "flex",
+      alignItems: "center", justifyContent: "center",
+      pointerEvents: "none", overflow: "hidden",
     }}>
       <style>{`
         @keyframes brainFloat {
-          0%, 100% { transform: translateY(0px) rotate(-2deg); }
-          50% { transform: translateY(-14px) rotate(-2deg); }
+          0%, 100% { transform: translateY(0px); }
+          50%       { transform: translateY(-15px); }
         }
-        @keyframes lobeGlow {
+        @keyframes nodeBlink {
+          0%, 100% { opacity: 0.82; }
+          50%       { opacity: 1; }
+        }
+        @keyframes activeFlare {
           0%, 100% { opacity: 1; }
-          50% { opacity: 0.55; }
+          50%       { opacity: 0.35; }
         }
-        @keyframes pulseRing {
-          0% { transform: scale(1); opacity: 0.6; }
-          100% { transform: scale(1.4); opacity: 0; }
+        @keyframes signalMove {
+          0%   { stroke-dashoffset: 200; }
+          100% { stroke-dashoffset: 0; }
         }
-        .brain-float {
-          animation: brainFloat 7s ease-in-out infinite;
-          transform-origin: center;
-        }
-        .lobe-active {
-          animation: lobeGlow 2.4s ease-in-out infinite;
-        }
+        .brain-float  { animation: brainFloat 9s ease-in-out infinite; transform-origin: center; }
+        .node-blink   { animation: nodeBlink 3.2s ease-in-out infinite; }
+        .active-flare { animation: activeFlare 2.1s ease-in-out infinite; }
+        .signal-move  { animation: signalMove 5s linear infinite; }
       `}</style>
 
       <svg
         className="brain-float"
-        width="680"
-        height="520"
         viewBox="0 0 680 520"
         fill="none"
-        style={{ maxWidth: "90vw", maxHeight: "85vh" }}
+        style={{ width: "min(100vw, 980px)", height: "min(94vh, 740px)" }}
       >
         <defs>
-          {/* Glow filters per lobe */}
-          {Object.entries(LOBE_COLORS).map(([id, color]) => (
-            <filter key={id} id={`glow-${id}`} x="-40%" y="-40%" width="180%" height="180%">
-              <feGaussianBlur stdDeviation="12" result="blur" />
-              <feFlood floodColor={color} floodOpacity="0.7" result="color" />
-              <feComposite in="color" in2="blur" operator="in" result="glow" />
-              <feMerge><feMergeNode in="glow" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-          ))}
-          {/* Subtle overall glow */}
-          <filter id="glow-base" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="6" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-          {/* Brain stroke gradient */}
-          <linearGradient id="brainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={isDark ? "#2A5A8A" : "#8AB4CC"} />
-            <stop offset="50%" stopColor={isDark ? "#1A3A5C" : "#6A9AB8"} />
-            <stop offset="100%" stopColor={isDark ? "#0E2035" : "#4A8AA8"} />
-          </linearGradient>
-          <radialGradient id="brainFill" cx="45%" cy="45%" r="55%">
-            <stop offset="0%" stopColor={isDark ? "#122840" : "#C8E4F0"} stopOpacity="0.9" />
-            <stop offset="100%" stopColor={isDark ? "#061A26" : "#A8CDE0"} stopOpacity="0.7" />
+          {/* Brain volume fill */}
+          <radialGradient id="brainVol" cx="33%" cy="36%" r="68%">
+            <stop offset="0%"   stopColor="#1D68B8" stopOpacity="0.82"/>
+            <stop offset="42%"  stopColor="#0C2C6A" stopOpacity="0.88"/>
+            <stop offset="100%" stopColor="#020C2A" stopOpacity="0.94"/>
           </radialGradient>
+          {/* Upper sheen (light hits upper-left) */}
+          <radialGradient id="brainSheen" cx="28%" cy="28%" r="48%">
+            <stop offset="0%"   stopColor="#7AC8FF" stopOpacity="0.32"/>
+            <stop offset="55%"  stopColor="#2A70C8" stopOpacity="0.08"/>
+            <stop offset="100%" stopColor="#2A70C8" stopOpacity="0"/>
+          </radialGradient>
+          {/* Cerebellum fill */}
+          <radialGradient id="cerebVol" cx="38%" cy="38%" r="62%">
+            <stop offset="0%"   stopColor="#1558A8" stopOpacity="0.78"/>
+            <stop offset="100%" stopColor="#020C2A" stopOpacity="0.90"/>
+          </radialGradient>
+          {/* White-blue glow (inactive nodes) */}
+          <filter id="gw" x="-120%" y="-120%" width="340%" height="340%">
+            <feGaussianBlur stdDeviation="5.5" result="b"/>
+            <feFlood floodColor="#78BBFF" floodOpacity="0.75" result="c"/>
+            <feComposite in="c" in2="b" operator="in" result="cb"/>
+            <feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          {/* Yellow glow (active nodes) */}
+          <filter id="gy" x="-120%" y="-120%" width="340%" height="340%">
+            <feGaussianBlur stdDeviation="9" result="b"/>
+            <feFlood floodColor="#FFD000" floodOpacity="0.92" result="c"/>
+            <feComposite in="c" in2="b" operator="in" result="cb"/>
+            <feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          {/* Outline glow */}
+          <filter id="goutline" x="-18%" y="-18%" width="136%" height="136%">
+            <feGaussianBlur stdDeviation="5" result="b"/>
+            <feFlood floodColor="#3AABFF" floodOpacity="0.78" result="c"/>
+            <feComposite in="c" in2="b" operator="in" result="cb"/>
+            <feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          {/* Signal line glow */}
+          <filter id="gsig" x="-35%" y="-35%" width="170%" height="170%">
+            <feGaussianBlur stdDeviation="7" result="b"/>
+            <feFlood floodColor="#FFD000" floodOpacity="0.88" result="c"/>
+            <feComposite in="c" in2="b" operator="in" result="cb"/>
+            <feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          {/* Clip path for interior elements */}
+          <clipPath id="bc"><path d={BRAIN_PATH}/></clipPath>
         </defs>
 
-        {/* ── Cerebellum (back-bottom) ──────────────────────────────────────── */}
-        <g
-          className={activeLobes.includes("cerebellum") ? "lobe-active" : ""}
-          filter={activeLobes.includes("cerebellum") ? "url(#glow-cerebellum)" : undefined}
-        >
-          <ellipse cx="488" cy="388" rx="88" ry="58"
-            fill={activeLobes.includes("cerebellum") ? `${LOBE_COLORS.cerebellum}25` : "url(#brainFill)"}
-            stroke={activeLobes.includes("cerebellum") ? LOBE_COLORS.cerebellum : "url(#brainGrad)"}
-            strokeWidth={activeLobes.includes("cerebellum") ? "2" : "1.5"}
-            strokeOpacity={strokeOpacity + 0.1}
+        {/* ══ CEREBELLUM ══════════════════════════════════════════════ */}
+        <ellipse cx="488" cy="390" rx="92" ry="60" fill="url(#cerebVol)"/>
+        <ellipse cx="474" cy="380" rx="72" ry="46" fill="rgba(80,165,240,0.14)"/>
+        {/* Lamellae */}
+        {[372,381,390,399,408,417,425,432].map((y, i) => (
+          <path key={i}
+            d={`M ${412+i} ${y} C 452 ${y-8} 488 ${y-11} 526 ${y-8} C 552 ${y-5} 568 ${y} 578 ${y+2}`}
+            stroke={act("cerebellum") ? "rgba(255,220,50,0.42)" : "rgba(100,190,255,0.32)"}
+            strokeWidth="0.95" fill="none" strokeLinecap="round"
           />
-          {/* Cerebellum internal folds */}
-          <path d="M 418 385 Q 450 372 488 378 Q 520 383 558 375" stroke={isDark ? "rgba(100,160,220,0.2)" : "rgba(80,140,200,0.15)"} strokeWidth="1.2" fill="none" />
-          <path d="M 422 394 Q 455 382 488 387 Q 522 392 554 384" stroke={isDark ? "rgba(100,160,220,0.18)" : "rgba(80,140,200,0.12)"} strokeWidth="1" fill="none" />
-          <path d="M 428 403 Q 460 392 488 396 Q 518 400 548 393" stroke={isDark ? "rgba(100,160,220,0.15)" : "rgba(80,140,200,0.1)"} strokeWidth="1" fill="none" />
-          <path d="M 436 412 Q 464 402 488 406 Q 514 410 540 403" stroke={isDark ? "rgba(100,160,220,0.12)" : "rgba(80,140,200,0.08)"} strokeWidth="0.8" fill="none" />
+        ))}
+        <g filter="url(#goutline)">
+          <ellipse cx="488" cy="390" rx="92" ry="60"
+            stroke={act("cerebellum") ? "rgba(255,220,50,0.78)" : "rgba(110,200,255,0.65)"}
+            strokeWidth="1.8"/>
         </g>
 
-        {/* ── Main brain hemisphere ─────────────────────────────────────────── */}
-        {/* Background fill */}
-        <path
-          d="M 148 348
-             C 90 340, 48 295, 42 242
-             C 36 190, 58 148, 92 115
-             C 120 84, 158 62, 202 46
-             C 244 30, 290 24, 336 30
-             C 380 36, 420 52, 450 78
-             C 482 106, 498 142, 502 180
-             C 506 218, 494 252, 476 278
-             C 456 308, 428 326, 398 338
-             C 366 350, 330 354, 296 356
-             C 268 358, 245 355, 224 358
-             C 200 362, 178 355, 148 348 Z"
-          fill="url(#brainFill)"
-          stroke="url(#brainGrad)"
-          strokeWidth="2"
-          strokeOpacity={strokeOpacity}
-        />
+        {/* ══ BRAIN STEM ══════════════════════════════════════════════ */}
+        <path d="M 212 360 C 224 380, 234 400, 237 418 C 240 434, 237 448, 232 458"
+          stroke="rgba(70,150,230,0.45)" strokeWidth="17" strokeLinecap="round"/>
+        <path d="M 212 360 C 224 380, 234 400, 237 418 C 240 434, 237 448, 232 458"
+          stroke="rgba(130,205,255,0.62)" strokeWidth="5.5" strokeLinecap="round"/>
+        <path d="M 212 360 C 224 380, 234 400, 237 418 C 240 434, 237 448, 232 458"
+          stroke="rgba(200,235,255,0.55)" strokeWidth="1.5" strokeLinecap="round"/>
 
-        {/* ── Lobe color fills ──────────────────────────────────────────────── */}
+        {/* ══ BRAIN VOLUME FILL ═══════════════════════════════════════ */}
+        <path d={BRAIN_PATH} fill="url(#brainVol)"/>
+        {/* Sheen highlight (upper-left, simulates 3D lighting) */}
+        <path d={BRAIN_PATH} fill="url(#brainSheen)"/>
 
-        {/* Frontal lobe (front ~40%) */}
-        <path
-          className={activeLobes.includes("frontal") ? "lobe-active" : ""}
-          d="M 148 348 C 90 340, 48 295, 42 242 C 36 190, 58 148, 92 115 C 120 84, 158 62, 202 46 C 230 36, 258 30, 278 30 L 278 170 C 255 175, 230 185, 210 200 C 185 220, 170 248, 162 275 C 158 295, 155 322, 148 348 Z"
-          fill={activeLobes.includes("frontal") ? `${LOBE_COLORS.frontal}22` : `${isDark ? "rgba(255,255,255,0)" : "rgba(0,0,0,0)"}`}
-          stroke={activeLobes.includes("frontal") ? LOBE_COLORS.frontal : "none"}
-          strokeWidth="1.5"
-          filter={activeLobes.includes("frontal") ? "url(#glow-frontal)" : undefined}
-          opacity={activeLobes.includes("frontal") ? 1 : baseOpacity}
-        />
-
-        {/* Parietal lobe (top-back) */}
-        <path
-          className={activeLobes.includes("parietal") ? "lobe-active" : ""}
-          d="M 278 30 C 310 24, 350 26, 390 38 C 420 48, 450 64, 468 92 C 485 118, 494 150, 495 180 L 370 185 C 360 168, 342 155, 320 148 C 302 142, 282 142, 278 142 Z"
-          fill={activeLobes.includes("parietal") ? `${LOBE_COLORS.parietal}20` : "none"}
-          stroke={activeLobes.includes("parietal") ? LOBE_COLORS.parietal : "none"}
-          strokeWidth="1.5"
-          filter={activeLobes.includes("parietal") ? "url(#glow-parietal)" : undefined}
-        />
-
-        {/* Temporal lobe (bottom-front-middle) */}
-        <path
-          className={activeLobes.includes("temporal") ? "lobe-active" : ""}
-          d="M 162 275 C 170 248, 185 220, 210 200 C 228 185, 252 176, 278 170 L 278 310 C 262 312, 245 314, 228 318 C 208 325, 188 336, 172 345 C 166 310, 162 290, 162 275 Z"
-          fill={activeLobes.includes("temporal") ? `${LOBE_COLORS.temporal}20` : "none"}
-          stroke={activeLobes.includes("temporal") ? LOBE_COLORS.temporal : "none"}
-          strokeWidth="1.5"
-          filter={activeLobes.includes("temporal") ? "url(#glow-temporal)" : undefined}
-        />
-
-        {/* Occipital lobe (back) */}
-        <path
-          className={activeLobes.includes("occipital") ? "lobe-active" : ""}
-          d="M 420 195 C 440 220, 452 250, 450 280 C 445 310, 430 330, 410 340 C 390 350, 365 354, 340 355 L 340 290 C 358 285, 378 272, 392 255 C 406 238, 415 218, 420 195 Z"
-          fill={activeLobes.includes("occipital") ? `${LOBE_COLORS.occipital}20` : "none"}
-          stroke={activeLobes.includes("occipital") ? LOBE_COLORS.occipital : "none"}
-          strokeWidth="1.5"
-          filter={activeLobes.includes("occipital") ? "url(#glow-occipital)" : undefined}
-        />
-
-        {/* ── Brain outline (on top of fills) ──────────────────────────────── */}
-        <path
-          d="M 148 348
-             C 90 340, 48 295, 42 242
-             C 36 190, 58 148, 92 115
-             C 120 84, 158 62, 202 46
-             C 244 30, 290 24, 336 30
-             C 380 36, 420 52, 450 78
-             C 482 106, 498 142, 502 180
-             C 506 218, 494 252, 476 278
-             C 456 308, 428 326, 398 338
-             C 366 350, 330 354, 296 356
-             C 268 358, 245 355, 224 358
-             C 200 362, 178 355, 148 348 Z"
-          fill="none"
-          stroke="url(#brainGrad)"
-          strokeWidth="2.5"
-          strokeOpacity={strokeOpacity + 0.1}
-          filter="url(#glow-base)"
-        />
-
-        {/* ── Major sulci (brain fold lines) ───────────────────────────────── */}
-
-        {/* Central sulcus — divides frontal/parietal */}
-        <path d="M 278 32 C 270 80, 268 125, 272 168" stroke={isDark ? "rgba(120,180,240,0.28)" : "rgba(80,140,200,0.22)"} strokeWidth="2" fill="none" strokeLinecap="round"/>
-
-        {/* Lateral sulcus (Sylvian fissure) — separates temporal */}
-        <path d="M 160 270 C 195 248, 230 238, 270 234 C 305 230, 340 232, 375 225" stroke={isDark ? "rgba(120,180,240,0.25)" : "rgba(80,140,200,0.2)"} strokeWidth="2" fill="none" strokeLinecap="round"/>
-
-        {/* Superior frontal sulcus */}
-        <path d="M 92 118 C 115 100, 145 88, 175 80 C 205 73, 238 68, 268 62" stroke={isDark ? "rgba(120,180,240,0.18)" : "rgba(80,140,200,0.14)"} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-
-        {/* Superior temporal sulcus */}
-        <path d="M 148 308 C 178 298, 215 290, 252 286 C 282 283, 312 283, 342 280" stroke={isDark ? "rgba(120,180,240,0.18)" : "rgba(80,140,200,0.14)"} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-
-        {/* Intraparietal sulcus */}
-        <path d="M 285 165 C 318 160, 350 162, 380 168 C 402 174, 422 185, 435 200" stroke={isDark ? "rgba(120,180,240,0.18)" : "rgba(80,140,200,0.14)"} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-
-        {/* Postcentral sulcus */}
-        <path d="M 298 38 C 292 82, 290 128, 296 172" stroke={isDark ? "rgba(120,180,240,0.15)" : "rgba(80,140,200,0.12)"} strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-
-        {/* Precentral sulcus */}
-        <path d="M 258 36 C 250 78, 248 122, 252 166" stroke={isDark ? "rgba(120,180,240,0.15)" : "rgba(80,140,200,0.12)"} strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-
-        {/* Frontal gyri — horizontal folds in frontal area */}
-        <path d="M 55 210 C 78 200, 105 195, 132 194 C 155 193, 175 196, 192 198" stroke={isDark ? "rgba(120,180,240,0.14)" : "rgba(80,140,200,0.1)"} strokeWidth="1" fill="none" strokeLinecap="round"/>
-        <path d="M 48 240 C 72 230, 100 226, 128 225 C 152 224, 172 226, 188 228" stroke={isDark ? "rgba(120,180,240,0.14)" : "rgba(80,140,200,0.1)"} strokeWidth="1" fill="none" strokeLinecap="round"/>
-
-        {/* Occipital sulci */}
-        <path d="M 435 250 C 448 265, 456 282, 458 300 C 460 316, 455 330, 446 340" stroke={isDark ? "rgba(120,180,240,0.16)" : "rgba(80,140,200,0.12)"} strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-        <path d="M 418 268 C 428 280, 434 295, 434 312 C 434 325, 430 336, 422 344" stroke={isDark ? "rgba(120,180,240,0.14)" : "rgba(80,140,200,0.1)"} strokeWidth="1" fill="none" strokeLinecap="round"/>
-
-        {/* ── Active region pulse dots ───────────────────────────────────────── */}
-        {/* Frontal lobe dot */}
-        {activeLobes.includes("frontal") && (
-          <g>
-            <circle cx="185" cy="185" r="8" fill={LOBE_COLORS.frontal} opacity="0.9" />
-            <circle cx="185" cy="185" r="16" fill="none" stroke={LOBE_COLORS.frontal} strokeWidth="1.5" opacity="0.4" style={{ animation: "pulseRing 2s ease-out infinite" }} />
-          </g>
+        {/* ══ ACTIVE LOBE GLOW AREAS (subtle yellow bloom) ═══════════ */}
+        {act("frontal") && (
+          <ellipse cx="172" cy="182" rx="130" ry="96"
+            fill="rgba(255,205,35,0.07)" clipPath="url(#bc)" className="active-flare"/>
         )}
-        {/* Temporal lobe dot */}
-        {activeLobes.includes("temporal") && (
-          <g>
-            <circle cx="215" cy="265" r="8" fill={LOBE_COLORS.temporal} opacity="0.9" />
-            <circle cx="215" cy="265" r="16" fill="none" stroke={LOBE_COLORS.temporal} strokeWidth="1.5" opacity="0.4" style={{ animation: "pulseRing 2.4s ease-out infinite 0.4s" }} />
-          </g>
+        {act("parietal") && (
+          <ellipse cx="378" cy="112" rx="115" ry="82"
+            fill="rgba(255,205,35,0.07)" clipPath="url(#bc)" className="active-flare"/>
         )}
-        {/* Parietal lobe dot */}
-        {activeLobes.includes("parietal") && (
-          <g>
-            <circle cx="378" cy="115" r="8" fill={LOBE_COLORS.parietal} opacity="0.9" />
-            <circle cx="378" cy="115" r="16" fill="none" stroke={LOBE_COLORS.parietal} strokeWidth="1.5" opacity="0.4" style={{ animation: "pulseRing 2.2s ease-out infinite 0.8s" }} />
-          </g>
+        {act("temporal") && (
+          <ellipse cx="235" cy="302" rx="140" ry="68"
+            fill="rgba(255,205,35,0.07)" clipPath="url(#bc)" className="active-flare"/>
         )}
-        {/* Occipital lobe dot */}
-        {activeLobes.includes("occipital") && (
-          <g>
-            <circle cx="440" cy="292" r="8" fill={LOBE_COLORS.occipital} opacity="0.9" />
-            <circle cx="440" cy="292" r="16" fill="none" stroke={LOBE_COLORS.occipital} strokeWidth="1.5" opacity="0.4" style={{ animation: "pulseRing 2.6s ease-out infinite 0.2s" }} />
-          </g>
-        )}
-        {/* Cerebellum dot */}
-        {activeLobes.includes("cerebellum") && (
-          <g>
-            <circle cx="488" cy="388" r="8" fill={LOBE_COLORS.cerebellum} opacity="0.9" />
-            <circle cx="488" cy="388" r="16" fill="none" stroke={LOBE_COLORS.cerebellum} strokeWidth="1.5" opacity="0.4" style={{ animation: "pulseRing 2.8s ease-out infinite 0.6s" }} />
-          </g>
+        {act("occipital") && (
+          <ellipse cx="442" cy="282" rx="72" ry="94"
+            fill="rgba(255,205,35,0.07)" clipPath="url(#bc)" className="active-flare"/>
         )}
 
-        {/* ── Neural connection lines ────────────────────────────────────────── */}
-        {activeLobes.length >= 2 && (() => {
-          const positions: Record<string, [number, number]> = {
-            frontal: [185, 185], temporal: [215, 265], parietal: [378, 115],
-            occipital: [440, 292], cerebellum: [488, 388],
-          };
-          return activeLobes.slice(0, -1).map((id, i) => {
-            const next = activeLobes[i + 1];
-            const [x1, y1] = positions[id];
-            const [x2, y2] = positions[next];
+        {/* ══ GYRI + SULCI (clipped to brain) ═════════════════════════ */}
+        <g clipPath="url(#bc)" fill="none" strokeLinecap="round">
+
+          {/* — FRONTAL LOBE — */}
+          {/* Superior frontal gyrus: wide ribbon + bright crest */}
+          <path d="M 92 115 C 120 88, 158 62, 202 46 C 232 36, 265 30, 282 30"
+            stroke={lc("frontal")} strokeWidth="24" opacity="0.18"/>
+          <path d="M 92 115 C 120 88, 158 62, 202 46 C 232 36, 265 30, 282 30"
+            stroke={lc("frontal")} strokeWidth="2" opacity="0.92"/>
+          {/* Middle frontal gyrus */}
+          <path d="M 56 185 C 90 175, 126 168, 162 165 C 192 163, 222 162, 252 158 C 266 156, 275 154, 280 152"
+            stroke={lc("frontal")} strokeWidth="22" opacity="0.17"/>
+          <path d="M 56 185 C 90 175, 126 168, 162 165 C 192 163, 222 162, 252 158 C 266 156, 275 154, 280 152"
+            stroke={lc("frontal")} strokeWidth="1.7" opacity="0.88"/>
+          {/* Inferior frontal gyrus */}
+          <path d="M 50 232 C 84 222, 118 216, 150 212 C 176 208, 202 206, 224 204"
+            stroke={lc("frontal")} strokeWidth="20" opacity="0.16"/>
+          <path d="M 50 232 C 84 222, 118 216, 150 212 C 176 208, 202 206, 224 204"
+            stroke={lc("frontal")} strokeWidth="1.5" opacity="0.85"/>
+          {/* Frontal pole (lowest strip) */}
+          <path d="M 44 275 C 76 266, 108 260, 140 257 C 165 255, 185 254, 200 252"
+            stroke={lc("frontal")} strokeWidth="18" opacity="0.14"/>
+          <path d="M 44 275 C 76 266, 108 260, 140 257 C 165 255, 185 254, 200 252"
+            stroke={lc("frontal")} strokeWidth="1.4" opacity="0.8"/>
+          {/* Precentral gyrus (vertical) */}
+          <path d="M 255 37 C 249 78, 247 120, 249 164"
+            stroke={lc("frontal")} strokeWidth="18" opacity="0.16"/>
+          <path d="M 255 37 C 249 78, 247 120, 249 164"
+            stroke={lc("frontal")} strokeWidth="1.5" opacity="0.85"/>
+          {/* Horizontal connectors */}
+          <path d="M 46 265 C 78 270, 110 272, 144 272 C 168 272, 192 270, 210 266"
+            stroke={lcF("frontal")} strokeWidth="1" opacity="0.72"/>
+          <path d="M 46 298 C 78 302, 112 303, 145 302 C 170 300, 195 297, 212 292"
+            stroke={lcF("frontal")} strokeWidth="0.9" opacity="0.65"/>
+          <path d="M 50 320 C 82 323, 114 323, 147 320 C 172 317, 196 312, 214 306"
+            stroke={lcF("frontal")} strokeWidth="0.9" opacity="0.62"/>
+          <path d="M 56 340 C 88 342, 118 340, 150 336 C 174 332, 196 326, 212 318"
+            stroke={lcF("frontal")} strokeWidth="0.8" opacity="0.55"/>
+
+          {/* — CENTRAL SULCUS (major divider) — */}
+          <path d="M 278 32 C 271 78, 269 124, 273 168"
+            stroke={isDark ? "rgba(140,215,255,0.6)" : "rgba(80,160,220,0.55)"}
+            strokeWidth="2.4" opacity="1"/>
+
+          {/* — PARIETAL LOBE — */}
+          {/* Postcentral gyrus */}
+          <path d="M 295 38 C 289 80, 287 125, 293 170"
+            stroke={lc("parietal")} strokeWidth="20" opacity="0.17"/>
+          <path d="M 295 38 C 289 80, 287 125, 293 170"
+            stroke={lc("parietal")} strokeWidth="1.7" opacity="0.88"/>
+          {/* Superior parietal lobule */}
+          <path d="M 308 44 C 340 40, 370 44, 398 54 C 422 62, 444 78, 458 102"
+            stroke={lc("parietal")} strokeWidth="22" opacity="0.17"/>
+          <path d="M 308 44 C 340 40, 370 44, 398 54 C 422 62, 444 78, 458 102"
+            stroke={lc("parietal")} strokeWidth="1.7" opacity="0.88"/>
+          {/* Intraparietal sulcus */}
+          <path d="M 285 168 C 318 162, 350 163, 380 170 C 404 176, 424 188, 437 206"
+            stroke={lc("parietal")} strokeWidth="2.1" opacity="0.92"/>
+          {/* Angular/supramarginal gyrus zone */}
+          <path d="M 325 90 C 352 86, 378 90, 402 100 C 424 110, 440 124, 448 144"
+            stroke={lc("parietal")} strokeWidth="20" opacity="0.15"/>
+          <path d="M 325 90 C 352 86, 378 90, 402 100 C 424 110, 440 124, 448 144"
+            stroke={lc("parietal")} strokeWidth="1.5" opacity="0.82"/>
+          {/* More parietal sulci */}
+          <path d="M 310 133 C 336 128, 362 130, 386 138 C 408 146, 426 162, 436 180"
+            stroke={lcF("parietal")} strokeWidth="1.3" opacity="0.76"/>
+          <path d="M 350 155 C 370 162, 390 170, 408 184 C 422 196, 434 212, 442 230"
+            stroke={lcF("parietal")} strokeWidth="1.1" opacity="0.70"/>
+          <path d="M 368 176 C 384 192, 398 210, 410 228 C 420 244, 427 260, 428 278"
+            stroke={lcF("parietal")} strokeWidth="1" opacity="0.65"/>
+
+          {/* — TEMPORAL LOBE — */}
+          {/* Sylvian (lateral) fissure — major */}
+          <path d="M 158 272 C 195 250, 232 238, 272 234 C 308 230, 343 232, 378 226"
+            stroke={isDark ? "rgba(140,215,255,0.6)" : "rgba(80,160,220,0.55)"}
+            strokeWidth="2.4" opacity="1"/>
+          {/* Superior temporal gyrus */}
+          <path d="M 148 308 C 182 298, 218 290, 256 286 C 288 283, 320 282, 350 280"
+            stroke={lc("temporal")} strokeWidth="22" opacity="0.17"/>
+          <path d="M 148 308 C 182 298, 218 290, 256 286 C 288 283, 320 282, 350 280"
+            stroke={lc("temporal")} strokeWidth="1.7" opacity="0.88"/>
+          {/* Middle temporal gyrus */}
+          <path d="M 138 330 C 172 322, 208 315, 244 312 C 272 309, 298 308, 324 307"
+            stroke={lc("temporal")} strokeWidth="20" opacity="0.16"/>
+          <path d="M 138 330 C 172 322, 208 315, 244 312 C 272 309, 298 308, 324 307"
+            stroke={lc("temporal")} strokeWidth="1.6" opacity="0.85"/>
+          {/* Inferior temporal gyrus */}
+          <path d="M 130 350 C 162 342, 196 336, 230 333 C 258 330, 282 329, 308 328"
+            stroke={lc("temporal")} strokeWidth="18" opacity="0.14"/>
+          <path d="M 130 350 C 162 342, 196 336, 230 333 C 258 330, 282 329, 308 328"
+            stroke={lc("temporal")} strokeWidth="1.4" opacity="0.80"/>
+          {/* Temporal verticals */}
+          {[155,180,208,235,262,290,316,342].map((x, i) => {
+            const y1 = i === 0 ? 274 : i === 1 ? 262 : i === 2 ? 252 : 240 + i * 2;
+            const y2 = i < 2 ? 354 : 325 + i * 2;
             return (
-              <line key={`${id}-${next}`} x1={x1} y1={y1} x2={x2} y2={y2}
-                stroke={LOBE_COLORS[id]} strokeWidth="1" strokeDasharray="4 6" opacity="0.3" />
+              <path key={i} d={`M ${x} ${y1} L ${x} ${y2}`}
+                stroke={lcF("temporal")} strokeWidth="0.85" opacity="0.62"/>
             );
-          });
-        })()}
+          })}
 
-        {/* ── Lobe labels (subtle, always visible) ─────────────────────────── */}
-        <text x="148" y="195" fontSize="10" fontFamily="Inter, system-ui" fill={isDark ? "rgba(180,220,255,0.3)" : "rgba(30,80,120,0.3)"} fontWeight="500">Frontal</text>
-        <text x="348" y="100" fontSize="10" fontFamily="Inter, system-ui" fill={isDark ? "rgba(180,220,255,0.3)" : "rgba(30,80,120,0.3)"} fontWeight="500">Pariétal</text>
-        <text x="165" y="315" fontSize="10" fontFamily="Inter, system-ui" fill={isDark ? "rgba(180,220,255,0.3)" : "rgba(30,80,120,0.3)"} fontWeight="500">Temporal</text>
-        <text x="428" y="260" fontSize="10" fontFamily="Inter, system-ui" fill={isDark ? "rgba(180,220,255,0.3)" : "rgba(30,80,120,0.3)"} fontWeight="500">Occipital</text>
-        <text x="448" y="408" fontSize="10" fontFamily="Inter, system-ui" fill={isDark ? "rgba(180,220,255,0.3)" : "rgba(30,80,120,0.3)"} fontWeight="500">Cervelet</text>
+          {/* — OCCIPITAL LOBE — */}
+          {/* Main occipital curve (outermost) */}
+          <path d="M 404 192 C 424 212, 442 234, 455 258 C 464 278, 468 300, 466 322 C 462 342, 452 356, 438 364"
+            stroke={lc("occipital")} strokeWidth="22" opacity="0.17"/>
+          <path d="M 404 192 C 424 212, 442 234, 455 258 C 464 278, 468 300, 466 322 C 462 342, 452 356, 438 364"
+            stroke={lc("occipital")} strokeWidth="1.8" opacity="0.90"/>
+          {/* Inner occipital curves */}
+          <path d="M 416 214 C 434 232, 448 254, 458 276 C 463 294, 463 315, 458 334 C 451 350, 440 360, 426 366"
+            stroke={lc("occipital")} strokeWidth="1.4" opacity="0.82"/>
+          <path d="M 426 234 C 440 252, 452 272, 458 294 C 462 312, 460 332, 452 348 C 443 362, 430 368, 416 372"
+            stroke={lcF("occipital")} strokeWidth="1.2" opacity="0.75"/>
+          <path d="M 434 256 C 445 274, 452 296, 454 318 C 454 336, 448 352, 437 362"
+            stroke={lcF("occipital")} strokeWidth="1" opacity="0.68"/>
+          <path d="M 410 270 C 420 286, 428 306, 430 328 C 431 346, 428 360, 420 370"
+            stroke={lcF("occipital")} strokeWidth="1" opacity="0.65"/>
+          <path d="M 396 300 C 404 316, 408 334, 407 352 C 406 364, 400 372, 390 376"
+            stroke={lcF("occipital")} strokeWidth="0.9" opacity="0.60"/>
+          <path d="M 380 326 C 385 340, 386 356, 382 368 C 378 376, 370 380, 360 382"
+            stroke={lcF("occipital")} strokeWidth="0.9" opacity="0.58"/>
+
+          {/* — LIMBIC INNER RING (corpus callosum area suggestion) — */}
+          <path d="M 160 270 C 185 253, 220 246, 258 244 C 295 242, 332 246, 360 252"
+            stroke={isDark ? "rgba(110,200,255,0.32)" : "rgba(60,150,210,0.28)"}
+            strokeWidth="14" opacity="1"/>
+          <path d="M 160 270 C 185 253, 220 246, 258 244 C 295 242, 332 246, 360 252"
+            stroke={isDark ? "rgba(150,220,255,0.55)" : "rgba(80,165,225,0.50)"}
+            strokeWidth="1.4" opacity="1"/>
+        </g>
+
+        {/* ══ BRAIN OUTER GLOW + OUTLINE ══════════════════════════════ */}
+        <g filter="url(#goutline)">
+          <path d={BRAIN_PATH}
+            stroke={isDark ? "rgba(115,205,255,0.95)" : "rgba(55,155,225,0.88)"}
+            strokeWidth="2.4"/>
+        </g>
+
+        {/* ══ NEURONS ════════════════════════════════════════════════ */}
+        {Object.entries(NEURONS).map(([lobe, positions]) =>
+          positions.map(([cx, cy, r], i) => {
+            const active = act(lobe);
+            return (
+              <g key={`${lobe}-${i}`} filter={active ? "url(#gy)" : "url(#gw)"}>
+                {active && (
+                  <circle cx={cx} cy={cy} r={r * 3.8}
+                    stroke="#FFD000" strokeWidth="0.7" fill="none"
+                    opacity="0.28" className="active-flare"/>
+                )}
+                <circle cx={cx} cy={cy} r={active ? r + 1.2 : r}
+                  fill={active ? "#FFE566" : "rgba(200,235,255,0.96)"}
+                  className="node-blink"
+                />
+                {/* Bright white center highlight */}
+                <circle cx={cx} cy={cy} r={active ? r * 0.42 : r * 0.38}
+                  fill="white" opacity={active ? 1 : 0.96}/>
+              </g>
+            );
+          })
+        )}
+
+        {/* ══ ACTIVE REGION SIGNAL ARCS ═══════════════════════════════ */}
+        {activeLobes.length >= 2 && activeLobes.slice(0, -1).map((id, i) => {
+          const next = activeLobes[i + 1];
+          const [x1, y1] = CENTERS[id];
+          const [x2, y2] = CENTERS[next];
+          const mx = (x1 + x2) / 2;
+          const my = (y1 + y2) / 2 - 30;
+          return (
+            <g key={`arc-${id}-${next}`} filter="url(#gsig)">
+              <path
+                d={`M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`}
+                stroke="rgba(255,212,40,0.68)" strokeWidth="1.6" fill="none"
+                strokeDasharray="8 14" className="signal-move"
+              />
+            </g>
+          );
+        })}
       </svg>
     </div>
   );
