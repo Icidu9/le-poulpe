@@ -624,63 +624,20 @@ export default function Home() {
     e.target.value = "";
   }
 
-  // ── Vocal (Web Speech API natif + fallback Groq) ─────────────────────────
-  // Web Speech API : fonctionne nativement dans Safari et Chrome, sans serveur.
-  // Fallback Groq : utilisé si Web Speech non disponible (Firefox).
+  // ── Vocal (Groq Whisper + fallback Web Speech) ────────────────────────────
+  // Priorité 1 : Groq Whisper (haute qualité, multilangue)
+  // Fallback   : Web Speech API native si Groq indisponible
 
   const speechRecognitionRef = useRef<any>(null);
 
   async function toggleVoice() {
-    // Arrêter si déjà en cours (Web Speech)
     if (isRecording) {
-      speechRecognitionRef.current?.stop();
       mediaRecorderRef.current?.stop();
+      speechRecognitionRef.current?.stop();
       return;
     }
 
-    // ── Essayer Web Speech API en premier (Safari, Chrome) ──────────────────
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      speechRecognitionRef.current = recognition;
-      recognition.lang = "fr-FR";
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.onstart = () => setIsRecording(true);
-
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setIsRecording(false);
-        if (transcript.trim()) sendMessage(transcript.trim());
-      };
-
-      recognition.onerror = (event: any) => {
-        setIsRecording(false);
-        if (event.error === "not-allowed") {
-          setMicError(true);
-          setTimeout(() => setMicError(false), 4000);
-        } else {
-          setTranscribeError(true);
-          setTimeout(() => setTranscribeError(false), 5000);
-        }
-      };
-
-      recognition.onend = () => setIsRecording(false);
-
-      try {
-        recognition.start();
-      } catch {
-        setTranscribeError(true);
-        setTimeout(() => setTranscribeError(false), 5000);
-      }
-      return;
-    }
-
-    // ── Fallback : MediaRecorder + Groq (Firefox) ────────────────────────────
+    // ── Groq Whisper via MediaRecorder ───────────────────────────────────────
     let stream = micStreamRef.current;
     if (!stream || stream.getTracks().some((t) => t.readyState === "ended")) {
       try {
@@ -709,27 +666,52 @@ export default function Home() {
     recorder.onstop = async () => {
       setIsRecording(false);
       setIsTranscribing(true);
+
       const blob = new Blob(audioChunksRef.current, { type: mimeType });
-      const ext = mimeType.includes("mp4") ? "enregistrement.mp4" : "enregistrement.webm";
+      const ext = mimeType.includes("mp4") ? "audio.mp4" : "audio.webm";
       const form = new FormData();
       form.append("audio", blob, ext);
+
       try {
         const res = await fetch("/api/transcribe", { method: "POST", body: form });
         if (res.ok) {
           const text = await res.text();
           if (text.trim()) { setIsTranscribing(false); sendMessage(text.trim()); return; }
         }
-        setTranscribeError(true);
-        setTimeout(() => setTranscribeError(false), 5000);
+        // Groq a échoué → fallback Web Speech
+        fallbackWebSpeech();
       } catch {
-        setTranscribeError(true);
-        setTimeout(() => setTranscribeError(false), 5000);
+        fallbackWebSpeech();
       }
       setIsTranscribing(false);
     };
 
-    recorder.start(100);
+    recorder.start(250);
     setIsRecording(true);
+  }
+
+  function fallbackWebSpeech() {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setTranscribeError(true);
+      setTimeout(() => setTranscribeError(false), 5000);
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    speechRecognitionRef.current = recognition;
+    recognition.lang = "fr-FR";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      if (transcript.trim()) sendMessage(transcript.trim());
+    };
+    recognition.onerror = () => {
+      setTranscribeError(true);
+      setTimeout(() => setTranscribeError(false), 5000);
+    };
+    recognition.start();
   }
 
   // ── Chat ──────────────────────────────────────────────────────────────────
