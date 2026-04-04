@@ -659,6 +659,8 @@ export default function Home() {
     const recorder = new MediaRecorder(stream, { mimeType });
     mediaRecorderRef.current = recorder;
 
+    // Pas de timeslice : on récupère un seul blob complet à l'arrêt
+    // (nécessaire pour MP4/Safari — les chunks MP4 fragmentés ne sont pas valides)
     recorder.ondataavailable = (e) => {
       if (e.data.size > 0) audioChunksRef.current.push(e.data);
     };
@@ -667,10 +669,17 @@ export default function Home() {
       setIsRecording(false);
       setIsTranscribing(true);
 
+      const ext = mimeType.includes("mp4") ? "mp4" : "webm";
       const blob = new Blob(audioChunksRef.current, { type: mimeType });
-      const ext = mimeType.includes("mp4") ? "audio.mp4" : "audio.webm";
+
+      if (blob.size < 1000) {
+        // Audio trop court / vide
+        setIsTranscribing(false);
+        return;
+      }
+
       const form = new FormData();
-      form.append("audio", blob, ext);
+      form.append("audio", blob, `audio.${ext}`);
 
       try {
         const res = await fetch("/api/transcribe", { method: "POST", body: form });
@@ -678,7 +687,6 @@ export default function Home() {
           const text = await res.text();
           if (text.trim()) { setIsTranscribing(false); sendMessage(text.trim()); return; }
         }
-        // Groq a échoué → fallback Web Speech
         fallbackWebSpeech();
       } catch {
         fallbackWebSpeech();
@@ -686,7 +694,7 @@ export default function Home() {
       setIsTranscribing(false);
     };
 
-    recorder.start(250);
+    recorder.start(); // pas de timeslice → 1 seul blob complet
     setIsRecording(true);
   }
 
