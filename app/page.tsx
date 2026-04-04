@@ -384,20 +384,22 @@ export default function Home() {
   // ── Photo ─────────────────────────────────────────────────────────────────
 
   function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    files.slice(0, 5).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        const base64 = dataUrl.split(",")[1];
-        const mimeType = file.type || "image/jpeg";
-        setSelectedPhotos((prev) => {
-          if (prev.length >= 5) return prev;
-          return [...prev, { base64, mimeType, preview: dataUrl }];
-        });
-      };
-      reader.readAsDataURL(file);
+    const newFiles = Array.from(e.target.files || []);
+    if (!newFiles.length) return;
+    Promise.all(
+      newFiles.map(
+        (file) =>
+          new Promise<{ base64: string; mimeType: string; preview: string }>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const dataUrl = reader.result as string;
+              resolve({ base64: dataUrl.split(",")[1], mimeType: file.type || "image/jpeg", preview: dataUrl });
+            };
+            reader.readAsDataURL(file);
+          })
+      )
+    ).then((newPhotos) => {
+      setSelectedPhotos((prev) => [...prev, ...newPhotos].slice(0, 5));
     });
     e.target.value = "";
   }
@@ -520,12 +522,6 @@ export default function Home() {
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  }
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -916,7 +912,6 @@ export default function Home() {
                 }
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
               />
               <button onClick={() => sendMessage()} disabled={(!input.trim() && !selectedPhotos.length) || loading}
                 className="flex-shrink-0 mb-0.5 w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
@@ -925,7 +920,7 @@ export default function Home() {
               </button>
             </div>
             <p className="text-[11px] text-center mt-2" style={{ color: "#B8A898" }}>
-              Entrée pour envoyer · Shift+Entrée pour nouvelle ligne · 🎙️ pour parler
+              Entrée pour nouvelle ligne · Appuie sur → pour envoyer · 🎙️ pour parler
             </p>
               </>
             )}
