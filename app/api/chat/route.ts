@@ -83,6 +83,87 @@ function toAnthropicMessages(messages: IncomingMessage[]): Anthropic.MessagePara
   });
 }
 
+async function updateChildMemory(
+  parentEmail: string,
+  childName: string,
+  messages: IncomingMessage[],
+  sessionSummary: string,
+  currentMemory: string
+) {
+  try {
+    const supabase = getSupabase();
+
+    // Récupère le compteur de sessions actuel
+    const { data: existing } = await supabase
+      .from("child_memory")
+      .select("session_count")
+      .eq("parent_email", parentEmail)
+      .single();
+
+    const sessionCount = (existing?.session_count || 0) + 1;
+
+    // Construit un extrait de conversation (max 15 échanges)
+    const transcript = messages
+      .slice(-15)
+      .filter((m) => m.content && m.content !== "(photo)")
+      .map((m) => `${m.role === "user" ? childName : "Le Poulpe"}: ${m.content.slice(0, 300)}`)
+      .join("\n");
+
+    const today = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+    const prompt = currentMemory
+      ? `Tu es un système de mémoire pour un tuteur IA appelé Le Poulpe.
+
+Mémoire actuelle de l'élève :
+---
+${currentMemory}
+---
+
+Session du ${today} — résumé de fin de session :
+${sessionSummary}
+
+Extrait de la conversation :
+${transcript}
+
+Mets à jour la mémoire. Règles :
+- 200 mots maximum
+- Garde ce qui est toujours vrai, supprime ce qui est dépassé
+- Inclus : ce que l'élève comprend bien / ce sur quoi il bloque / comment il travaille (concentration, rythme) / date et thème de la dernière session
+- Réponds UNIQUEMENT avec le texte de la mémoire mise à jour, sans titre ni commentaire.`
+      : `Tu es un système de mémoire pour un tuteur IA appelé Le Poulpe.
+
+Première session avec ${childName} — ${today}
+Résumé de fin de session :
+${sessionSummary}
+
+Extrait de la conversation :
+${transcript}
+
+Crée une fiche mémoire concise. Règles :
+- 200 mots maximum
+- Inclus : profil de l'élève / ce qu'il comprend bien / ce sur quoi il bloque / comment il travaille / date et thème de cette première session
+- Réponds UNIQUEMENT avec le texte de la mémoire, sans titre ni commentaire.`;
+
+    const response = await getClient().messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 400,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const newMemory = response.content[0].type === "text" ? response.content[0].text.trim() : "";
+    if (!newMemory) return;
+
+    await supabase.from("child_memory").upsert({
+      parent_email: parentEmail,
+      child_name: childName,
+      memory_text: newMemory,
+      session_count: sessionCount,
+      last_session_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "parent_email" });
+  } catch {}
+}
+
 export async function POST(req: Request) {
   // Rate limiting — message doux, pas de blocage brutal
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -94,7 +175,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession, profile } = (await req.json()) as {
+  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession, profile, memory, parentEmail } = (await req.json()) as {
     messages: IncomingMessage[];
     failles: Record<string, unknown>;
     sessionId?: string;
@@ -102,6 +183,8 @@ export async function POST(req: Request) {
     emploiDuTemps?: Record<string, string[]>;
     closeSession?: boolean;
     profile?: Record<string, unknown> | null;
+    memory?: string | null;
+    parentEmail?: string;
   };
 
   const nom = childName || "Arthur";
@@ -110,6 +193,14 @@ export async function POST(req: Request) {
   let systemPrompt = profile
     ? injectProfileIntoPrompt(ARTHUR_SYSTEM_PROMPT, nom, profile as any)
     : ARTHUR_SYSTEM_PROMPT.replaceAll("Arthur", nom);
+  // Injecte la mémoire des sessions précédentes
+  if (memory && memory.trim()) {
+    systemPrompt +=
+      `\n\n---\n\n## MÉMOIRE DE L'ÉLÈVE (sessions précédentes)\n\n` +
+      `Ce qui suit est une synthèse des sessions passées avec cet élève. Utilise-la pour personnaliser ton approche : rappelle-toi de ses lacunes, de ses progrès, de sa façon de travailler.\n\n` +
+      memory.trim();
+  }
+
   if (failles && typeof failles === "object" && Object.keys(failles).length > 0) {
     const faillesText = Object.entries(failles)
       .map(([mat, data]: [string, any]) => {
@@ -233,6 +324,11 @@ export async function POST(req: Request) {
             });
           } catch {}
         })();
+      }
+
+      // Met à jour la mémoire de l'élève après la fin d'une session (non-bloquant)
+      if (closeSession && parentEmail && fullResponse) {
+        void updateChildMemory(parentEmail, childName || "l'élève", messages, fullResponse, memory || "");
       }
     },
   });

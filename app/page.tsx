@@ -171,6 +171,7 @@ export default function Home() {
   const [classe, setClasse]         = useState("beta");
   const [parentEmail, setParentEmail] = useState("");
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
+  const [childMemory, setChildMemory] = useState<string | null>(null);
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [failles, setFailles] = useState<Record<string, unknown>>({});
   const [nbFailles, setNbFailles] = useState(0);
@@ -217,8 +218,15 @@ export default function Home() {
 
     if (p) setPrenom(p);
     if (profile?.parent?.pClasse) setClasse(profile.parent.pClasse);
-    const savedEmail = localStorage.getItem("poulpe_parent_email") || "";
-    if (savedEmail) setParentEmail(savedEmail);
+    const savedEmail = localStorage.getItem("poulpe_parent_email") || localStorage.getItem("poulpe_beta_email") || "";
+    if (savedEmail) {
+      setParentEmail(savedEmail);
+      // Charge la mémoire de l'élève depuis Supabase
+      fetch(`/api/memory?email=${encodeURIComponent(savedEmail)}`)
+        .then((r) => r.json())
+        .then((data) => { if (data.memory) setChildMemory(data.memory); })
+        .catch(() => {});
+    }
     if (profile?.parent?.pMatieresDiff) {
       setMatieresDiff(profile.parent.pMatieresDiff.filter((m: string) => m !== "__autre__"));
     }
@@ -367,6 +375,8 @@ export default function Home() {
           emploiDuTemps,
           closeSession: true,
           profile,
+          memory: childMemory,
+          parentEmail,
         }),
       });
       if (!response.ok) throw new Error("Erreur API");
@@ -568,6 +578,8 @@ export default function Home() {
           childName: prenom,
           emploiDuTemps,
           profile,
+          memory: childMemory,
+          parentEmail,
         }),
       });
 
