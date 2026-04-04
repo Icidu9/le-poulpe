@@ -624,16 +624,63 @@ export default function Home() {
     e.target.value = "";
   }
 
-  // ── Vocal (Whisper via Groq) ──────────────────────────────────────────────
+  // ── Vocal (Web Speech API natif + fallback Groq) ─────────────────────────
+  // Web Speech API : fonctionne nativement dans Safari et Chrome, sans serveur.
+  // Fallback Groq : utilisé si Web Speech non disponible (Firefox).
+
+  const speechRecognitionRef = useRef<any>(null);
 
   async function toggleVoice() {
-    // Arrêter l'enregistrement en cours
+    // Arrêter si déjà en cours (Web Speech)
     if (isRecording) {
+      speechRecognitionRef.current?.stop();
       mediaRecorderRef.current?.stop();
       return;
     }
 
-    // Utilise le stream pré-chargé ou en demande un nouveau
+    // ── Essayer Web Speech API en premier (Safari, Chrome) ──────────────────
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      speechRecognitionRef.current = recognition;
+      recognition.lang = "fr-FR";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => setIsRecording(true);
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setIsRecording(false);
+        if (transcript.trim()) sendMessage(transcript.trim());
+      };
+
+      recognition.onerror = (event: any) => {
+        setIsRecording(false);
+        if (event.error === "not-allowed") {
+          setMicError(true);
+          setTimeout(() => setMicError(false), 4000);
+        } else {
+          setTranscribeError(true);
+          setTimeout(() => setTranscribeError(false), 5000);
+        }
+      };
+
+      recognition.onend = () => setIsRecording(false);
+
+      try {
+        recognition.start();
+      } catch {
+        setTranscribeError(true);
+        setTimeout(() => setTranscribeError(false), 5000);
+      }
+      return;
+    }
+
+    // ── Fallback : MediaRecorder + Groq (Firefox) ────────────────────────────
     let stream = micStreamRef.current;
     if (!stream || stream.getTracks().some((t) => t.readyState === "ended")) {
       try {
@@ -647,7 +694,6 @@ export default function Home() {
     }
 
     audioChunksRef.current = [];
-    // Safari utilise audio/mp4, Chrome/Firefox utilisent audio/webm
     const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
       ? "audio/webm;codecs=opus"
       : MediaRecorder.isTypeSupported("audio/webm")
@@ -663,25 +709,18 @@ export default function Home() {
     recorder.onstop = async () => {
       setIsRecording(false);
       setIsTranscribing(true);
-
       const blob = new Blob(audioChunksRef.current, { type: mimeType });
       const ext = mimeType.includes("mp4") ? "enregistrement.mp4" : "enregistrement.webm";
       const form = new FormData();
       form.append("audio", blob, ext);
-
       try {
         const res = await fetch("/api/transcribe", { method: "POST", body: form });
         if (res.ok) {
           const text = await res.text();
-          if (text.trim()) {
-            setIsTranscribing(false);
-            sendMessage(text.trim());
-            return;
-          }
-        } else {
-          setTranscribeError(true);
-          setTimeout(() => setTranscribeError(false), 5000);
+          if (text.trim()) { setIsTranscribing(false); sendMessage(text.trim()); return; }
         }
+        setTranscribeError(true);
+        setTimeout(() => setTranscribeError(false), 5000);
       } catch {
         setTranscribeError(true);
         setTimeout(() => setTranscribeError(false), 5000);
@@ -689,7 +728,7 @@ export default function Home() {
       setIsTranscribing(false);
     };
 
-    recorder.start(100); // chunks de 100ms pour ne pas perdre le début
+    recorder.start(100);
     setIsRecording(true);
   }
 
