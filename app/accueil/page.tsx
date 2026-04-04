@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import Sidebar from "../components/Sidebar";
-
-const BrainViewerBackground = dynamic(() => import("./BrainViewer"), { ssr: false, loading: () => null });
+import BrainSVG from "./BrainSVG";
 
 // ── Design System ────────────────────────────────────────────────────────────
 const MAT_COLORS: Record<string, { gradient: string; light: string; text: string; border: string }> = {
@@ -221,15 +219,11 @@ export default function AccueilPage() {
 
       {/* ── Brain background (absolute, z-0) ──────────────────────── */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <BrainViewerBackground
-          activeSubjects={workedSubjects}
-          mode="background"
-          intensityScale={intensityScale}
-        />
+        <BrainSVG activeSubjects={workedSubjects} isDark={isDark} />
       </div>
 
       {/* ── Sidebar ───────────────────────────────────────────────── */}
-      <div style={{ position: "relative", zIndex: 50, flexShrink: 0 }}>
+      <div style={{ position: "relative", zIndex: 50, flexShrink: 0, height: "100%" }}>
         <Sidebar />
       </div>
 

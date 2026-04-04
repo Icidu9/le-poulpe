@@ -114,7 +114,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="relative z-50 flex flex-col w-56 flex-shrink-0"
+      className="relative z-50 flex flex-col w-56 flex-shrink-0 h-full"
       style={{ background: "#061A26", borderRight: "1px solid rgba(255,255,255,0.06)" }}
     >
       {/* Logo */}
