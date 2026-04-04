@@ -154,13 +154,13 @@ const TOUR_STEPS: { target: string | null; emoji: string; title: string; message
     target: "workspace",
     emoji: "💬",
     title: "Réviser avec moi",
-    message: "C'est ici qu'on travaille ensemble ! Tu me poses tes questions, tu m'envoies tes exercices ou une photo de ton cours — je t'explique tout, à ton rythme.",
+    message: "C'est ici qu'on travaille ensemble ! Tu me poses tes questions, tu m'envoies tes exercices ou une photo de ton cours, je t'explique tout, à ton rythme.",
   },
   {
     target: "matieres",
     emoji: "📚",
     title: "Mes matières",
-    message: "Choisis ta matière ici — Mathématiques, Français, Sciences de la Vie et de la Terre, Anglais... Tu passes de l'une à l'autre sans tout recommencer.",
+    message: "Choisis ta matière ici : Mathématiques, Français, Sciences de la Vie et de la Terre, Anglais... Tu passes de l'une à l'autre sans tout recommencer.",
   },
   {
     target: "planning",
@@ -172,7 +172,7 @@ const TOUR_STEPS: { target: string | null; emoji: string; title: string; message
     target: "progression",
     emoji: "📈",
     title: "Ma progression",
-    message: "Les points qu'on a repérés dans tes copies s'affichent ici, matière par matière. C'est ton radar — pas un jugement, juste ce sur quoi on va travailler ensemble. 💪",
+    message: "Les points qu'on a repérés dans tes copies s'affichent ici, matière par matière. C'est ton radar, pas un jugement, juste ce sur quoi on va travailler ensemble. 💪",
   },
 ];
 
@@ -359,12 +359,12 @@ export default function Home() {
         const mode = (chapActif as any).mode || "chat";
         if (mode === "quiz") {
           firstMsg = nom
-            ? `Salut ${nom} ! Tu as lu la fiche sur **${chapActif.chapitre}** — on commence le quiz ! 🎯`
-            : `Tu as lu la fiche sur **${chapActif.chapitre}** — on commence le quiz ! 🎯`;
+            ? `Salut ${nom} ! Tu as lu la fiche sur **${chapActif.chapitre}**, on commence le quiz ! 🎯`
+            : `Tu as lu la fiche sur **${chapActif.chapitre}**, on commence le quiz ! 🎯`;
         } else if (mode === "exercice") {
           firstMsg = nom
-            ? `Salut ${nom} ! Voilà un exercice sur **${chapActif.chapitre}** — à toi de jouer ! ✏️`
-            : `Voilà un exercice sur **${chapActif.chapitre}** — à toi de jouer ! ✏️`;
+            ? `Salut ${nom} ! Voilà un exercice sur **${chapActif.chapitre}**, à toi de jouer ! ✏️`
+            : `Voilà un exercice sur **${chapActif.chapitre}**, à toi de jouer ! ✏️`;
         } else {
           firstMsg = nom
             ? `Salut ${nom} ! Tu as une question sur **${chapActif.chapitre}** ? Je suis là. 🐙`
@@ -372,8 +372,8 @@ export default function Home() {
         }
       } else if (matActive) {
         firstMsg = nom
-          ? `Salut ${nom} ! On travaille sur **${matActive}** — t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷${failleHint}`
-          : `Salut ! On travaille sur **${matActive}** — t'as quoi comme exercice ?${failleHint}`;
+          ? `Salut ${nom} ! On travaille sur **${matActive}**, t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷${failleHint}`
+          : `Salut ! On travaille sur **${matActive}**, t'as quoi comme exercice ?${failleHint}`;
       } else if (coursJour.length > 0) {
         const liste = coursJour.join(", ");
         firstMsg = nom
@@ -576,12 +576,12 @@ export default function Home() {
     let firstMsg: string;
     if (matiereActive) {
       firstMsg = nom
-        ? `Nouvelle session ! Salut ${nom} — on repart sur **${matiereActive}**. T'as quoi comme exercice ?`
-        : `Nouvelle session ${matiereActive} — t'as quoi comme exercice ?`;
+        ? `Nouvelle session ! Salut ${nom}, on repart sur **${matiereActive}**. T'as quoi comme exercice ?`
+        : `Nouvelle session ${matiereActive}, t'as quoi comme exercice ?`;
     } else {
       firstMsg = nom
-        ? `Nouvelle session ! Salut ${nom} — t'as quoi comme devoirs ce soir ?`
-        : `Nouvelle session — t'as quoi comme devoirs ce soir ?`;
+        ? `Nouvelle session ! Salut ${nom}, t'as quoi comme devoirs ce soir ?`
+        : `Nouvelle session, t'as quoi comme devoirs ce soir ?`;
     }
     setMessages([{ role: "assistant", content: firstMsg }]);
   }
@@ -595,8 +595,8 @@ export default function Home() {
     setIsSessionClosed(false);
     const nom = prenom;
     const firstMsg = nom
-      ? `Salut ${nom} ! On travaille sur **${mat}** — t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷`
-      : `Salut ! On travaille sur **${mat}** — t'as quoi comme exercice ?`;
+      ? `Salut ${nom} ! On travaille sur **${mat}**, t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷`
+      : `Salut ! On travaille sur **${mat}**, t'as quoi comme exercice ?`;
     setMessages([{ role: "assistant", content: firstMsg }]);
   }
 
@@ -766,7 +766,7 @@ export default function Home() {
   // Message de la première étape du tour (personnalisé avec prénom)
   const tourMessages = TOUR_STEPS.map((step, i) =>
     i === 0
-      ? { ...step, message: `Salut ${prenom} ! Je suis Le Poulpe, ton tuteur IA. Laisse-moi te montrer comment ça marche — 30 secondes et c'est parti ! 🎉` }
+      ? { ...step, message: `Salut ${prenom} ! Je suis Le Poulpe, ton tuteur IA. Laisse-moi te montrer comment ça marche, 30 secondes et c'est parti ! 🎉` }
       : step
   );
 
@@ -877,7 +877,6 @@ export default function Home() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-75"
               style={{ background: C.amberLight, color: C.terracotta, border: `1px solid ${C.amberBorder}` }}
             >
-              <span>🐙</span>
               <span>{matiereActive || "Toutes matières"}</span>
               {matiereActive && (
                 <span className="text-[10px] font-normal" style={{ color: C.warmGray }}>· changer</span>
@@ -1041,7 +1040,7 @@ export default function Home() {
             {isSessionClosed && (
               <div className="flex flex-col items-center gap-3 py-3">
                 <div className="text-sm font-semibold" style={{ color: "#2D7A4F" }}>
-                  ✅ Session terminée — bien joué !
+                  ✅ Session terminée, bien joué !
                 </div>
                 {/* Bouton flashcards */}
                 {!flashcardsReady ? (
@@ -1059,7 +1058,7 @@ export default function Home() {
                     className="px-4 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90"
                     style={{ background: "#EBF5EE", color: "#2D7A4F", border: "1px solid #B8DFC5" }}
                   >
-                    ✓ Fiches créées — voir mes fiches →
+                    ✓ Fiches créées, voir mes fiches →
                   </button>
                 )}
                 <div className="flex gap-2">
@@ -1106,7 +1105,7 @@ export default function Home() {
                   </div>
                 ))}
                 <span className="text-xs" style={{ color: C.warmGray }}>
-                  {selectedPhotos.length} photo{selectedPhotos.length > 1 ? "s" : ""} — max 5
+                  {selectedPhotos.length} photo{selectedPhotos.length > 1 ? "s" : ""}, max 5
                 </span>
               </div>
             )}

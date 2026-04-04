@@ -5,20 +5,6 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 import { getChapitres, findMatiereInProgramme, type Chapitre } from "../../lib/curriculum";
 
-const C = {
-  bg:          "#F4F9FA",
-  card:        "#FFFFFF",
-  primary:     "#E8922A",
-  primaryDark: "#C05C2A",
-  text:        "#0A2030",
-  textMid:     "#5A7A8A",
-  textLight:   "#8ABAD0",
-  border:      "#DCE9ED",
-  borderMid:   "#C8DDE5",
-  success:     "#10B981",
-  danger:      "#EF4444",
-};
-
 type MatStyle = {
   gradient: string;
   light: string;
@@ -30,16 +16,12 @@ const MAT_STYLES: Record<string, MatStyle> = {
   "Français":             { gradient: "linear-gradient(135deg, #EF4444, #F87171)", light: "#FEF2F2", text: "#DC2626", border: "#FECACA" },
   "Mathématiques":        { gradient: "linear-gradient(135deg, #2563EB, #60A5FA)", light: "#EFF6FF", text: "#1D4ED8", border: "#BFDBFE" },
   "Histoire-Géographie":  { gradient: "linear-gradient(135deg, #16A34A, #4ADE80)", light: "#F0FDF4", text: "#15803D", border: "#BBF7D0" },
-  "Sciences de la Vie et de la Terre": { gradient: "linear-gradient(135deg, #059669, #34D399)", light: "#ECFDF5", text: "#065F46", border: "#A7F3D0" },
+  "Sciences de la Vie et de la Terre": { gradient: "linear-gradient(135deg, #0D9488, #5EEAD4)", light: "#F0FDFA", text: "#0F766E", border: "#99F6E4" },
   "Physique-Chimie":      { gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)", light: "#F5F3FF", text: "#6D28D9", border: "#DDD6FE" },
   "Anglais":              { gradient: "linear-gradient(135deg, #0284C7, #38BDF8)", light: "#F0F9FF", text: "#0369A1", border: "#BAE6FD" },
   "Espagnol":             { gradient: "linear-gradient(135deg, #C2410C, #FB923C)", light: "#FFF7ED", text: "#C2410C", border: "#FED7AA" },
   "Allemand":             { gradient: "linear-gradient(135deg, #4338CA, #818CF8)", light: "#EEF2FF", text: "#4338CA", border: "#C7D2FE" },
   "Latin":                { gradient: "linear-gradient(135deg, #A16207, #FACC15)", light: "#FEFCE8", text: "#854D0E", border: "#FEF08A" },
-  "Arts Plastiques":      { gradient: "linear-gradient(135deg, #BE185D, #F472B6)", light: "#FDF2F8", text: "#BE185D", border: "#FBCFE8" },
-  "Musique":              { gradient: "linear-gradient(135deg, #0F766E, #2DD4BF)", light: "#F0FDFA", text: "#0F766E", border: "#99F6E4" },
-  "EPS":                  { gradient: "linear-gradient(135deg, #4D7C0F, #A3E635)", light: "#F7FEE7", text: "#4D7C0F", border: "#D9F99D" },
-  "Technologie":          { gradient: "linear-gradient(135deg, #475569, #94A3B8)", light: "#F8FAFC", text: "#334155", border: "#E2E8F0" },
   "Philosophie":          { gradient: "linear-gradient(135deg, #7E22CE, #C084FC)", light: "#FAF5FF", text: "#7C3AED", border: "#E9D5FF" },
   "SES":                  { gradient: "linear-gradient(135deg, #B45309, #FCD34D)", light: "#FFFBEB", text: "#92400E", border: "#FDE68A" },
   "NSI":                  { gradient: "linear-gradient(135deg, #1D4ED8, #6D28D9)", light: "#EFF6FF", text: "#1E40AF", border: "#BFDBFE" },
@@ -49,7 +31,6 @@ const MAT_EMOJIS: Record<string, string> = {
   "Français": "📖", "Mathématiques": "📐", "Histoire-Géographie": "🌍",
   "Sciences de la Vie et de la Terre": "🌿", "Physique-Chimie": "⚗️",
   "Anglais": "🇬🇧", "Espagnol": "🇪🇸", "Allemand": "🇩🇪", "Latin": "🏛️",
-  "EPS": "🏃", "Arts Plastiques": "🎨", "Musique": "🎵", "Technologie": "💻",
   "Philosophie": "🧠", "SES": "📊", "NSI": "💾",
 };
 
@@ -72,7 +53,6 @@ const MATIERES_STANDARD: Matiere[] = [
   { nom: "Français" }, { nom: "Mathématiques" }, { nom: "Histoire-Géographie" },
   { nom: "Sciences de la Vie et de la Terre" }, { nom: "Physique-Chimie" },
   { nom: "Anglais" }, { nom: "Espagnol" }, { nom: "Allemand" }, { nom: "Latin" },
-  { nom: "Arts Plastiques" }, { nom: "Musique" }, { nom: "EPS" }, { nom: "Technologie" },
   { nom: "Philosophie" }, { nom: "SES" }, { nom: "NSI" },
 ];
 
@@ -85,9 +65,9 @@ function matchesName(mat: Matiere, name: string) {
 }
 
 // ── Hub modal ─────────────────────────────────────────────────────────────────
-function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClose, onAction }: {
+function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClose, onAction, isDark }: {
   mat: Matiere; hasSession: boolean; hasFlashcards: boolean; hasFailles: boolean;
-  classe: string; onClose: () => void;
+  classe: string; onClose: () => void; isDark: boolean;
   onAction: (action: "reviser" | "nouvelle" | "examens" | "flashcards" | "progression" | "chapitre", chapitre?: Chapitre) => void;
 }) {
   const [view, setView] = useState<"main" | "programme">("main");
@@ -98,20 +78,28 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
   const chapitres = matiereProgramme ? getChapitres(matiereProgramme, classe) : [];
   const hasProgramme = chapitres.length > 0;
 
+  const modalBg = isDark ? "#061A26" : "#F4F9FA";
+  const cardBg = isDark ? "rgba(6,26,38,0.9)" : "#FFFFFF";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
+  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
+  const textLight = isDark ? "rgba(255,255,255,0.25)" : "#8ABAD0";
+  const border = isDark ? "rgba(255,255,255,0.10)" : "#DCE9ED";
+  const borderMid = isDark ? "rgba(255,255,255,0.15)" : "#C8DDE5";
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center"
-      style={{ background: "rgba(15,23,42,0.6)", backdropFilter: "blur(4px)" }}
+      style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
       onClick={onClose}
     >
       <div
         className="w-full max-w-lg rounded-t-3xl"
-        style={{ background: C.bg, maxHeight: "88vh", overflowY: "auto", boxShadow: "0 -8px 60px rgba(15,23,42,0.2)" }}
+        style={{ background: modalBg, maxHeight: "88vh", overflowY: "auto", boxShadow: "0 -8px 60px rgba(0,0,0,0.3)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full" style={{ background: C.borderMid }} />
+          <div className="w-10 h-1 rounded-full" style={{ background: borderMid }} />
         </div>
 
         {/* Header */}
@@ -120,7 +108,7 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
             <button
               onClick={() => setView("main")}
               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: C.card, border: `1px solid ${C.border}`, color: C.textMid, fontSize: 14 }}
+              style={{ background: cardBg, border: `1px solid ${border}`, color: textSub, fontSize: 14 }}
             >
               ←
             </button>
@@ -134,24 +122,24 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
           )}
 
           <div className="flex-1">
-            <h2 className="text-base font-bold" style={{ color: C.text }}>
+            <h2 className="text-base font-bold" style={{ color: textMain }}>
               {view === "programme" ? `Programme ${mat.nom}` : mat.nom}
             </h2>
             {view === "main" && hasSession && (
               <div className="flex items-center gap-1.5 mt-0.5">
-                <div className="w-1.5 h-1.5 rounded-full" style={{ background: C.success }} />
-                <p className="text-xs font-medium" style={{ color: C.success }}>Session en cours</p>
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#10B981" }} />
+                <p className="text-xs font-medium" style={{ color: "#10B981" }}>Session en cours</p>
               </div>
             )}
             {view === "programme" && (
-              <p className="text-xs mt-0.5" style={{ color: C.textMid }}>{classe} · {chapitres.length} chapitres</p>
+              <p className="text-xs mt-0.5" style={{ color: textSub }}>{classe} · {chapitres.length} chapitres</p>
             )}
           </div>
 
           <button
             onClick={onClose}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-sm flex-shrink-0"
-            style={{ background: C.card, border: `1px solid ${C.border}`, color: C.textMid }}
+            style={{ background: cardBg, border: `1px solid ${border}`, color: textSub }}
           >
             ✕
           </button>
@@ -160,7 +148,6 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
         <div className="px-5 pb-8">
           {view === "main" && (
             <div className="space-y-2">
-
               {/* Primary CTA */}
               <button
                 onClick={() => onAction("reviser")}
@@ -170,7 +157,7 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
                   boxShadow: "0 4px 20px rgba(232,146,42,0.35)",
                 }}
               >
-                <span className="text-2xl flex-shrink-0">🐙</span>
+                <img src="/icon-192.png" alt="" style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0 }} />
                 <div>
                   <p className="font-bold text-white text-sm">
                     {hasSession ? "Reprendre la session" : "Réviser avec Le Poulpe"}
@@ -186,27 +173,26 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
                 <button
                   onClick={() => setView("programme")}
                   className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
-                  style={{ background: C.card, border: `1px solid ${C.border}`, boxShadow: "0 1px 8px rgba(15,23,42,0.05)" }}
+                  style={{ background: cardBg, border: `1px solid ${border}`, boxShadow: "0 1px 8px rgba(0,0,0,0.08)" }}
                 >
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                    style={{ background: "#EFF6FF" }}
+                    style={{ background: isDark ? "rgba(255,255,255,0.08)" : "#EFF6FF" }}
                   >
                     📚
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-sm" style={{ color: C.text }}>Programme officiel</p>
-                    <p className="text-xs mt-0.5" style={{ color: C.textMid }}>
+                    <p className="font-semibold text-sm" style={{ color: textMain }}>Programme officiel</p>
+                    <p className="text-xs mt-0.5" style={{ color: textSub }}>
                       {chapitres.length} chapitres · Éducation Nationale {classe}
                     </p>
                   </div>
-                  <span style={{ color: C.textLight, fontSize: 18 }}>›</span>
+                  <span style={{ color: textLight, fontSize: 18 }}>›</span>
                 </button>
               )}
 
-              {/* Divider */}
               <div className="pt-1 pb-1">
-                <div className="h-px" style={{ background: C.border }} />
+                <div className="h-px" style={{ background: border }} />
               </div>
 
               {/* Secondary actions */}
@@ -221,20 +207,20 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
                   <button
                     key={item.id}
                     onClick={() => onAction(item.id as "reviser" | "nouvelle" | "examens" | "flashcards" | "progression" | "chapitre")}
-                    className="w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl text-left transition-all hover:bg-gray-50"
-                    style={{ background: C.card, border: `1px solid ${C.border}` }}
+                    className="w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl text-left transition-all"
+                    style={{ background: cardBg, border: `1px solid ${border}` }}
                   >
                     <span
                       className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                      style={{ background: "#F8FAFC" }}
+                      style={{ background: isDark ? "rgba(255,255,255,0.06)" : "#F8FAFC" }}
                     >
                       {item.icon}
                     </span>
                     <div className="flex-1">
-                      <p className="font-semibold text-sm" style={{ color: C.text }}>{item.label}</p>
-                      <p className="text-xs mt-0.5" style={{ color: C.textMid }}>{item.sub}</p>
+                      <p className="font-semibold text-sm" style={{ color: textMain }}>{item.label}</p>
+                      <p className="text-xs mt-0.5" style={{ color: textSub }}>{item.sub}</p>
                     </div>
-                    <span style={{ color: C.textLight, fontSize: 16 }}>›</span>
+                    <span style={{ color: textLight, fontSize: 16 }}>›</span>
                   </button>
                 );
               })}
@@ -243,7 +229,7 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
 
           {view === "programme" && (
             <div className="space-y-2">
-              <p className="text-xs pb-2" style={{ color: C.textMid }}>
+              <p className="text-xs pb-2" style={{ color: textSub }}>
                 Clique sur un chapitre pour que le Poulpe te l'enseigne avec un cours complet.
               </p>
               {chapitres.map((ch, i) => (
@@ -251,7 +237,7 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
                   key={ch.id}
                   onClick={() => onAction("chapitre", ch)}
                   className="w-full flex items-start gap-4 px-4 py-3.5 rounded-2xl text-left transition-all hover:scale-[1.005]"
-                  style={{ background: C.card, border: `1px solid ${C.border}` }}
+                  style={{ background: cardBg, border: `1px solid ${border}` }}
                 >
                   <span
                     className="flex-shrink-0 w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold mt-0.5"
@@ -260,10 +246,10 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
                     {i + 1}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-sm" style={{ color: C.text }}>{ch.titre}</p>
-                    <p className="text-xs mt-0.5 leading-relaxed" style={{ color: C.textMid }}>{ch.description}</p>
+                    <p className="font-semibold text-sm" style={{ color: textMain }}>{ch.titre}</p>
+                    <p className="text-xs mt-0.5 leading-relaxed" style={{ color: textSub }}>{ch.description}</p>
                   </div>
-                  <span className="flex-shrink-0 mt-1" style={{ color: C.primary, fontSize: 16 }}>›</span>
+                  <span className="flex-shrink-0 mt-1" style={{ color: "#E8922A", fontSize: 16 }}>›</span>
                 </button>
               ))}
             </div>
@@ -275,38 +261,38 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
 }
 
 // ── Matiere card ──────────────────────────────────────────────────────────────
-function MatiereCard({ mat, badge, hasSession, hasFlash, onClick }: {
+function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
   mat: Matiere; badge?: "difficile" | "fort";
   hasSession: boolean; hasFlash: boolean;
-  onClick: () => void;
+  onClick: () => void; isDark: boolean;
 }) {
   const s = getStyle(mat.nom);
   const emoji = getEmoji(mat.nom);
+  const cardBg = isDark ? "rgba(6,26,38,0.75)" : "#FFFFFF";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
+  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
+  const border = isDark ? "rgba(255,255,255,0.08)" : "#DCE9ED";
 
   return (
     <button
       onClick={onClick}
       className="flex flex-col text-left rounded-2xl overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98]"
       style={{
-        background: C.card,
-        border: `1px solid ${C.border}`,
+        background: cardBg,
+        border: `1px solid ${border}`,
+        backdropFilter: isDark ? "blur(16px)" : undefined,
         boxShadow: badge === "difficile"
-          ? "0 4px 20px rgba(15,23,42,0.10)"
-          : "0 1px 6px rgba(15,23,42,0.05)",
+          ? isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 4px 20px rgba(15,23,42,0.10)"
+          : isDark ? "0 1px 6px rgba(0,0,0,0.2)" : "0 1px 6px rgba(15,23,42,0.05)",
       }}
     >
-      {/* Colored header strip */}
-      <div
-        className="w-full h-1.5"
-        style={{ background: s.gradient }}
-      />
+      <div className="w-full h-1.5" style={{ background: s.gradient }} />
 
       <div className="p-4 flex-1">
-        {/* Top row: emoji + badges */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-            style={{ background: s.light }}
+            style={{ background: isDark ? "rgba(255,255,255,0.08)" : s.light }}
           >
             {emoji}
           </div>
@@ -314,7 +300,7 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick }: {
             {hasSession && (
               <span
                 className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                style={{ background: "#D1FAE5", color: "#065F46" }}
+                style={{ background: isDark ? "rgba(16,185,129,0.15)" : "#D1FAE5", color: "#10B981" }}
               >
                 ● En cours
               </span>
@@ -322,7 +308,7 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick }: {
             {hasFlash && (
               <span
                 className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                style={{ background: "#F5F3FF", color: "#6D28D9" }}
+                style={{ background: isDark ? "rgba(109,40,217,0.2)" : "#F5F3FF", color: "#8B5CF6" }}
               >
                 🃏
               </span>
@@ -330,7 +316,7 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick }: {
             {badge === "difficile" && !hasSession && (
               <span
                 className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                style={{ background: "#FEE2E2", color: "#DC2626" }}
+                style={{ background: isDark ? "rgba(239,68,68,0.15)" : "#FEE2E2", color: "#EF4444" }}
               >
                 Focus
               </span>
@@ -338,7 +324,7 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick }: {
             {badge === "fort" && (
               <span
                 className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                style={{ background: "#D1FAE5", color: "#065F46" }}
+                style={{ background: isDark ? "rgba(16,185,129,0.15)" : "#D1FAE5", color: "#10B981" }}
               >
                 ⭐ Fort
               </span>
@@ -346,9 +332,8 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick }: {
           </div>
         </div>
 
-        {/* Name */}
-        <p className="font-bold text-sm leading-snug" style={{ color: C.text }}>{mat.nom}</p>
-        <p className="text-[11px] mt-1.5 font-medium" style={{ color: C.textMid }}>
+        <p className="font-bold text-sm leading-snug" style={{ color: textMain }}>{mat.nom}</p>
+        <p className="text-[11px] mt-1.5 font-medium" style={{ color: textSub }}>
           Réviser · Cours · Quiz →
         </p>
       </div>
@@ -359,6 +344,7 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick }: {
 // ── Page principale ───────────────────────────────────────────────────────────
 export default function MatieresPage() {
   const router = useRouter();
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [matieresDiff,  setMatieresDiff]  = useState<string[]>([]);
   const [matieresFort,  setMatieresFort]  = useState<string>("");
   const [classe,        setClasse]        = useState("6ème");
@@ -370,6 +356,9 @@ export default function MatieresPage() {
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
     if (!done) { router.replace("/onboarding"); return; }
+
+    const savedTheme = localStorage.getItem("poulpe_theme") as "dark" | "light" | null;
+    if (savedTheme) setTheme(savedTheme);
 
     const profileRaw = localStorage.getItem("poulpe_profile");
     if (profileRaw) {
@@ -397,6 +386,11 @@ export default function MatieresPage() {
       try { setFaillesKeys(new Set(Object.keys(JSON.parse(faillesRaw)))); } catch {}
     }
   }, [router]);
+
+  const isDark = theme === "dark";
+  const bgColor = isDark ? "#030D18" : "#F4F9FA";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
+  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
 
   const isLycee = ["2nde", "1ère", "Terminale"].some((l) => classe.includes(l));
   const matieres = MATIERES_STANDARD.filter((m) => {
@@ -437,7 +431,7 @@ export default function MatieresPage() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: C.bg, fontFamily: '"Inter", system-ui, sans-serif' }}>
+    <div className="flex h-screen overflow-hidden" style={{ background: bgColor, fontFamily: '"Inter", system-ui, sans-serif' }}>
       <Sidebar />
 
       <div className="flex-1 overflow-y-auto">
@@ -445,8 +439,16 @@ export default function MatieresPage() {
 
           {/* Header */}
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>Mes matières</h1>
-            <p className="text-sm mt-1" style={{ color: C.textMid }}>
+            <h1
+              className="text-2xl font-bold tracking-tight"
+              style={{
+                color: isDark ? "#E8922A" : "#0A2030",
+                textShadow: isDark ? "0 0 30px rgba(232,146,42,0.4)" : "none",
+              }}
+            >
+              Mes matières
+            </h1>
+            <p className="text-sm mt-1" style={{ color: textSub }}>
               Clique pour réviser, accéder au programme ou voir tes flashcards.
             </p>
           </div>
@@ -455,10 +457,10 @@ export default function MatieresPage() {
           {difficiles.length > 0 && (
             <div>
               <div className="flex items-center gap-2.5 mb-4">
-                <h2 className="font-bold text-sm" style={{ color: C.text }}>Matières prioritaires</h2>
+                <h2 className="font-bold text-sm" style={{ color: textMain }}>Matières prioritaires</h2>
                 <span
                   className="text-[10px] font-bold px-2.5 py-1 rounded-full"
-                  style={{ background: "#FEE2E2", color: "#DC2626" }}
+                  style={{ background: isDark ? "rgba(239,68,68,0.15)" : "#FEE2E2", color: "#EF4444" }}
                 >
                   Focus
                 </span>
@@ -472,6 +474,7 @@ export default function MatieresPage() {
                     hasSession={savedSessions.has(mat.nom)}
                     hasFlash={flashcardSets.has(mat.nom)}
                     onClick={() => setHubMat(mat)}
+                    isDark={isDark}
                   />
                 ))}
               </div>
@@ -480,7 +483,7 @@ export default function MatieresPage() {
 
           {/* Toutes les matières */}
           <div>
-            <h2 className="font-bold text-sm mb-4" style={{ color: C.text }}>
+            <h2 className="font-bold text-sm mb-4" style={{ color: textMain }}>
               {difficiles.length > 0 ? "Toutes les matières" : "Tes matières"}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -492,6 +495,7 @@ export default function MatieresPage() {
                   hasSession={savedSessions.has(mat.nom)}
                   hasFlash={flashcardSets.has(mat.nom)}
                   onClick={() => setHubMat(mat)}
+                  isDark={isDark}
                 />
               ))}
             </div>
@@ -509,6 +513,7 @@ export default function MatieresPage() {
           classe={classe}
           onClose={() => setHubMat(null)}
           onAction={handleAction}
+          isDark={isDark}
         />
       )}
     </div>

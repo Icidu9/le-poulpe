@@ -215,7 +215,7 @@ function ChapitreContent() {
             >
               <span className="text-2xl">❓</span>
               <div>
-                <p className="font-semibold text-sm" style={{ color: C.blue }}>Quiz — Tester mes connaissances</p>
+                <p className="font-semibold text-sm" style={{ color: C.blue }}>Quiz · Tester mes connaissances</p>
                 <p className="text-xs mt-0.5" style={{ color: "#6A80BB" }}>
                   Le Poulpe te pose 5 questions sur ce chapitre et corrige tes réponses
                 </p>

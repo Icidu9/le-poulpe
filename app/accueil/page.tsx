@@ -408,7 +408,7 @@ export default function AccueilPage() {
             >
               <span className="text-xl">⭐</span>
               <p className="text-xs font-medium" style={{ color: isDark ? "rgba(255,255,255,0.8)" : "#065F46" }}>
-                Point fort : <strong>{matieresFort}</strong> — continue comme ça !
+                Point fort : <strong>{matieresFort}</strong>, continue comme ça !
               </p>
             </div>
           )}

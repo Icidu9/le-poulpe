@@ -115,8 +115,8 @@ export default function CerveauPage() {
     activeRegions.length === 0
       ? "Commence à réviser pour voir tes zones cérébrales s'allumer !"
       : activeRegions.length === 1
-      ? `1 zone active — ${activeRegions[0].label} travaillé(e) aujourd'hui`
-      : `${activeRegions.length} zones actives — ton cerveau est en pleine forme !`;
+      ? `1 zone active · ${activeRegions[0].label} travaillé(e) aujourd'hui`
+      : `${activeRegions.length} zones actives, ton cerveau est en pleine forme !`;
 
   // Scientific message
   const sciMessage =

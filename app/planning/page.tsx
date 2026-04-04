@@ -4,25 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 
-const C = {
-  bg:          "#F4F9FA",
-  card:        "#FFFFFF",
-  primary:     "#E8922A",
-  primaryDark: "#C05C2A",
-  primaryLight:"#FFF3E0",
-  primaryBorder:"#F5C89A",
-  text:        "#0A2030",
-  textMid:     "#5A7A8A",
-  textLight:   "#8ABAD0",
-  border:      "#DCE9ED",
-  success:     "#10B981",
-  successLight:"#D1FAE5",
-};
-
 const JOURS       = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 const JOURS_COURT = ["Lun",   "Mar",   "Mer",      "Jeu",   "Ven",      "Sam"   ];
 
-// Matières proposées dans le picker
 const MATIERES_PICKER = [
   { nom: "Français",        emoji: "📖" },
   { nom: "Mathématiques",   emoji: "📐" },
@@ -30,10 +14,6 @@ const MATIERES_PICKER = [
   { nom: "SVT",             emoji: "🌿" },
   { nom: "Physique-Chimie", emoji: "⚗️" },
   { nom: "Anglais",         emoji: "🇬🇧" },
-  { nom: "EPS",             emoji: "🏃" },
-  { nom: "Arts Plastiques", emoji: "🎨" },
-  { nom: "Musique",         emoji: "🎵" },
-  { nom: "Technologie",     emoji: "💻" },
   { nom: "Espagnol",        emoji: "🇪🇸" },
   { nom: "Allemand",        emoji: "🇩🇪" },
   { nom: "Latin",           emoji: "🏛️"  },
@@ -50,7 +30,6 @@ function getEmoji(mat: string) {
   return "📚";
 }
 
-// Distribue les matières difficiles sur la semaine
 function buildRevisions(matieres: string[]): Record<string, string[]> {
   if (matieres.length === 0) return {};
   const plan: Record<string, string[]> = {};
@@ -72,21 +51,23 @@ const EMPTY_EDT: Record<string, string[]> = {
 
 export default function PlanningPage() {
   const router = useRouter();
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [matieresDiff,  setMatieresDiff]  = useState<string[]>([]);
   const [jourActif,     setJourActif]     = useState<string>("Lundi");
   const [emploiDuTemps, setEmploiDuTemps] = useState<Record<string, string[]>>(EMPTY_EDT);
   const [showPicker,    setShowPicker]    = useState(false);
   const [autreInput,    setAutreInput]    = useState("");
 
-  // Jour actuel
-  const todayIdx = new Date().getDay(); // 0=dim
+  const todayIdx = new Date().getDay();
   const todayNom = { 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi" }[todayIdx] || "";
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
     if (!done) { router.replace("/onboarding"); return; }
 
-    // Charge le profil
+    const savedTheme = localStorage.getItem("poulpe_theme") as "dark" | "light" | null;
+    if (savedTheme) setTheme(savedTheme);
+
     const profileRaw = localStorage.getItem("poulpe_profile");
     if (profileRaw) {
       try {
@@ -97,7 +78,6 @@ export default function PlanningPage() {
       } catch {}
     }
 
-    // Charge l'emploi du temps sauvegardé
     const edtRaw = localStorage.getItem("poulpe_emploi_du_temps");
     if (edtRaw) {
       try {
@@ -106,11 +86,9 @@ export default function PlanningPage() {
       } catch {}
     }
 
-    // Jour actif = aujourd'hui si c'est un jour de semaine
     if (todayNom) setJourActif(todayNom);
   }, [router, todayNom]);
 
-  // Sauvegarde l'EDT à chaque modification (localStorage + Supabase)
   function saveEdt(newEdt: Record<string, string[]>) {
     setEmploiDuTemps(newEdt);
     localStorage.setItem("poulpe_emploi_du_temps", JSON.stringify(newEdt));
@@ -143,6 +121,16 @@ export default function PlanningPage() {
     setAutreInput("");
   }
 
+  const isDark = theme === "dark";
+  const bgColor = isDark ? "#030D18" : "#F4F9FA";
+  const cardBg = isDark ? "rgba(6,26,38,0.75)" : "#FFFFFF";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
+  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
+  const border = isDark ? "rgba(255,255,255,0.08)" : "#DCE9ED";
+  const primaryLight = isDark ? "rgba(232,146,42,0.15)" : "#FFF3E0";
+  const primaryBorder = isDark ? "rgba(232,146,42,0.3)" : "#F5C89A";
+  const primaryDark = "#C05C2A";
+
   const revisionsPlanning = buildRevisions(matieresDiff);
   const coursAujourdHui   = emploiDuTemps[jourActif] || [];
   const revisionsJour     = revisionsPlanning[jourActif] || [];
@@ -150,7 +138,7 @@ export default function PlanningPage() {
   return (
     <div
       className="flex h-screen overflow-hidden"
-      style={{ background: C.bg, fontFamily: '"Inter", system-ui, sans-serif', color: C.text }}
+      style={{ background: bgColor, fontFamily: '"Inter", system-ui, sans-serif' }}
     >
       <Sidebar />
 
@@ -159,13 +147,21 @@ export default function PlanningPage() {
 
           {/* En-tête */}
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: C.text }}>Mon planning</h1>
-            <p className="text-sm mt-1" style={{ color: C.textMid }}>
-              Saisis tes cours du jour — Le Poulpe s'en souviendra pendant la session.
+            <h1
+              className="text-2xl font-bold tracking-tight"
+              style={{
+                color: isDark ? "#E8922A" : "#0A2030",
+                textShadow: isDark ? "0 0 30px rgba(232,146,42,0.4)" : "none",
+              }}
+            >
+              Mon planning
+            </h1>
+            <p className="text-sm mt-1" style={{ color: textSub }}>
+              Saisis tes cours du jour, Le Poulpe s'en souviendra pendant la session.
             </p>
           </div>
 
-          {/* Sélecteur de jours — toujours visible */}
+          {/* Sélecteur de jours */}
           <div className="flex gap-1.5">
             {JOURS.map((jour, i) => {
               const isToday    = jour === todayNom;
@@ -177,9 +173,9 @@ export default function PlanningPage() {
                   onClick={() => { setJourActif(jour); setShowPicker(false); }}
                   className="flex-1 flex flex-col items-center py-2.5 rounded-xl transition-all text-center"
                   style={{
-                    background: isSelected ? C.primary : isToday ? C.primaryLight : C.card,
-                    border: `1.5px solid ${isSelected ? C.primary : isToday ? C.primaryBorder : C.border}`,
-                    color: isSelected ? "white" : isToday ? C.primaryDark : C.textMid,
+                    background: isSelected ? "#E8922A" : isToday ? primaryLight : cardBg,
+                    border: `1.5px solid ${isSelected ? "#E8922A" : isToday ? primaryBorder : border}`,
+                    color: isSelected ? "white" : isToday ? primaryDark : textSub,
                   }}
                 >
                   <span className="text-[10px] font-semibold">{JOURS_COURT[i]}</span>
@@ -187,69 +183,67 @@ export default function PlanningPage() {
                     <span
                       className="mt-0.5 text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full"
                       style={{
-                        background: isSelected ? "rgba(255,255,255,0.3)" : C.primaryBorder,
-                        color: isSelected ? "white" : C.primaryDark,
+                        background: isSelected ? "rgba(255,255,255,0.3)" : primaryBorder,
+                        color: isSelected ? "white" : primaryDark,
                       }}
                     >
                       {nbCours}
                     </span>
                   )}
                   {nbCours === 0 && isToday && !isSelected && (
-                    <span className="text-[8px] mt-0.5" style={{ color: C.primary }}>auj.</span>
+                    <span className="text-[8px] mt-0.5" style={{ color: "#E8922A" }}>auj.</span>
                   )}
                 </button>
               );
             })}
           </div>
 
-          {/* ── Cours à l'école ──────────────────────────────────────────────── */}
+          {/* Cours à l'école */}
           <div
             className="rounded-2xl overflow-hidden"
-            style={{ border: `1px solid ${C.border}`, background: C.card }}
+            style={{ border: `1px solid ${border}`, background: cardBg }}
           >
-            {/* Header section */}
             <div className="flex items-center justify-between px-5 py-4">
               <div>
-                <h2 className="font-semibold text-sm" style={{ color: C.text }}>
+                <h2 className="font-semibold text-sm" style={{ color: textMain }}>
                   Cours à l'école
                   {jourActif === todayNom && (
                     <span className="ml-2 text-[10px] font-medium px-1.5 py-0.5 rounded-full"
-                      style={{ background: C.primaryLight, color: C.primaryDark }}>
+                      style={{ background: primaryLight, color: primaryDark }}>
                       Aujourd'hui
                     </span>
                   )}
                 </h2>
-                <p className="text-[11px] mt-0.5" style={{ color: C.textMid }}>
-                  {jourActif} — Le Poulpe adapte la session selon ton EDT
+                <p className="text-[11px] mt-0.5" style={{ color: textSub }}>
+                  {jourActif} · Le Poulpe adapte la session selon ton EDT
                 </p>
               </div>
               <button
                 onClick={() => setShowPicker(!showPicker)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                 style={{
-                  background: showPicker ? C.primary : C.primaryLight,
-                  color: showPicker ? "white" : C.primaryDark,
+                  background: showPicker ? "#E8922A" : primaryLight,
+                  color: showPicker ? "white" : primaryDark,
                 }}
               >
                 {showPicker ? "✕ Fermer" : "+ Ajouter"}
               </button>
             </div>
 
-            {/* Liste des cours du jour */}
             {coursAujourdHui.length > 0 && (
               <div className="px-4 pb-3 space-y-2">
                 {coursAujourdHui.map((cours) => (
                   <div
                     key={cours}
                     className="flex items-center gap-3 px-4 py-2.5 rounded-xl"
-                    style={{ background: C.card, border: `1px solid ${C.border}` }}
+                    style={{ background: isDark ? "rgba(255,255,255,0.04)" : "#F8FAFC", border: `1px solid ${border}` }}
                   >
                     <span className="text-lg flex-shrink-0">{getEmoji(cours)}</span>
-                    <span className="flex-1 text-sm font-medium" style={{ color: C.text }}>{cours}</span>
+                    <span className="flex-1 text-sm font-medium" style={{ color: textMain }}>{cours}</span>
                     <button
                       onClick={() => removeCours(cours)}
                       className="w-5 h-5 rounded-full flex items-center justify-center text-xs transition-opacity hover:opacity-60"
-                      style={{ background: C.border, color: C.textMid }}
+                      style={{ background: border, color: textSub }}
                       title="Supprimer"
                     >
                       ×
@@ -262,30 +256,28 @@ export default function PlanningPage() {
             {coursAujourdHui.length === 0 && !showPicker && (
               <div className="px-5 pb-5 text-center">
                 <div className="text-xl mb-1.5">📭</div>
-                <div className="text-xs" style={{ color: C.textMid }}>
+                <div className="text-xs" style={{ color: textSub }}>
                   Aucun cours renseigné pour {jourActif}
                 </div>
                 <button
                   onClick={() => setShowPicker(true)}
                   className="mt-2 text-xs font-semibold underline"
-                  style={{ color: C.primaryDark }}
+                  style={{ color: primaryDark }}
                 >
                   Ajouter mes cours →
                 </button>
               </div>
             )}
 
-            {/* Picker de matières */}
             {showPicker && (
               <div
                 className="px-4 pb-4 pt-2 space-y-3"
-                style={{ borderTop: `1px solid ${C.border}` }}
+                style={{ borderTop: `1px solid ${border}` }}
               >
-                <p className="text-[11px]" style={{ color: C.textMid }}>
+                <p className="text-[11px]" style={{ color: textSub }}>
                   Quels cours as-tu {jourActif.toLowerCase()} ?
                 </p>
 
-                {/* Grid de matières */}
                 <div className="flex flex-wrap gap-2">
                   {MATIERES_PICKER.map((m) => {
                     const already = coursAujourdHui.includes(m.nom);
@@ -296,9 +288,9 @@ export default function PlanningPage() {
                         disabled={already}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
                         style={{
-                          background: already ? C.border : "white",
-                          border: `1px solid ${already ? C.border : C.primaryBorder}`,
-                          color: already ? "#B0A898" : C.text,
+                          background: already ? (isDark ? "rgba(255,255,255,0.05)" : "#F1F5F9") : (isDark ? "rgba(255,255,255,0.08)" : "white"),
+                          border: `1px solid ${already ? border : primaryBorder}`,
+                          color: already ? (isDark ? "rgba(255,255,255,0.25)" : "#B0A898") : textMain,
                           cursor: already ? "default" : "pointer",
                           opacity: already ? 0.6 : 1,
                         }}
@@ -311,7 +303,6 @@ export default function PlanningPage() {
                   })}
                 </div>
 
-                {/* Champ "Autre" */}
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -321,16 +312,16 @@ export default function PlanningPage() {
                     onKeyDown={(e) => { if (e.key === "Enter") addAutre(); }}
                     className="flex-1 text-xs px-3 py-2 rounded-xl outline-none"
                     style={{
-                      background: "white",
-                      border: `1px solid ${C.primaryBorder}`,
-                      color: C.text,
+                      background: isDark ? "rgba(255,255,255,0.06)" : "white",
+                      border: `1px solid ${primaryBorder}`,
+                      color: textMain,
                     }}
                   />
                   <button
                     onClick={addAutre}
                     disabled={!autreInput.trim()}
                     className="px-3 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40"
-                    style={{ background: C.primary }}
+                    style={{ background: "#E8922A" }}
                   >
                     Ajouter
                   </button>
@@ -339,17 +330,17 @@ export default function PlanningPage() {
             )}
           </div>
 
-          {/* ── Révisions recommandées ───────────────────────────────────────── */}
+          {/* Révisions recommandées */}
           {matieresDiff.length > 0 && (
             <div
               className="rounded-2xl p-5 space-y-3"
-              style={{ background: "#F4F9FA", border: `1px solid ${C.border}` }}
+              style={{ background: cardBg, border: `1px solid ${border}` }}
             >
               <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-sm" style={{ color: C.text }}>
+                <h2 className="font-semibold text-sm" style={{ color: textMain }}>
                   Révisions recommandées
                 </h2>
-                <span className="text-xs" style={{ color: C.textMid }}>
+                <span className="text-xs" style={{ color: textSub }}>
                   ~{revisionsJour.length * 20} min
                 </span>
               </div>
@@ -360,12 +351,12 @@ export default function PlanningPage() {
                     <div
                       key={mat}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                      style={{ background: C.card, border: `1px solid ${C.border}` }}
+                      style={{ background: isDark ? "rgba(255,255,255,0.04)" : "#FFFFFF", border: `1px solid ${border}` }}
                     >
                       <span className="text-xl">{getEmoji(mat)}</span>
                       <div className="flex-1">
-                        <div className="text-sm font-medium" style={{ color: C.text }}>{mat}</div>
-                        <div className="text-[11px]" style={{ color: C.textMid }}>Bloc de 20 min · avec Le Poulpe</div>
+                        <div className="text-sm font-medium" style={{ color: textMain }}>{mat}</div>
+                        <div className="text-[11px]" style={{ color: textSub }}>Bloc de 20 min · avec Le Poulpe</div>
                       </div>
                       <button
                         onClick={() => {
@@ -373,7 +364,7 @@ export default function PlanningPage() {
                           router.push("/");
                         }}
                         className="text-xs font-semibold px-3 py-1.5 rounded-lg"
-                        style={{ background: C.primaryLight, color: C.primaryDark }}
+                        style={{ background: primaryLight, color: primaryDark }}
                       >
                         Démarrer →
                       </button>
@@ -381,16 +372,16 @@ export default function PlanningPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-3 text-xs" style={{ color: "#C8BDB5" }}>
-                  Pas de révision suggérée ce jour — repos mérité 😌
+                <div className="text-center py-3 text-xs" style={{ color: textSub }}>
+                  Pas de révision suggérée ce jour, repos mérité 😌
                 </div>
               )}
             </div>
           )}
 
-          {/* ── Vue semaine complète ─────────────────────────────────────────── */}
+          {/* Vue semaine complète */}
           <div>
-            <h2 className="font-semibold text-sm mb-3" style={{ color: C.text }}>
+            <h2 className="font-semibold text-sm mb-3" style={{ color: textMain }}>
               Vue de la semaine
             </h2>
             <div className="space-y-2">
@@ -404,37 +395,35 @@ export default function PlanningPage() {
                     onClick={() => { setJourActif(jour); setShowPicker(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                     className="w-full text-left px-4 py-3 rounded-xl transition-opacity hover:opacity-80"
                     style={{
-                      background: isToday ? C.primaryLight : "white",
-                      border: `1px solid ${isToday ? C.primaryBorder : C.border}`,
+                      background: isToday ? primaryLight : cardBg,
+                      border: `1px solid ${isToday ? primaryBorder : border}`,
                     }}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-semibold w-8 flex-shrink-0" style={{ color: isToday ? C.primaryDark : C.textMid }}>
+                      <span className="text-xs font-semibold w-8 flex-shrink-0" style={{ color: isToday ? primaryDark : textSub }}>
                         {jour.slice(0, 3)}
                       </span>
                       <div className="flex-1 space-y-1">
-                        {/* Cours école */}
                         {cours.length > 0 && (
                           <div className="flex gap-1.5 flex-wrap">
                             {cours.map((c) => (
                               <span
                                 key={c}
                                 className="text-[10px] font-medium px-1.5 py-0.5 rounded-md"
-                                style={{ background: C.bg, color: C.text }}
+                                style={{ background: isDark ? "rgba(255,255,255,0.08)" : "#F4F9FA", color: textMain }}
                               >
                                 {getEmoji(c)} {c}
                               </span>
                             ))}
                           </div>
                         )}
-                        {/* Révisions */}
                         {revs.length > 0 && (
                           <div className="flex gap-1.5 flex-wrap">
                             {revs.map((r) => (
                               <span
                                 key={r}
                                 className="text-[10px] font-medium px-1.5 py-0.5 rounded-md"
-                                style={{ background: C.primaryLight, color: C.primaryDark }}
+                                style={{ background: primaryLight, color: primaryDark }}
                               >
                                 ✏️ {r}
                               </span>
@@ -442,11 +431,11 @@ export default function PlanningPage() {
                           </div>
                         )}
                         {cours.length === 0 && revs.length === 0 && (
-                          <span className="text-[11px]" style={{ color: "#C8BDB5" }}>Rien de prévu</span>
+                          <span className="text-[11px]" style={{ color: textSub }}>Rien de prévu</span>
                         )}
                       </div>
                       {isToday && (
-                        <span className="text-[10px] font-semibold flex-shrink-0" style={{ color: C.primary }}>auj.</span>
+                        <span className="text-[10px] font-semibold flex-shrink-0" style={{ color: "#E8922A" }}>auj.</span>
                       )}
                     </div>
                   </button>
@@ -458,10 +447,10 @@ export default function PlanningPage() {
           {/* Note */}
           <div
             className="flex items-start gap-3 px-4 py-3.5 rounded-2xl"
-            style={{ background: "#F4F9FA", border: `1px solid ${C.border}` }}
+            style={{ background: cardBg, border: `1px solid ${border}` }}
           >
-            <span className="text-lg flex-shrink-0">🐙</span>
-            <p className="text-xs leading-relaxed" style={{ color: C.textMid }}>
+            <img src="/icon-192.png" alt="" style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0 }} />
+            <p className="text-xs leading-relaxed" style={{ color: textSub }}>
               Quand tu ouvres une session, Le Poulpe sait quels cours tu as eu aujourd'hui. Il peut anticiper ce que tu dois réviser, t'aider sur un devoir de la journée, ou adapter le niveau.
             </p>
           </div>
