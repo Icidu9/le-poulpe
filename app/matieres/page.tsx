@@ -317,15 +317,14 @@ export default function MatieresPage() {
     } else if (action === "progression") {
       router.push("/progression");
     } else if (action === "chapitre" && chapitre) {
-      // Stocke le chapitre actif + démarre une nouvelle session sur ce chapitre
-      localStorage.setItem("poulpe_chapitre_actif", JSON.stringify({
+      // Navigue vers la page chapitre dédiée avec cours + quiz + exercice
+      const params = new URLSearchParams({
         matiere: hubMat.nom,
         chapitre: chapitre.titre,
         description: chapitre.description,
         niveau: classe,
-      }));
-      localStorage.removeItem(`poulpe_chat_${hubMat.nom}`);
-      router.push("/");
+      });
+      router.push(`/chapitre?${params.toString()}`);
     }
   }
 

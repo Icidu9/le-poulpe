@@ -202,21 +202,49 @@ export async function POST(req: Request) {
       memory.trim();
   }
 
-  // Injecte le chapitre du programme officiel si l'élève a cliqué sur un chapitre
+  // Injecte le chapitre du programme officiel + mode (quiz / exercice / chat)
   if (chapitre && chapitre.chapitre) {
-    systemPrompt +=
-      `\n\n---\n\n## CHAPITRE EN COURS — PROGRAMME OFFICIEL\n\n` +
-      `L'élève a choisi de travailler sur un chapitre spécifique du programme de ${chapitre.niveau}.\n\n` +
-      `**Matière :** ${chapitre.matiere}\n` +
-      `**Chapitre :** ${chapitre.chapitre}\n` +
-      `**Contenu :** ${chapitre.description}\n\n` +
-      `INSTRUCTIONS POUR CE MODE :\n` +
-      `1. Commence par demander où en est l'élève sur ce chapitre (déjà vu en classe ? exercices faits ? ce qui bloque ?).\n` +
-      `2. Enseigne ce chapitre de façon progressive et interactive — ne donne pas tout d'un coup.\n` +
-      `3. Pose des questions pour vérifier la compréhension à chaque étape.\n` +
-      `4. Adapte le rythme au niveau ${chapitre.niveau} et au profil de l'élève.\n` +
-      `5. Propose des exercices concrets après chaque notion expliquée.\n` +
-      `6. Reste dans le périmètre de ce chapitre — ne digresse pas vers d'autres notions sauf si l'élève demande.`;
+    const mode = (chapitre as any).mode || "chat";
+
+    if (mode === "quiz") {
+      systemPrompt +=
+        `\n\n---\n\n## MODE QUIZ — PROGRAMME OFFICIEL\n\n` +
+        `L'élève vient de lire la fiche de cours sur "${chapitre.chapitre}" (${chapitre.matiere}, ${chapitre.niveau}).\n` +
+        `Il veut maintenant tester ses connaissances.\n\n` +
+        `INSTRUCTIONS QUIZ (OBLIGATOIRES) :\n` +
+        `1. Lance IMMÉDIATEMENT le quiz — ne demande pas si l'élève est prêt, commence directement.\n` +
+        `2. Pose 5 questions sur ce chapitre, UNE PAR UNE. Attends la réponse avant la suivante.\n` +
+        `3. Après chaque réponse : dis si c'est correct ou non, explique brièvement pourquoi.\n` +
+        `4. À la fin des 5 questions : donne le score (ex: 3/5) et un message d'encouragement.\n` +
+        `5. Les questions doivent être adaptées au niveau ${chapitre.niveau}, ni trop faciles ni trop difficiles.\n` +
+        `6. Varie les formats : questions ouvertes, à choix multiple (donne 4 options), vrai/faux.\n` +
+        `7. MAXIMUM 3 PHRASES PAR QUESTION — sois concis.\n\n` +
+        `Contenu du chapitre : ${chapitre.description}`;
+    } else if (mode === "exercice") {
+      systemPrompt +=
+        `\n\n---\n\n## MODE EXERCICE — PROGRAMME OFFICIEL\n\n` +
+        `L'élève vient de lire la fiche de cours sur "${chapitre.chapitre}" (${chapitre.matiere}, ${chapitre.niveau}).\n` +
+        `Il veut s'entraîner avec un exercice.\n\n` +
+        `INSTRUCTIONS EXERCICE (OBLIGATOIRES) :\n` +
+        `1. Donne IMMÉDIATEMENT un exercice concret sur ce chapitre — ne pose pas de questions préliminaires.\n` +
+        `2. L'exercice doit être réaliste et du niveau ${chapitre.niveau} (similaire à ce qu'on trouve dans les manuels scolaires).\n` +
+        `3. Attends que l'élève réponde. Guide-le s'il bloque, sans donner la réponse directement.\n` +
+        `4. Corrige et explique quand il a répondu.\n` +
+        `5. Propose ensuite un deuxième exercice légèrement plus difficile.\n` +
+        `6. MAXIMUM 3 PHRASES pour présenter l'exercice.\n\n` +
+        `Contenu du chapitre : ${chapitre.description}`;
+    } else {
+      systemPrompt +=
+        `\n\n---\n\n## CHAPITRE EN COURS — PROGRAMME OFFICIEL\n\n` +
+        `L'élève travaille sur le chapitre "${chapitre.chapitre}" (${chapitre.matiere}, ${chapitre.niveau}).\n` +
+        `Il a déjà lu la fiche de cours et veut poser des questions ou aller plus loin.\n\n` +
+        `INSTRUCTIONS :\n` +
+        `1. Tu es disponible pour toute question sur ce chapitre.\n` +
+        `2. Adapte tes explications au niveau ${chapitre.niveau}.\n` +
+        `3. Propose des exemples concrets si l'élève bloque.\n` +
+        `4. MAXIMUM 3 PHRASES par réponse.\n\n` +
+        `Contenu du chapitre : ${chapitre.description}`;
+    }
   }
 
   if (failles && typeof failles === "object" && Object.keys(failles).length > 0) {

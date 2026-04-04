@@ -342,9 +342,20 @@ export default function Home() {
       // Nouvelle session — message d'accueil contextuel selon chapitre / matière / EDT
       let firstMsg: string;
       if (chapActif) {
-        firstMsg = nom
-          ? `Salut ${nom} ! On attaque le chapitre **${chapActif.chapitre}** en ${chapActif.matiere}. 📚\nTu l'as déjà vu en classe, ou on part de zéro ?`
-          : `On attaque le chapitre **${chapActif.chapitre}** en ${chapActif.matiere}. 📚\nTu l'as déjà vu en classe, ou on part de zéro ?`;
+        const mode = (chapActif as any).mode || "chat";
+        if (mode === "quiz") {
+          firstMsg = nom
+            ? `Salut ${nom} ! Tu as lu la fiche sur **${chapActif.chapitre}** — on commence le quiz ! 🎯`
+            : `Tu as lu la fiche sur **${chapActif.chapitre}** — on commence le quiz ! 🎯`;
+        } else if (mode === "exercice") {
+          firstMsg = nom
+            ? `Salut ${nom} ! Voilà un exercice sur **${chapActif.chapitre}** — à toi de jouer ! ✏️`
+            : `Voilà un exercice sur **${chapActif.chapitre}** — à toi de jouer ! ✏️`;
+        } else {
+          firstMsg = nom
+            ? `Salut ${nom} ! Tu as une question sur **${chapActif.chapitre}** ? Je suis là. 🐙`
+            : `Tu as une question sur **${chapActif.chapitre}** ? Je suis là. 🐙`;
+        }
       } else if (matActive) {
         firstMsg = nom
           ? `Salut ${nom} ! On travaille sur **${matActive}** — t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷${failleHint}`
