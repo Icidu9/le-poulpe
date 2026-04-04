@@ -311,9 +311,7 @@ export default function MatieresPage() {
     } else if (action === "examens") {
       router.push("/examens");
     } else if (action === "flashcards") {
-      localStorage.setItem("poulpe_matiere_active", hubMat.nom);
-      localStorage.removeItem("poulpe_chapitre_actif");
-      router.push("/");
+      router.push("/flashcards");
     } else if (action === "progression") {
       router.push("/progression");
     } else if (action === "chapitre" && chapitre) {

@@ -68,10 +68,19 @@ function IconChart() {
   );
 }
 
+function IconCards() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 2H8a2 2 0 0 0-2 2v2h12V4a2 2 0 0 0-2-2z"/>
+    </svg>
+  );
+}
+
 const NAV = [
   { id: "accueil",     label: "Accueil",        icon: <IconHome />,     path: "/accueil" },
   { id: "matieres",    label: "Mes matières",   icon: <IconBook />,     path: "/matieres" },
   { id: "workspace",   label: "Réviser",        icon: <IconChat />,     path: "/" },
+  { id: "flashcards",  label: "Flashcards",     icon: <IconCards />,    path: "/flashcards" },
   { id: "planning",    label: "Mon planning",   icon: <IconCalendar />, path: "/planning" },
   { id: "progression", label: "Ma progression", icon: <IconChart />,    path: "/progression" },
 ];
