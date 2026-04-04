@@ -8,8 +8,8 @@ import { getChapitres, findMatiereInProgramme, type Chapitre } from "../../lib/c
 const C = {
   bg:          "#F4F9FA",
   card:        "#FFFFFF",
-  primary:     "#FF4D6D",
-  primaryDark: "#D93655",
+  primary:     "#E8922A",
+  primaryDark: "#C05C2A",
   text:        "#0A2030",
   textMid:     "#5A7A8A",
   textLight:   "#8ABAD0",
@@ -166,8 +166,8 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
                 onClick={() => onAction("reviser")}
                 className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
                 style={{
-                  background: "linear-gradient(135deg, #FF4D6D, #D93655)",
-                  boxShadow: "0 4px 20px rgba(255,77,109,0.35)",
+                  background: "linear-gradient(135deg, #E8922A, #C05C2A)",
+                  boxShadow: "0 4px 20px rgba(232,146,42,0.35)",
                 }}
               >
                 <span className="text-2xl flex-shrink-0">🐙</span>

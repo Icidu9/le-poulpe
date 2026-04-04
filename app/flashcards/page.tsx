@@ -7,7 +7,7 @@ import Sidebar from "../components/Sidebar";
 const C = {
   bg:          "#F4F9FA",
   card:        "#FFFFFF",
-  primary:     "#FF4D6D",
+  primary:     "#E8922A",
   text:        "#0A2030",
   textMid:     "#5A7A8A",
   textLight:   "#8ABAD0",
@@ -230,7 +230,7 @@ function ResultScreen({ score, total, onRestart, onBack }: {
         <button
           onClick={onRestart}
           className="flex-1 py-3.5 rounded-2xl font-bold text-sm text-white transition-all hover:scale-[1.02]"
-          style={{ background: "linear-gradient(135deg, #FF4D6D, #D93655)", boxShadow: "0 4px 16px rgba(255,77,109,0.3)" }}
+          style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)", boxShadow: "0 4px 16px rgba(232,146,42,0.3)" }}
         >
           Recommencer →
         </button>
@@ -347,7 +347,7 @@ export default function FlashcardsPage() {
                   onClick={() => setTab(t)}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
                   style={tab === t
-                    ? { background: "linear-gradient(135deg, #FF4D6D, #D93655)", color: "white", boxShadow: "0 2px 8px rgba(255,77,109,0.3)" }
+                    ? { background: "linear-gradient(135deg, #E8922A, #C05C2A)", color: "white", boxShadow: "0 2px 8px rgba(232,146,42,0.3)" }
                     : { color: C.textMid }
                   }
                 >
@@ -393,7 +393,7 @@ export default function FlashcardsPage() {
                   <button
                     onClick={() => router.push(tab === "session" ? "/" : "/matieres")}
                     className="px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all hover:scale-[1.02]"
-                    style={{ background: "linear-gradient(135deg, #FF4D6D, #D93655)", boxShadow: "0 4px 16px rgba(255,77,109,0.3)" }}
+                    style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)", boxShadow: "0 4px 16px rgba(232,146,42,0.3)" }}
                   >
                     {tab === "session" ? "🐙 Réviser avec le Poulpe" : "📚 Voir le programme"}
                   </button>

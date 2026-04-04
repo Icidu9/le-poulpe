@@ -6,17 +6,17 @@ import { useRouter, usePathname } from "next/navigation";
 function PoulpeLogo() {
   return (
     <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
-      <ellipse cx="24" cy="20" rx="13" ry="14" fill="#FF4D6D" />
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="#E8922A" />
       <circle cx="19" cy="18" r="2.5" fill="white" />
       <circle cx="29" cy="18" r="2.5" fill="white" />
       <circle cx="19.8" cy="18.5" r="1.2" fill="#0F172A" />
       <circle cx="29.8" cy="18.5" r="1.2" fill="#0F172A" />
       <path d="M21 22.5 Q24 25 27 22.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-      <path d="M14 30 Q11 36 13 40" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M18 32 Q16 39 18 43" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M24 33 Q24 40 24 44" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M30 32 Q32 39 30 43" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M34 30 Q37 36 35 40" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M14 30 Q11 36 13 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M18 32 Q16 39 18 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M24 33 Q24 40 24 44" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M30 32 Q32 39 30 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M34 30 Q37 36 35 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
     </svg>
   );
 }
@@ -122,7 +122,7 @@ export default function Sidebar() {
         <PoulpeLogo />
         <div>
           <div className="font-bold text-sm text-white tracking-tight">Le Poulpe</div>
-          <div className="text-[10px] font-medium" style={{ color: "#FF4D6D" }}>Tuteur personnel</div>
+          <div className="text-[10px] font-medium" style={{ color: "#E8922A" }}>Tuteur personnel</div>
         </div>
       </div>
 
@@ -137,7 +137,7 @@ export default function Sidebar() {
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
               style={
                 isActive
-                  ? { background: "rgba(255,77,109,0.18)", color: "#FF4D6D", fontWeight: 600, boxShadow: "0 0 16px rgba(255,77,109,0.12)" }
+                  ? { background: "rgba(232,146,42,0.18)", color: "#E8922A", fontWeight: 600, boxShadow: "0 0 16px rgba(232,146,42,0.12)" }
                   : { color: "rgba(255,255,255,0.42)" }
               }
             >
@@ -146,7 +146,7 @@ export default function Sidebar() {
               {isActive && (
                 <span
                   className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ background: "#FF4D6D", boxShadow: "0 0 6px rgba(255,77,109,0.6)" }}
+                  style={{ background: "#E8922A", boxShadow: "0 0 6px rgba(232,146,42,0.6)" }}
                 />
               )}
             </button>
@@ -182,7 +182,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-2.5">
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #FF4D6D, #FF7A8A)", color: "white" }}
+            style={{ background: "linear-gradient(135deg, #E8922A, #F5A552)", color: "white" }}
           >
             {initial}
           </div>
