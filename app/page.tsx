@@ -379,6 +379,58 @@ export default function Home() {
     }
   }, [router]);
 
+  // Auto-démarre l'exercice ou le quiz sans attendre que l'enfant tape
+  useEffect(() => {
+    const mode = (chapitreActif as any)?.mode;
+    if (mode !== "exercice" && mode !== "quiz") return;
+    // Ne déclenche que pour une nouvelle session (max 1 message de bienvenue)
+    if (messages.length > 1) return;
+
+    let faillesToSend: Record<string, unknown> = {};
+    let edtToSend: Record<string, string[]> = {};
+    let profileToSend: Record<string, unknown> | null = null;
+    try { faillesToSend = JSON.parse(localStorage.getItem("poulpe_failles") || "{}"); } catch {}
+    try { edtToSend = JSON.parse(localStorage.getItem("poulpe_emploi_du_temps") || "{}"); } catch {}
+    try { profileToSend = JSON.parse(localStorage.getItem("poulpe_profile") || "null"); } catch {}
+    const email = localStorage.getItem("poulpe_parent_email") || localStorage.getItem("poulpe_beta_email") || "";
+
+    setLoading(true);
+    setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [],
+        failles: faillesToSend,
+        sessionId,
+        childName: prenom,
+        emploiDuTemps: edtToSend,
+        profile: profileToSend,
+        memory: childMemory,
+        parentEmail: email,
+        chapitre: chapitreActif,
+      }),
+    })
+      .then(async (response) => {
+        if (!response.ok || !response.body) { setLoading(false); return; }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        setLoading(false);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const text = decoder.decode(value);
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            return [...prev.slice(0, -1), { ...last, content: last.content + text }];
+          });
+        }
+      })
+      .catch(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chapitreActif]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
