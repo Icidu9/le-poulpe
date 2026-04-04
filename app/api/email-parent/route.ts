@@ -1,8 +1,9 @@
 import { Resend } from "resend";
 import Anthropic from "@anthropic-ai/sdk";
 
-const resend   = new Resend(process.env.RESEND_API_KEY);
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Initialisation lazy — les clés n'existent pas au build time
+function getResend() { return new Resend(process.env.RESEND_API_KEY); }
+function getAnthropic() { return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }); }
 
 type SessionMessage = {
   role: "user" | "assistant";
@@ -26,7 +27,7 @@ function formatDateShort(ts: string) {
 }
 
 // Génère l'avis hebdomadaire du Poulpe via Claude
-async function generateWeeklyAssessment(childName: string, messages: SessionMessage[]): Promise<string> {
+async function generateWeeklyAssessment(childName: string, messages: SessionMessage[], anthropic: Anthropic): Promise<string> {
   const conversationText = messages
     .filter((m) => m.content && m.content !== "(photo)")
     .map((m) => {
@@ -164,12 +165,12 @@ export async function POST(req: Request) {
     : "Cette semaine";
 
   // Avis du Poulpe via Claude
-  const assessment = await generateWeeklyAssessment(childName, messages);
+  const assessment = await generateWeeklyAssessment(childName, messages, getAnthropic());
 
   const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
   const html = buildWeeklyEmailHtml(childName, weekLabel, nbSessions, nbMessages, subjects, assessment);
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from: `Le Poulpe <${fromEmail}>`,
     to: [parentEmail],
     subject: `Résumé de la semaine — ${childName} avec Le Poulpe`,
