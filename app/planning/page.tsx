@@ -172,11 +172,20 @@ export default function PlanningPage() {
                   key={jour}
                   onClick={() => { setJourActif(jour); setShowPicker(false); }}
                   className="flex-1 flex flex-col items-center py-2.5 rounded-xl transition-all text-center"
-                  style={{
-                    background: isSelected ? "#E8922A" : isToday ? primaryLight : cardBg,
-                    border: `1.5px solid ${isSelected ? "#E8922A" : isToday ? primaryBorder : border}`,
-                    color: isSelected ? "white" : isToday ? primaryDark : textSub,
-                  }}
+                  style={
+                    isSelected && isToday
+                      ? {
+                          background: "linear-gradient(135deg, #E8922A, #C05C2A)",
+                          border: "1.5px solid #E8922A",
+                          color: "white",
+                          boxShadow: "0 4px 20px rgba(232,146,42,0.55), 0 0 0 3px rgba(232,146,42,0.15)",
+                        }
+                      : isSelected
+                      ? { background: "#E8922A", border: "1.5px solid #E8922A", color: "white" }
+                      : isToday
+                      ? { background: primaryLight, border: `1.5px solid ${primaryBorder}`, color: primaryDark }
+                      : { background: cardBg, border: `1.5px solid ${border}`, color: textSub }
+                  }
                 >
                   <span className="text-[10px] font-semibold">{JOURS_COURT[i]}</span>
                   {nbCours > 0 && (

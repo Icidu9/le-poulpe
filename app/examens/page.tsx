@@ -104,8 +104,7 @@ export default function Examens() {
   const [faillesMap, setFaillesMap] = useState<FaillesMap>({});
   const [activeTab, setActiveTab]   = useState<Tab>("upload");
 
-  const [preview, setPreview]       = useState<string>("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previews, setPreviews]     = useState<string[]>([]);
   const [matiere, setMatiere]       = useState("");
   const [note, setNote]             = useState("");
   const [analysing, setAnalysing]   = useState(false);
@@ -127,29 +126,31 @@ export default function Examens() {
   }, [router]);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSelectedFile(file);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
     setLastAnalysis(null);
     setError("");
-    const resized = await resizeImage(file, 1024);
-    setPreview(resized);
+    const resized = await Promise.all(files.map(f => resizeImage(f, 1024)));
+    setPreviews(prev => [...prev, ...resized]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function analyser() {
-    if (!preview || !matiere) return;
+    if (!previews.length || !matiere) return;
     setAnalysing(true);
     setError("");
     setLastAnalysis(null);
 
     try {
-      const base64 = preview.split(",")[1];
-      const mimeType = preview.split(";")[0].split(":")[1];
+      const images = previews.map(p => ({
+        base64: p.split(",")[1],
+        mimeType: p.split(";")[0].split(":")[1],
+      }));
 
       const res = await fetch("/api/analyse-examen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64, mimeType, matiere, note }),
+        body: JSON.stringify({ images, matiere, note }),
       });
 
       if (!res.ok) throw new Error("Erreur serveur");
@@ -158,14 +159,12 @@ export default function Examens() {
 
       setLastAnalysis(analysis);
 
-      const thumb = selectedFile ? await resizeImage(selectedFile, 200) : preview;
-
       const nouvel: Examen = {
         id: Date.now().toString(),
         matiere,
         note,
         date: new Date().toLocaleDateString("fr-FR"),
-        thumbnailBase64: thumb,
+        thumbnailBase64: previews[0],
         analysis,
       };
 
@@ -176,8 +175,7 @@ export default function Examens() {
       const updatedFailles = updateFailles(matiere, analysis.failles);
       setFaillesMap({ ...updatedFailles });
 
-      setPreview("");
-      setSelectedFile(null);
+      setPreviews([]);
       setNote("");
       if (fileInputRef.current) fileInputRef.current.value = "";
 
@@ -334,16 +332,65 @@ export default function Examens() {
 
                 {/* Zone upload */}
                 <div>
-                  <p className="text-sm font-semibold mb-1.5" style={{ color: textMain }}>Photo de la copie</p>
+                  <p className="text-sm font-semibold mb-1.5" style={{ color: textMain }}>
+                    Photos de la copie
+                    {previews.length > 0 && (
+                      <span className="ml-2 text-xs font-normal" style={{ color: textSub }}>
+                        {previews.length} page{previews.length > 1 ? "s" : ""} ajoutée{previews.length > 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </p>
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    capture="environment"
+                    multiple
                     className="hidden"
                     onChange={handleFileChange}
                   />
-                  {!preview ? (
+
+                  {/* Grille des previews */}
+                  {previews.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {previews.map((p, idx) => (
+                        <div key={idx} className="relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={p} alt={`Page ${idx + 1}`}
+                            className="rounded-xl object-cover"
+                            style={{ width: 90, height: 90, border: `2px solid rgba(232,146,42,0.4)` }}
+                          />
+                          <button
+                            onClick={() => setPreviews(prev => prev.filter((_, i) => i !== idx))}
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                            style={{ background: "#C05C2A" }}
+                          >
+                            ✕
+                          </button>
+                          <span className="absolute bottom-1 left-1 text-[9px] font-bold px-1 rounded"
+                            style={{ background: "rgba(0,0,0,0.55)", color: "white" }}>
+                            {idx + 1}
+                          </span>
+                        </div>
+                      ))}
+                      {/* Bouton + ajouter une page */}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="rounded-xl flex flex-col items-center justify-center gap-1 text-xs font-medium transition-all"
+                        style={{
+                          width: 90, height: 90,
+                          background: isDark ? "rgba(255,255,255,0.04)" : "#F8FAFC",
+                          border: `2px dashed ${border}`,
+                          color: textSub,
+                        }}
+                      >
+                        <span className="text-xl">+</span>
+                        <span>Page</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Zone drop initiale */}
+                  {previews.length === 0 && (
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       className="w-full py-8 rounded-2xl text-sm transition-all flex flex-col items-center gap-2"
@@ -354,21 +401,9 @@ export default function Examens() {
                       }}
                     >
                       <span className="text-3xl">📷</span>
-                      <span className="font-medium">Prendre une photo ou importer</span>
-                      <span className="text-xs opacity-70">JPG, PNG depuis ton téléphone ou tes fichiers</span>
+                      <span className="font-medium">Ajouter des photos de la copie</span>
+                      <span className="text-xs opacity-70">Plusieurs pages ? Sélectionne-les toutes en même temps</span>
                     </button>
-                  ) : (
-                    <div className="relative">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={preview} alt="Aperçu" className="w-full rounded-xl object-cover max-h-64" />
-                      <button
-                        onClick={() => { setPreview(""); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                        className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                        style={{ background: "rgba(0,0,0,0.55)", color: "white" }}
-                      >
-                        ✕
-                      </button>
-                    </div>
                   )}
                 </div>
 
@@ -383,7 +418,7 @@ export default function Examens() {
 
                 <button
                   onClick={analyser}
-                  disabled={!preview || !matiere || analysing}
+                  disabled={!previews.length || !matiere || analysing}
                   className="w-full py-3.5 rounded-2xl font-semibold text-white text-sm transition-all hover:scale-[1.01] disabled:opacity-35"
                   style={{
                     background: "linear-gradient(135deg, #E8922A, #C05C2A)",
@@ -406,7 +441,9 @@ export default function Examens() {
                   <img src="/icon-192.png" alt="" style={{ width: 36, height: 36, borderRadius: 8 }} />
                   <div>
                     <p className="text-sm font-semibold" style={{ color: "#C05C2A" }}>Le Poulpe analyse la copie...</p>
-                    <p className="text-xs mt-0.5" style={{ color: textSub }}>Identification des failles et patterns cognitifs</p>
+                    <p className="text-xs mt-0.5" style={{ color: textSub }}>
+                      {previews.length > 1 ? `${previews.length} pages · ` : ""}Identification des failles et patterns cognitifs
+                    </p>
                   </div>
                   <div className="ml-auto flex gap-1">
                     {[0, 150, 300].map(d => (
@@ -421,7 +458,7 @@ export default function Examens() {
               )}
 
               {lastAnalysis && !analysing && (
-                <AnalysisCard analysis={lastAnalysis} matiere={matiere || ""} isDark={isDark} glass={glass} textMain={textMain} textSub={textSub} criticiteStyle={criticiteStyle} />
+                <AnalysisCard analysis={lastAnalysis} matiere={matiere} isDark={isDark} glass={glass} textMain={textMain} textSub={textSub} criticiteStyle={criticiteStyle} />
               )}
             </>
           )}
