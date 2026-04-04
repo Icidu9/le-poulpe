@@ -657,7 +657,11 @@ export default function Onboarding() {
             {parentStep === 0 && (
               <Card>
                 <div>
-                  <Label>Dans quelle classe est votre enfant ?</Label>
+                  <Label>Prénom de votre enfant</Label>
+                  <TextInput value={ePrenom} onChange={setEPrenom} placeholder="ex. Léa, Thomas..." autoFocus />
+                </div>
+                <div>
+                  <Label>Dans quelle classe est-il/elle ?</Label>
                   <div className="grid grid-cols-4 gap-2 mt-2">
                     {CLASSES.map(c => (
                       <button key={c} onClick={() => setPClasse(c)}
@@ -680,7 +684,7 @@ export default function Onboarding() {
                   <Sub>Optionnel</Sub>
                   <div className="mt-2"><TextArea value={pMatieresFort} onChange={setPMatieresFort} placeholder="ex : Histoire, SVT..." /></div>
                 </div>
-                <Btn label="Suivant →" onClick={() => setParentStep(1)} disabled={!pClasse} />
+                <Btn label="Suivant →" onClick={() => setParentStep(1)} disabled={!pClasse || !ePrenom.trim()} />
               </Card>
             )}
 
