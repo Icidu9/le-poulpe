@@ -629,9 +629,11 @@ export default function Home() {
   // Fallback   : Web Speech API native si Groq indisponible
 
   const speechRecognitionRef = useRef<any>(null);
+  const recordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function toggleVoice() {
     if (isRecording) {
+      if (recordingTimerRef.current) { clearTimeout(recordingTimerRef.current); recordingTimerRef.current = null; }
       mediaRecorderRef.current?.stop();
       speechRecognitionRef.current?.stop();
       return;
@@ -672,8 +674,8 @@ export default function Home() {
       const ext = mimeType.includes("mp4") ? "mp4" : "webm";
       const blob = new Blob(audioChunksRef.current, { type: mimeType });
 
-      if (blob.size < 1000) {
-        // Audio trop court / vide
+      if (blob.size < 8000) {
+        // Audio trop court ou silence — on n'envoie pas (évite hallucinations Whisper)
         setIsTranscribing(false);
         return;
       }
@@ -701,6 +703,10 @@ export default function Home() {
 
     recorder.start(); // pas de timeslice → 1 seul blob complet
     setIsRecording(true);
+    // Arrêt automatique après 60s max — évite l'enregistrement infini
+    recordingTimerRef.current = setTimeout(() => {
+      if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+    }, 60000);
   }
 
   function fallbackWebSpeech() {
