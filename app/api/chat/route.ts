@@ -190,40 +190,49 @@ export async function POST(req: Request) {
     anthropicMessages.push({ role: "user", content: "C'est tout pour aujourd'hui, résume notre session." });
   }
 
-  const stream = client.messages.stream({
-    model: "claude-sonnet-4-6",
-    max_tokens: 1024,
-    system: systemPrompt,
-    messages: anthropicMessages,
-  });
-
   const encoder = new TextEncoder();
   let fullResponse = "";
 
   const readable = new ReadableStream({
     async start(controller) {
-      for await (const chunk of await stream) {
-        if (
-          chunk.type === "content_block_delta" &&
-          chunk.delta.type === "text_delta"
-        ) {
-          fullResponse += chunk.delta.text;
-          controller.enqueue(encoder.encode(chunk.delta.text));
+      try {
+        const stream = client.messages.stream({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1024,
+          system: systemPrompt,
+          messages: anthropicMessages,
+        });
+
+        for await (const chunk of stream) {
+          if (
+            chunk.type === "content_block_delta" &&
+            chunk.delta.type === "text_delta"
+          ) {
+            fullResponse += chunk.delta.text;
+            controller.enqueue(encoder.encode(chunk.delta.text));
+          }
         }
+      } catch (err) {
+        // Renvoie l'erreur réelle dans le stream pour que le client puisse la voir
+        const errMsg = err instanceof Error ? err.message : String(err);
+        controller.enqueue(encoder.encode(`[ERREUR API: ${errMsg}]`));
       }
+
       controller.close();
 
       // Sauvegarde la réponse du Poulpe dans Supabase après le stream (non-bloquant)
       if (sessionId && fullResponse) {
-        try {
-          await getSupabase().from("messages").insert({
-            session_id: sessionId,
-            role: "assistant",
-            content: fullResponse,
-            image_sent: false,
-            child_name: childName || "Arthur",
-          });
-        } catch {}
+        void (async () => {
+          try {
+            await getSupabase().from("messages").insert({
+              session_id: sessionId,
+              role: "assistant",
+              content: fullResponse,
+              image_sent: false,
+              child_name: childName || "Arthur",
+            });
+          } catch {}
+        })();
       }
     },
   });
