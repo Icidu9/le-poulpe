@@ -3,9 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 import { ARTHUR_SYSTEM_PROMPT } from "../../../arthur-system-prompt";
 import { injectProfileIntoPrompt } from "../../../build-system-prompt";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+function getClient() {
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+}
 
 // ── Rate limiting simple en mémoire (par IP) ─────────────────────────────────
 // Max 30 messages par heure par IP. Resets au redémarrage du serveur.
@@ -196,7 +196,7 @@ export async function POST(req: Request) {
   const readable = new ReadableStream({
     async start(controller) {
       try {
-        const stream = client.messages.stream({
+        const stream = getClient().messages.stream({
           model: "claude-sonnet-4-6",
           max_tokens: 1024,
           system: systemPrompt,

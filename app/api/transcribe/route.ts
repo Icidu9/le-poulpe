@@ -1,9 +1,11 @@
 import OpenAI from "openai";
 
-const groq = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: "https://api.groq.com/openai/v1",
-});
+function getGroq() {
+  return new OpenAI({
+    apiKey: process.env.GROQ_API_KEY,
+    baseURL: "https://api.groq.com/openai/v1",
+  });
+}
 
 export async function POST(req: Request) {
   const formData = await req.formData();
@@ -13,7 +15,7 @@ export async function POST(req: Request) {
     return new Response("Fichier audio manquant", { status: 400 });
   }
 
-  const transcription = await groq.audio.transcriptions.create({
+  const transcription = await getGroq().audio.transcriptions.create({
     file: audio,
     model: "whisper-large-v3",
     language: "fr",
