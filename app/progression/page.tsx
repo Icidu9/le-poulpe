@@ -115,6 +115,20 @@ export default function ProgressionPage() {
     0
   );
 
+  // Faille #1 toutes matières confondues (prioritaire > moyenne)
+  type FocusFaille = { concept: string; description: string; matiere: string };
+  const focusFaille: FocusFaille | null = (() => {
+    for (const mat of Object.keys(failles)) {
+      const haute = failles[mat]?.failles?.find((f) => f.criticite === "haute");
+      if (haute) return { concept: haute.concept, description: haute.description, matiere: mat };
+    }
+    for (const mat of Object.keys(failles)) {
+      const moy = failles[mat]?.failles?.[0];
+      if (moy) return { concept: moy.concept, description: moy.description, matiere: mat };
+    }
+    return null;
+  })();
+
   return (
     <div
       className="flex h-screen overflow-hidden"
@@ -192,6 +206,34 @@ export default function ProgressionPage() {
             </div>
           )}
 
+          {/* ── Focus du moment ────────────────────────────────────────────── */}
+          {focusFaille && (
+            <div
+              className="rounded-2xl p-5 space-y-3"
+              style={{ background: "linear-gradient(135deg, #FDF0E0 0%, #FAF7F2 100%)", border: `1.5px solid ${C.amberBorder}` }}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🎯</span>
+                <span className="text-xs font-bold uppercase tracking-wide" style={{ color: C.terracotta }}>Focus du moment</span>
+              </div>
+              <div>
+                <div className="font-bold text-base" style={{ color: C.charcoal }}>{focusFaille.concept}</div>
+                <div className="text-xs mt-1 leading-relaxed" style={{ color: C.warmGray }}>{focusFaille.description}</div>
+                <div className="text-[10px] mt-1.5 font-medium" style={{ color: C.amber }}>📚 {focusFaille.matiere}</div>
+              </div>
+              <button
+                onClick={() => {
+                  localStorage.setItem("poulpe_matiere_active", focusFaille.matiere);
+                  router.push("/");
+                }}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                style={{ background: C.amber }}
+              >
+                On travaille ça maintenant →
+              </button>
+            </div>
+          )}
+
           {/* Stats globales */}
           {hasFailles && (
             <div className="grid grid-cols-3 gap-3">
@@ -203,9 +245,9 @@ export default function ProgressionPage() {
                 <div className="text-2xl font-bold" style={{ color: C.amber }}>{totalFailles}</div>
                 <div className="text-[11px] mt-0.5" style={{ color: C.warmGray }}>points à travailler</div>
               </div>
-              <div className="rounded-2xl p-4 text-center" style={{ background: "#FDEAEA", border: "1px solid #F0C0C0" }}>
-                <div className="text-2xl font-bold" style={{ color: "#C03030" }}>{faillsPrioritaires}</div>
-                <div className="text-[11px] mt-0.5" style={{ color: "#C03030" }}>prioritaires</div>
+              <div className="rounded-2xl p-4 text-center" style={{ background: "#EBF5EE", border: "1px solid #B8DFC5" }}>
+                <div className="text-2xl font-bold" style={{ color: "#2D7A4F" }}>{Math.max(0, totalFailles - faillsPrioritaires)}</div>
+                <div className="text-[11px] mt-0.5" style={{ color: "#2D7A4F" }}>en cours ✓</div>
               </div>
             </div>
           )}
@@ -229,25 +271,34 @@ export default function ProgressionPage() {
           )}
 
           {/* Matières sans données */}
-          {!hasFailles && toutesLesMatieres.length === 0 && (
+          {!hasFailles && toutesLesMatieres.length === 0 && flashcards.length === 0 && (
             <div
               className="rounded-2xl p-6 text-center space-y-3"
               style={{ background: C.parchment, border: `1px solid ${C.parchmentDark}` }}
             >
-              <div className="text-3xl">📈</div>
+              <div className="text-3xl">🐙</div>
               <div className="font-semibold text-sm" style={{ color: C.charcoal }}>
-                Ta progression apparaîtra ici
+                Ton profil se construit au fil des sessions
               </div>
               <p className="text-xs leading-relaxed" style={{ color: C.warmGray }}>
-                Upload tes copies dans <strong>Mes examens</strong> — Le Poulpe analyse tes erreurs et construit ton profil de progression matière par matière.
+                Dépose une copie corrigée dans <strong>Mes examens</strong> — Le Poulpe repère tes erreurs et crée ton radar de révision matière par matière.
               </p>
-              <button
-                onClick={() => router.push("/examens")}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-white"
-                style={{ background: C.amber }}
-              >
-                Uploader mes copies →
-              </button>
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={() => router.push("/examens")}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-white"
+                  style={{ background: C.amber }}
+                >
+                  Déposer une copie →
+                </button>
+                <button
+                  onClick={() => router.push("/")}
+                  className="px-4 py-2 rounded-xl text-xs font-medium"
+                  style={{ background: C.cream, color: C.warmGray, border: `1px solid ${C.parchmentDark}` }}
+                >
+                  Travailler avec Le Poulpe
+                </button>
+              </div>
             </div>
           )}
 
@@ -255,7 +306,7 @@ export default function ProgressionPage() {
           {toutesLesMatieres.length > 0 && (
             <div className="space-y-3">
               <h2 className="font-semibold text-sm" style={{ color: C.charcoal }}>
-                {hasFailles ? "Analyse par matière" : "Matières à surveiller"}
+                {hasFailles ? "Matière par matière" : "Matières à surveiller"}
               </h2>
 
               {toutesLesMatieres.map((mat) => {
@@ -316,6 +367,19 @@ export default function ProgressionPage() {
                       </div>
                     </button>
 
+                    {/* Bouton réviser toujours visible */}
+                    {data?.failles?.length > 0 && !isOpen && (
+                      <div className="px-4 pb-3">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); localStorage.setItem("poulpe_matiere_active", mat); router.push("/"); }}
+                          className="w-full py-2 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                          style={{ background: C.amber }}
+                        >
+                          Réviser avec Le Poulpe →
+                        </button>
+                      </div>
+                    )}
+
                     {/* Détail failles */}
                     {isOpen && data?.failles && data.failles.length > 0 && (
                       <div
@@ -323,7 +387,7 @@ export default function ProgressionPage() {
                         style={{ borderTop: `1px solid ${C.parchmentDark}` }}
                       >
                         <div className="pt-3 text-[11px] font-semibold mb-2" style={{ color: C.warmGray }}>
-                          Points identifiés dans tes copies
+                          Ce qu'on a repéré dans tes copies
                         </div>
                         {data.failles.map((f, i) => {
                           const style = criticiteStyle(f.criticite);
@@ -344,7 +408,7 @@ export default function ProgressionPage() {
                                   {f.concept}
                                   {f.count > 1 && (
                                     <span className="ml-1 font-normal" style={{ color: C.warmGray }}>
-                                      ×{f.count}
+                                      · vu {f.count}× dans tes copies
                                     </span>
                                   )}
                                 </div>
@@ -356,14 +420,11 @@ export default function ProgressionPage() {
                           );
                         })}
                         <button
-                          onClick={() => {
-                            localStorage.setItem("poulpe_matiere_active", mat);
-                            router.push("/");
-                          }}
+                          onClick={() => { localStorage.setItem("poulpe_matiere_active", mat); router.push("/"); }}
                           className="w-full mt-1 py-2.5 rounded-xl text-xs font-semibold text-white"
                           style={{ background: C.amber }}
                         >
-                          Réviser {mat} avec Le Poulpe →
+                          On travaille {mat} maintenant →
                         </button>
                       </div>
                     )}
@@ -380,7 +441,7 @@ export default function ProgressionPage() {
                           style={{ color: C.terracotta }}
                           onClick={() => router.push("/examens")}
                         >
-                          Upload une copie →
+                          Déposer une copie →
                         </button>
                       </div>
                     )}
