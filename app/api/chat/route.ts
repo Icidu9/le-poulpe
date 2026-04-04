@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
 import { ARTHUR_SYSTEM_PROMPT } from "../../../arthur-system-prompt";
+import { injectProfileIntoPrompt } from "../../../build-system-prompt";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -93,19 +94,22 @@ export async function POST(req: Request) {
     });
   }
 
-  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession } = (await req.json()) as {
+  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession, profile } = (await req.json()) as {
     messages: IncomingMessage[];
     failles: Record<string, unknown>;
     sessionId?: string;
     childName?: string;
     emploiDuTemps?: Record<string, string[]>;
     closeSession?: boolean;
+    profile?: Record<string, unknown> | null;
   };
 
   const nom = childName || "Arthur";
 
-  // Adapte le system prompt au prénom de l'enfant
-  let systemPrompt = ARTHUR_SYSTEM_PROMPT.replaceAll("Arthur", nom);
+  // Construit le system prompt : profil dynamique si profile fourni, sinon fallback Arthur
+  let systemPrompt = profile
+    ? injectProfileIntoPrompt(ARTHUR_SYSTEM_PROMPT, nom, profile as any)
+    : ARTHUR_SYSTEM_PROMPT.replaceAll("Arthur", nom);
   if (failles && typeof failles === "object" && Object.keys(failles).length > 0) {
     const faillesText = Object.entries(failles)
       .map(([mat, data]: [string, any]) => {

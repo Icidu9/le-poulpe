@@ -170,6 +170,7 @@ export default function Home() {
   const [prenom, setPrenom]         = useState("toi");
   const [classe, setClasse]         = useState("beta");
   const [parentEmail, setParentEmail] = useState("");
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [failles, setFailles] = useState<Record<string, unknown>>({});
   const [nbFailles, setNbFailles] = useState(0);
@@ -212,6 +213,7 @@ export default function Home() {
     const p = localStorage.getItem("poulpe_prenom") || "";
     const profileRaw = localStorage.getItem("poulpe_profile");
     const profile = profileRaw ? JSON.parse(profileRaw) : null;
+    if (profile) setProfile(profile);
 
     if (p) setPrenom(p);
     if (profile?.parent?.pClasse) setClasse(profile.parent.pClasse);
@@ -364,6 +366,7 @@ export default function Home() {
           childName: prenom,
           emploiDuTemps,
           closeSession: true,
+          profile,
         }),
       });
       if (!response.ok) throw new Error("Erreur API");
@@ -564,6 +567,7 @@ export default function Home() {
           sessionId,
           childName: prenom,
           emploiDuTemps,
+          profile,
         }),
       });
 
