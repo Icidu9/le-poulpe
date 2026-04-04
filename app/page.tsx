@@ -17,16 +17,30 @@ interface Message {
 
 // ── Palette ──────────────────────────────────────────────────────────────────
 const C = {
-  amber:        "#E8922A",
-  terracotta:   "#C05C2A",
-  cream:        "#FAF7F2",
-  parchment:    "#F2ECE3",
-  parchmentDark:"#EAE0D3",
-  charcoal:     "#1E1A16",
-  warmGray:     "#6B6258",
-  sage:         "#5A8A6A",
-  amberLight:   "#FDF0E0",
-  amberBorder:  "#EED4AA",
+  // New design system — Abyssal Glow
+  bg:           "#F4F9FA",
+  card:         "#FFFFFF",
+  primary:      "#FF4D6D",
+  primaryDark:  "#D93655",
+  primaryLight: "#FFF0F3",
+  primaryBorder:"#FFB8C6",
+  text:         "#0A2030",
+  textMid:      "#5A7A8A",
+  textLight:    "#8ABAD0",
+  border:       "#DCE9ED",
+  sidebarBg:    "#061A26",
+  success:      "#10B981",
+  // Legacy aliases for refs below
+  amber:        "#FF4D6D",
+  terracotta:   "#D93655",
+  cream:        "#F4F9FA",
+  parchment:    "#F4F9FA",
+  parchmentDark:"#DCE9ED",
+  charcoal:     "#0A2030",
+  warmGray:     "#5A7A8A",
+  sage:         "#10B981",
+  amberLight:   "#FFF0F3",
+  amberBorder:  "#FFB8C6",
 };
 
 // ── Icônes ───────────────────────────────────────────────────────────────────
@@ -103,16 +117,16 @@ function IconMic({ recording }: { recording?: boolean }) {
 function Poulpe({ size = 32 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <ellipse cx="24" cy="20" rx="13" ry="14" fill="#C05C2A" />
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="#FF4D6D" />
       <circle cx="19" cy="18" r="2.5" fill="white" />
       <circle cx="29" cy="18" r="2.5" fill="white" />
-      <circle cx="19.8" cy="18.5" r="1.2" fill="#1E1A16" />
-      <circle cx="29.8" cy="18.5" r="1.2" fill="#1E1A16" />
-      <path d="M14 30 Q11 36 13 40" stroke="#C05C2A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M18 32 Q16 39 18 43" stroke="#C05C2A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M24 33 Q24 40 24 44" stroke="#C05C2A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M30 32 Q32 39 30 43" stroke="#C05C2A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M34 30 Q37 36 35 40" stroke="#C05C2A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <circle cx="19.8" cy="18.5" r="1.2" fill="#0A2030" />
+      <circle cx="29.8" cy="18.5" r="1.2" fill="#0A2030" />
+      <path d="M14 30 Q11 36 13 40" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M18 32 Q16 39 18 43" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M24 33 Q24 40 24 44" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M30 32 Q32 39 30 43" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M34 30 Q37 36 35 40" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
     </svg>
   );
 }
@@ -738,15 +752,15 @@ export default function Home() {
     <div className="flex h-screen overflow-hidden" style={{ background: C.cream, fontFamily: '"Inter", system-ui, sans-serif', color: C.charcoal }}>
 
       {/* ── SIDEBAR — z-50 pour passer au-dessus du tour overlay ─────────── */}
-      <aside className="relative z-50 flex flex-col w-56 flex-shrink-0 border-r"
-        style={{ background: C.parchment, borderColor: C.parchmentDark }}>
+      <aside className="relative z-50 flex flex-col w-56 flex-shrink-0"
+        style={{ background: C.sidebarBg, borderRight: "1px solid rgba(255,255,255,0.06)" }}>
 
         {/* Logo */}
-        <div className="flex items-center gap-2.5 px-5 py-5 border-b" style={{ borderColor: C.parchmentDark }}>
-          <Poulpe size={34} />
+        <div className="flex items-center gap-2.5 px-5 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <Poulpe size={30} />
           <div>
-            <div className="font-semibold text-sm" style={{ color: C.charcoal }}>Le Poulpe</div>
-            <div className="text-[10px]" style={{ color: C.amber }}>Tuteur personnel</div>
+            <div className="font-bold text-sm text-white tracking-tight">Le Poulpe</div>
+            <div className="text-[10px] font-medium" style={{ color: "#FF4D6D" }}>Tuteur personnel</div>
           </div>
         </div>
 
@@ -765,17 +779,17 @@ export default function Home() {
                 style={{
                   ...(isTourTarget
                     ? {
-                        background: C.amberLight,
-                        color: C.terracotta,
+                        background: "rgba(255,77,109,0.18)",
+                        color: "#FF4D6D",
                         fontWeight: 700,
-                        outline: `2.5px solid ${C.amber}`,
+                        outline: "2px solid rgba(255,77,109,0.4)",
                         outlineOffset: "2px",
-                        boxShadow: `0 0 0 4px rgba(232,146,42,0.18)`,
+                        boxShadow: "0 0 16px rgba(255,77,109,0.15)",
                       }
                     : isActive
-                    ? { background: C.amberLight, color: C.terracotta, fontWeight: 600 }
+                    ? { background: "rgba(255,77,109,0.18)", color: "#FF4D6D", fontWeight: 600, boxShadow: "0 0 16px rgba(255,77,109,0.12)" }
                     : {
-                        color: C.warmGray,
+                        color: "rgba(255,255,255,0.42)",
                         opacity: isTourDimmed ? 0.3 : 1,
                       }),
                 }}
@@ -783,7 +797,7 @@ export default function Home() {
                 <span>{item.icon}</span>
                 <span>{item.label}</span>
                 {isTourTarget && (
-                  <span className="ml-auto text-[10px] font-bold" style={{ color: C.amber }}>←</span>
+                  <span className="ml-auto text-[10px] font-bold" style={{ color: "#FF4D6D" }}>←</span>
                 )}
               </button>
             );
@@ -795,12 +809,12 @@ export default function Home() {
           <button
             onClick={() => router.push("/examens")}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-colors text-left"
-            style={{ background: nbFailles > 0 ? "#FDEAEA" : C.amberLight, color: nbFailles > 0 ? "#D94040" : C.terracotta }}>
+            style={{ background: nbFailles > 0 ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.04)", color: nbFailles > 0 ? "#F87171" : "rgba(255,255,255,0.42)" }}>
             <span>📤</span>
-            <span className="font-medium text-xs">Mes examens</span>
+            <span className="font-medium text-xs">Mes copies</span>
             {nbFailles > 0 && (
               <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                style={{ background: "#D94040", color: "white" }}>
+                style={{ background: "#EF4444", color: "white" }}>
                 {nbFailles}
               </span>
             )}
@@ -808,15 +822,15 @@ export default function Home() {
         </div>
 
         {/* Profil */}
-        <div className="px-4 py-4 border-t" style={{ borderColor: C.parchmentDark }}>
+        <div className="px-4 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
-              style={{ background: C.amber, color: "white" }}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #FF4D6D, #FF7A8A)", color: "white" }}>
               {prenom.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div className="text-xs font-medium" style={{ color: C.charcoal }}>{prenom}</div>
-              <div className="text-[10px]" style={{ color: C.warmGray }}>{classe} · beta</div>
+              <div className="text-xs font-semibold text-white">{prenom}</div>
+              <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{classe} · beta</div>
             </div>
           </div>
         </div>

@@ -6,15 +6,15 @@ import Sidebar from "../components/Sidebar";
 import { getChapitres, findMatiereInProgramme, type Chapitre } from "../../lib/curriculum";
 
 const C = {
-  bg:          "#F8FAFC",
+  bg:          "#F4F9FA",
   card:        "#FFFFFF",
-  primary:     "#FF6B35",
-  primaryDark: "#C84B15",
-  text:        "#0F172A",
-  textMid:     "#64748B",
-  textLight:   "#94A3B8",
-  border:      "#E2E8F0",
-  borderMid:   "#CBD5E1",
+  primary:     "#FF4D6D",
+  primaryDark: "#D93655",
+  text:        "#0A2030",
+  textMid:     "#5A7A8A",
+  textLight:   "#8ABAD0",
+  border:      "#DCE9ED",
+  borderMid:   "#C8DDE5",
   success:     "#10B981",
   danger:      "#EF4444",
 };
@@ -166,8 +166,8 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
                 onClick={() => onAction("reviser")}
                 className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
                 style={{
-                  background: "linear-gradient(135deg, #FF6B35, #C84B15)",
-                  boxShadow: "0 4px 20px rgba(255,107,53,0.35)",
+                  background: "linear-gradient(135deg, #FF4D6D, #D93655)",
+                  boxShadow: "0 4px 20px rgba(255,77,109,0.35)",
                 }}
               >
                 <span className="text-2xl flex-shrink-0">🐙</span>

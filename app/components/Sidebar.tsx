@@ -6,17 +6,17 @@ import { useRouter, usePathname } from "next/navigation";
 function PoulpeLogo() {
   return (
     <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
-      <ellipse cx="24" cy="20" rx="13" ry="14" fill="#FF6B35" />
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="#FF4D6D" />
       <circle cx="19" cy="18" r="2.5" fill="white" />
       <circle cx="29" cy="18" r="2.5" fill="white" />
       <circle cx="19.8" cy="18.5" r="1.2" fill="#0F172A" />
       <circle cx="29.8" cy="18.5" r="1.2" fill="#0F172A" />
       <path d="M21 22.5 Q24 25 27 22.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-      <path d="M14 30 Q11 36 13 40" stroke="#FF6B35" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M18 32 Q16 39 18 43" stroke="#FF6B35" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M24 33 Q24 40 24 44" stroke="#FF6B35" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M30 32 Q32 39 30 43" stroke="#FF6B35" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M34 30 Q37 36 35 40" stroke="#FF6B35" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M14 30 Q11 36 13 40" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M18 32 Q16 39 18 43" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M24 33 Q24 40 24 44" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M30 32 Q32 39 30 43" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M34 30 Q37 36 35 40" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
     </svg>
   );
 }
@@ -115,14 +115,14 @@ export default function Sidebar() {
   return (
     <aside
       className="relative z-50 flex flex-col w-56 flex-shrink-0"
-      style={{ background: "#0F172A", borderRight: "1px solid #1E293B" }}
+      style={{ background: "#061A26", borderRight: "1px solid rgba(255,255,255,0.06)" }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: "1px solid #1E293B" }}>
+      <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <PoulpeLogo />
         <div>
           <div className="font-bold text-sm text-white tracking-tight">Le Poulpe</div>
-          <div className="text-[10px] font-medium" style={{ color: "#FF6B35" }}>Tuteur personnel</div>
+          <div className="text-[10px] font-medium" style={{ color: "#FF4D6D" }}>Tuteur personnel</div>
         </div>
       </div>
 
@@ -137,8 +137,8 @@ export default function Sidebar() {
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
               style={
                 isActive
-                  ? { background: "rgba(255,107,53,0.15)", color: "#FF6B35", fontWeight: 600 }
-                  : { color: "#64748B" }
+                  ? { background: "rgba(255,77,109,0.18)", color: "#FF4D6D", fontWeight: 600, boxShadow: "0 0 16px rgba(255,77,109,0.12)" }
+                  : { color: "rgba(255,255,255,0.42)" }
               }
             >
               <span>{item.icon}</span>
@@ -146,7 +146,7 @@ export default function Sidebar() {
               {isActive && (
                 <span
                   className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ background: "#FF6B35" }}
+                  style={{ background: "#FF4D6D", boxShadow: "0 0 6px rgba(255,77,109,0.6)" }}
                 />
               )}
             </button>
@@ -161,7 +161,7 @@ export default function Sidebar() {
           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
           style={{
             background: nbFailles > 0 ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.04)",
-            color: nbFailles > 0 ? "#F87171" : "#64748B",
+            color: nbFailles > 0 ? "#F87171" : "rgba(255,255,255,0.42)",
           }}
         >
           <IconUpload />
@@ -178,17 +178,17 @@ export default function Sidebar() {
       </div>
 
       {/* Profil */}
-      <div className="px-4 py-4" style={{ borderTop: "1px solid #1E293B" }}>
+      <div className="px-4 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex items-center gap-2.5">
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #FF6B35, #FF8F6B)", color: "white" }}
+            style={{ background: "linear-gradient(135deg, #FF4D6D, #FF7A8A)", color: "white" }}
           >
             {initial}
           </div>
           <div className="min-w-0">
             <div className="text-xs font-semibold text-white truncate">{prenom}</div>
-            <div className="text-[10px]" style={{ color: "#475569" }}>{classe} · beta</div>
+            <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{classe} · beta</div>
           </div>
         </div>
       </div>
