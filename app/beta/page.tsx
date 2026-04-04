@@ -12,6 +12,7 @@ function setCookie(name: string, value: string, days: number) {
 
 export default function BetaPage() {
   const router  = useRouter();
+  const [email,   setEmail]   = useState("");
   const [code,    setCode]    = useState("");
   const [error,   setError]   = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,12 +25,16 @@ export default function BetaPage() {
       const res  = await fetch("/api/validate-beta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: code.trim() }),
+        body: JSON.stringify({ code: code.trim(), email: email.trim() }),
       });
       const data = await res.json();
       if (data.valid) {
         setCookie(BETA_COOKIE, code.trim().toUpperCase(), 30);
-        router.replace("/onboarding");
+        // Sauvegarde l'email pour pré-remplir la charte
+        if (email.trim()) {
+          localStorage.setItem("poulpe_beta_email", email.trim().toLowerCase());
+        }
+        router.replace("/charte");
       } else {
         setError(true);
         setCode("");
@@ -55,16 +60,15 @@ export default function BetaPage() {
         <div className="rounded-2xl p-6" style={{ background: "#F2ECE3", border: "1px solid #EAE0D3" }}>
           <p className="text-sm mb-5" style={{ color: "#1E1A16" }}>
             Cette application est en accès privé.<br />
-            Entre ton code d'accès pour continuer.
+            Renseigne ton email et le code reçu pour continuer.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <input
-              type="text"
-              value={code}
-              onChange={(e) => { setCode(e.target.value); setError(false); }}
-              placeholder="Code d'accès"
-              autoFocus
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setError(false); }}
+              placeholder="Ton email (parent)"
               className="w-full px-4 py-3 rounded-xl text-sm outline-none"
               style={{
                 background: "white",
@@ -72,7 +76,20 @@ export default function BetaPage() {
                 color: "#1E1A16",
               }}
             />
-            {error && <p className="text-xs" style={{ color: "#C05C2A" }}>Code incorrect. Réessaie.</p>}
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => { setCode(e.target.value); setError(false); }}
+              placeholder="Code d'accès"
+              autoComplete="off"
+              className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+              style={{
+                background: "white",
+                border: `1.5px solid ${error ? "#C05C2A" : "#EAE0D3"}`,
+                color: "#1E1A16",
+              }}
+            />
+            {error && <p className="text-xs" style={{ color: "#C05C2A" }}>Code ou email incorrect. Vérifie et réessaie.</p>}
             <button
               type="submit"
               disabled={loading || !code.trim()}

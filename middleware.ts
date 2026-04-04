@@ -1,23 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const BETA_COOKIE = "poulpe_beta";
-const BETA_CODE   = process.env.NEXT_PUBLIC_BETA_CODE || "POULPE2025";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Laisse passer la page beta elle-même et les assets
+  // Laisse passer la page beta, la charte et les assets
   if (
     pathname.startsWith("/beta") ||
+    pathname.startsWith("/charte") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
-    pathname.startsWith("/favicon")
+    pathname.startsWith("/favicon") ||
+    pathname.startsWith("/icon") ||
+    pathname.startsWith("/manifest")
   ) {
     return NextResponse.next();
   }
 
+  // Vérifie que le cookie beta existe (la validation réelle est côté serveur dans /api/validate-beta)
   const cookie = req.cookies.get(BETA_COOKIE);
-  if (cookie?.value === BETA_CODE) {
+  if (cookie?.value) {
     return NextResponse.next();
   }
 
