@@ -90,18 +90,20 @@ export default function BrainViewer({ activeSubjects, mode = "modal", intensityS
       if (!ctx) { setWebglFailed(true); return; }
     } catch { setWebglFailed(true); return; }
 
-    const W = mount.clientWidth || 320;
-    const H = mount.clientHeight || 260;
+    // For background mode use window size to avoid 0-size issue on mount
+    const W = isBackground ? window.innerWidth : (mount.clientWidth || 320);
+    const H = isBackground ? window.innerHeight : (mount.clientHeight || 260);
 
     let renderer: THREE.WebGLRenderer;
     try {
     // ── Scene ─────────────────────────────────────────────────────────────────
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 100);
-    camera.position.set(0, 0.3, 3.8);
+    // Background: closer camera = brain appears much larger and fills the screen
+    camera.position.set(0, 0.15, isBackground ? 2.2 : 3.8);
     camera.lookAt(0, 0, 0);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "low-power" });
+    renderer = new THREE.WebGLRenderer({ antialias: !isBackground, alpha: true, powerPreference: "low-power" });
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.setClearColor(0x000000, 0);
@@ -127,9 +129,11 @@ export default function BrainViewer({ activeSubjects, mode = "modal", intensityS
     const brainGroup = new THREE.Group();
     scene.add(brainGroup);
 
-    // Main brain body — reduced polygons in background mode
+    // Brain scale: bigger in background mode to fill the screen
+    const brainScale = isBackground ? 1.6 : 1.0;
+    // Main brain body
     const brainGeo = isBackground
-      ? new THREE.SphereGeometry(1, 24, 18)
+      ? new THREE.SphereGeometry(brainScale, 32, 24)
       : new THREE.SphereGeometry(1, 40, 30);
     brainGeo.scale(1.15, 0.95, 1.0);
     const brainMat = new THREE.MeshPhongMaterial({
@@ -143,9 +147,7 @@ export default function BrainViewer({ activeSubjects, mode = "modal", intensityS
     brainGroup.add(brain);
 
     // Brain wireframe overlay (subtle grid lines = convolutions feel)
-    const wireGeo = isBackground
-      ? new THREE.SphereGeometry(1.01, 14, 10)
-      : new THREE.SphereGeometry(1.01, 14, 10);
+    const wireGeo = new THREE.SphereGeometry(brainScale * 1.01, isBackground ? 16 : 14, isBackground ? 12 : 10);
     wireGeo.scale(1.15, 0.95, 1.0);
     const wireMat = new THREE.MeshBasicMaterial({
       color: 0x2A5A8A,
@@ -155,8 +157,8 @@ export default function BrainViewer({ activeSubjects, mode = "modal", intensityS
     });
     brainGroup.add(new THREE.Mesh(wireGeo, wireMat));
 
-    // Cerebellum (small ellipsoid at back-bottom)
-    const cGeo = new THREE.SphereGeometry(0.42, 32, 24);
+    // Cerebellum (small ellipsoid at back-bottom) — scaled with brain
+    const cGeo = new THREE.SphereGeometry(0.42 * brainScale, 32, 24);
     cGeo.scale(1.25, 0.65, 1.1);
     const cMat = new THREE.MeshPhongMaterial({
       color: 0x0E2035,
@@ -164,11 +166,11 @@ export default function BrainViewer({ activeSubjects, mode = "modal", intensityS
       shininess: 30,
     });
     const cerebellum = new THREE.Mesh(cGeo, cMat);
-    cerebellum.position.set(0, -0.52, -0.82);
+    cerebellum.position.set(0, -0.52 * brainScale, -0.82 * brainScale);
     brainGroup.add(cerebellum);
 
     // Cerebellum wireframe
-    const cwGeo = new THREE.SphereGeometry(0.43, 12, 10);
+    const cwGeo = new THREE.SphereGeometry(0.43 * brainScale, 12, 10);
     cwGeo.scale(1.25, 0.65, 1.1);
     const cwMat = new THREE.MeshBasicMaterial({ color: 0x1A3A5C, wireframe: true, transparent: true, opacity: 0.1 });
     const cw = new THREE.Mesh(cwGeo, cwMat);
@@ -181,7 +183,8 @@ export default function BrainViewer({ activeSubjects, mode = "modal", intensityS
 
     REGION_DEFS.forEach((region) => {
       const isActive = activeSubjects.some((s) => matchRegion(s, region.subjects));
-      const [x, y, z] = region.pos;
+      // Scale positions with brain size
+      const [x, y, z] = region.pos.map(v => v * brainScale) as [number, number, number];
 
       // Marker core sphere
       const markerGeo = new THREE.SphereGeometry(isActive ? 0.078 : 0.05, 16, 12);
@@ -323,8 +326,19 @@ export default function BrainViewer({ activeSubjects, mode = "modal", intensityS
     };
     animate();
 
+    // Handle window resize
+    const onResize = () => {
+      const nW = isBackground ? window.innerWidth : (mount.clientWidth || W);
+      const nH = isBackground ? window.innerHeight : (mount.clientHeight || H);
+      camera.aspect = nW / nH;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nW, nH);
+    };
+    window.addEventListener("resize", onResize);
+
     return () => {
       cancelAnimationFrame(animId);
+      window.removeEventListener("resize", onResize);
       if (!isBackground) {
         mount.removeEventListener("pointerdown", onPointerDown);
         window.removeEventListener("pointermove", onPointerMove);
@@ -363,7 +377,7 @@ export default function BrainViewer({ activeSubjects, mode = "modal", intensityS
         cursor: isBackground ? "default" : "grab",
         borderRadius: isBackground ? "0" : "12px",
         overflow: "hidden",
-        opacity: isBackground ? 0.55 : 1,
+        opacity: isBackground ? 0.72 : 1,
       }}
     />
   );
