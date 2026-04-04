@@ -20,10 +20,10 @@ const C = {
   // New design system — Abyssal Glow
   bg:           "#F4F9FA",
   card:         "#FFFFFF",
-  primary:      "#0BBCD4",
-  primaryDark:  "#0891A8",
-  primaryLight: "#E0F8FC",
-  primaryBorder:"#90D8E8",
+  primary:      "#FF4D6D",
+  primaryDark:  "#D93655",
+  primaryLight: "#FFF0F3",
+  primaryBorder:"#FFB8C6",
   text:         "#0A2030",
   textMid:      "#5A7A8A",
   textLight:    "#8ABAD0",
@@ -31,16 +31,16 @@ const C = {
   sidebarBg:    "#061A26",
   success:      "#10B981",
   // Legacy aliases for refs below
-  amber:        "#0BBCD4",
-  terracotta:   "#0891A8",
+  amber:        "#FF4D6D",
+  terracotta:   "#D93655",
   cream:        "#F4F9FA",
   parchment:    "#F4F9FA",
   parchmentDark:"#DCE9ED",
   charcoal:     "#0A2030",
   warmGray:     "#5A7A8A",
   sage:         "#10B981",
-  amberLight:   "#E0F8FC",
-  amberBorder:  "#90D8E8",
+  amberLight:   "#FFF0F3",
+  amberBorder:  "#FFB8C6",
 };
 
 // ── Icônes ───────────────────────────────────────────────────────────────────
@@ -117,16 +117,16 @@ function IconMic({ recording }: { recording?: boolean }) {
 function Poulpe({ size = 32 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <ellipse cx="24" cy="20" rx="13" ry="14" fill="#0BBCD4" />
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="#FF4D6D" />
       <circle cx="19" cy="18" r="2.5" fill="white" />
       <circle cx="29" cy="18" r="2.5" fill="white" />
       <circle cx="19.8" cy="18.5" r="1.2" fill="#0A2030" />
       <circle cx="29.8" cy="18.5" r="1.2" fill="#0A2030" />
-      <path d="M14 30 Q11 36 13 40" stroke="#0BBCD4" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M18 32 Q16 39 18 43" stroke="#0BBCD4" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M24 33 Q24 40 24 44" stroke="#0BBCD4" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M30 32 Q32 39 30 43" stroke="#0BBCD4" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M34 30 Q37 36 35 40" stroke="#0BBCD4" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M14 30 Q11 36 13 40" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M18 32 Q16 39 18 43" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M24 33 Q24 40 24 44" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M30 32 Q32 39 30 43" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M34 30 Q37 36 35 40" stroke="#FF4D6D" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
     </svg>
   );
 }
@@ -760,7 +760,7 @@ export default function Home() {
           <Poulpe size={30} />
           <div>
             <div className="font-bold text-sm text-white tracking-tight">Le Poulpe</div>
-            <div className="text-[10px] font-medium" style={{ color: "#0BBCD4" }}>Tuteur personnel</div>
+            <div className="text-[10px] font-medium" style={{ color: "#FF4D6D" }}>Tuteur personnel</div>
           </div>
         </div>
 
@@ -779,15 +779,15 @@ export default function Home() {
                 style={{
                   ...(isTourTarget
                     ? {
-                        background: "rgba(11,188,212,0.18)",
-                        color: "#0BBCD4",
+                        background: "rgba(255,77,109,0.18)",
+                        color: "#FF4D6D",
                         fontWeight: 700,
-                        outline: "2px solid rgba(11,188,212,0.4)",
+                        outline: "2px solid rgba(255,77,109,0.4)",
                         outlineOffset: "2px",
-                        boxShadow: "0 0 16px rgba(11,188,212,0.15)",
+                        boxShadow: "0 0 16px rgba(255,77,109,0.15)",
                       }
                     : isActive
-                    ? { background: "rgba(11,188,212,0.18)", color: "#0BBCD4", fontWeight: 600, boxShadow: "0 0 16px rgba(11,188,212,0.12)" }
+                    ? { background: "rgba(255,77,109,0.18)", color: "#FF4D6D", fontWeight: 600, boxShadow: "0 0 16px rgba(255,77,109,0.12)" }
                     : {
                         color: "rgba(255,255,255,0.42)",
                         opacity: isTourDimmed ? 0.3 : 1,
@@ -797,7 +797,7 @@ export default function Home() {
                 <span>{item.icon}</span>
                 <span>{item.label}</span>
                 {isTourTarget && (
-                  <span className="ml-auto text-[10px] font-bold" style={{ color: "#0BBCD4" }}>←</span>
+                  <span className="ml-auto text-[10px] font-bold" style={{ color: "#FF4D6D" }}>←</span>
                 )}
               </button>
             );
@@ -825,7 +825,7 @@ export default function Home() {
         <div className="px-4 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, #0BBCD4, #3DD5E8)", color: "white" }}>
+              style={{ background: "linear-gradient(135deg, #FF4D6D, #FF7A8A)", color: "white" }}>
               {prenom.charAt(0).toUpperCase()}
             </div>
             <div>

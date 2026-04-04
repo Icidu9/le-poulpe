@@ -8,8 +8,8 @@ import Sidebar from "../components/Sidebar";
 const C = {
   bg:          "#F4F9FA",
   card:        "#FFFFFF",
-  primary:     "#0BBCD4",
-  primaryDark: "#0891A8",
+  primary:     "#FF4D6D",
+  primaryDark: "#D93655",
   text:        "#0A2030",
   textMid:     "#5A7A8A",
   textLight:   "#8ABAD0",
@@ -233,7 +233,7 @@ export default function AccueilPage() {
           >
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, #0BBCD4, #0891A8)", color: "white" }}
+              style={{ background: "linear-gradient(135deg, #FF4D6D, #D93655)", color: "white" }}
             >
               {level}
             </div>
@@ -245,7 +245,7 @@ export default function AccueilPage() {
               <div className="h-2 rounded-full overflow-hidden" style={{ background: "#F1F5F9" }}>
                 <div
                   className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #0BBCD4, #3DD5E8)" }}
+                  style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #FF4D6D, #FF7A8A)" }}
                 />
               </div>
             </div>
@@ -262,8 +262,8 @@ export default function AccueilPage() {
             }}
             className="w-full rounded-3xl px-6 py-5 text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
             style={{
-              background: "linear-gradient(135deg, #0BBCD4 0%, #0891A8 100%)",
-              boxShadow: "0 8px 32px rgba(11,188,212,0.35)",
+              background: "linear-gradient(135deg, #FF4D6D 0%, #D93655 100%)",
+              boxShadow: "0 8px 32px rgba(255,77,109,0.35)",
             }}
           >
             <div className="flex items-center gap-4">
