@@ -56,6 +56,14 @@ function criticiteStyle(c: string) {
   return CRITICITE_COLOR[c.toLowerCase()] || CRITICITE_COLOR.moyenne;
 }
 
+type Flashcard = {
+  id: string;
+  question: string;
+  reponse: string;
+  matiere: string;
+  date: string;
+};
+
 export default function ProgressionPage() {
   const router = useRouter();
   const [failles,      setFailles]      = useState<Record<string, FaillesData>>({});
@@ -63,10 +71,15 @@ export default function ProgressionPage() {
   const [matieresFort, setMatieresFort] = useState<string>("");
   const [hasFailles,   setHasFailles]   = useState(false);
   const [expanded,     setExpanded]     = useState<string | null>(null);
+  const [flashcards,   setFlashcards]   = useState<Flashcard[]>([]);
+  const [flipped,      setFlipped]      = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
     if (!done) { router.replace("/onboarding"); return; }
+
+    const fc = localStorage.getItem("poulpe_flashcards");
+    if (fc) { try { setFlashcards(JSON.parse(fc)); } catch {} }
 
     const f = localStorage.getItem("poulpe_failles");
     if (f) {
@@ -119,6 +132,65 @@ export default function ProgressionPage() {
               Les points identifiés dans tes copies — matière par matière.
             </p>
           </div>
+
+          {/* ── Fiches de révision ─────────────────────────────────────────── */}
+          {flashcards.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold" style={{ color: C.charcoal }}>📚 Mes fiches de révision</h2>
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: C.amberLight, color: C.terracotta }}>
+                  {flashcards.length} fiche{flashcards.length > 1 ? "s" : ""}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                {flashcards.map((fc) => (
+                  <div
+                    key={fc.id}
+                    onClick={() => setFlipped((prev) => ({ ...prev, [fc.id]: !prev[fc.id] }))}
+                    className="rounded-2xl p-4 cursor-pointer transition-all"
+                    style={{
+                      background: flipped[fc.id] ? C.amberLight : C.parchment,
+                      border: `1px solid ${flipped[fc.id] ? C.amberBorder : C.parchmentDark}`,
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        {!flipped[fc.id] ? (
+                          <>
+                            <div className="text-[10px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: C.amber }}>
+                              ❓ Question · {fc.matiere}
+                            </div>
+                            <div className="text-sm font-medium" style={{ color: C.charcoal }}>{fc.question}</div>
+                            <div className="text-[11px] mt-2" style={{ color: C.warmGray }}>Clique pour voir la réponse →</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-[10px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: C.terracotta }}>
+                              ✅ Réponse · {fc.matiere}
+                            </div>
+                            <div className="text-sm" style={{ color: C.charcoal }}>{fc.reponse}</div>
+                            <div className="text-[11px] mt-2" style={{ color: C.warmGray }}>Clique pour revoir la question</div>
+                          </>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updated = flashcards.filter((f) => f.id !== fc.id);
+                          setFlashcards(updated);
+                          localStorage.setItem("poulpe_flashcards", JSON.stringify(updated));
+                        }}
+                        className="text-[10px] px-2 py-1 rounded-lg flex-shrink-0"
+                        style={{ color: C.warmGray, background: C.cream }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Stats globales */}
           {hasFailles && (

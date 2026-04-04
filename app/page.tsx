@@ -183,6 +183,8 @@ export default function Home() {
   const [input, setInput]                 = useState("");
   const [loading, setLoading]             = useState(false);
   const [isSessionClosed, setIsSessionClosed] = useState(false);
+  const [flashcardsLoading, setFlashcardsLoading] = useState(false);
+  const [flashcardsReady, setFlashcardsReady] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState<{ base64: string; mimeType: string; preview: string }[]>([]);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
   const [isRecording,    setIsRecording]    = useState(false);
@@ -397,6 +399,35 @@ export default function Home() {
     } catch {
       setLoading(false);
     }
+  }
+
+  async function generateFlashcards() {
+    if (flashcardsLoading || flashcardsReady) return;
+    setFlashcardsLoading(true);
+    try {
+      const res = await fetch("/api/generate-flashcards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: messages.map((m) => ({ role: m.role, content: m.content })),
+          matiere: matiereActive || undefined,
+          childName: prenom,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (data.flashcards?.length) {
+        const existing = JSON.parse(localStorage.getItem("poulpe_flashcards") || "[]");
+        const newCards = data.flashcards.map((f: { question: string; reponse: string; matiere: string }) => ({
+          ...f,
+          id: `fc_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          date: new Date().toISOString(),
+        }));
+        localStorage.setItem("poulpe_flashcards", JSON.stringify([...existing, ...newCards]));
+        setFlashcardsReady(true);
+      }
+    } catch {}
+    setFlashcardsLoading(false);
   }
 
   function newSession() {
@@ -845,6 +876,25 @@ export default function Home() {
                 <div className="text-sm font-semibold" style={{ color: "#2D7A4F" }}>
                   ✅ Session terminée — bien joué !
                 </div>
+                {/* Bouton flashcards */}
+                {!flashcardsReady ? (
+                  <button
+                    onClick={generateFlashcards}
+                    disabled={flashcardsLoading}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+                    style={{ background: C.amberLight, color: C.terracotta, border: `1px solid ${C.amberBorder}` }}
+                  >
+                    {flashcardsLoading ? "Génération des fiches..." : "📚 Créer mes fiches de révision"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => router.push("/progression")}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90"
+                    style={{ background: "#EBF5EE", color: "#2D7A4F", border: "1px solid #B8DFC5" }}
+                  >
+                    ✓ Fiches créées — voir mes fiches →
+                  </button>
+                )}
                 <div className="flex gap-2">
                   <button
                     onClick={newSession}
