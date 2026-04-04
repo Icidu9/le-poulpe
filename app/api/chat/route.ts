@@ -212,13 +212,13 @@ export async function POST(req: Request) {
         `L'élève vient de lire la fiche de cours sur "${chapitre.chapitre}" (${chapitre.matiere}, ${chapitre.niveau}).\n` +
         `Il veut maintenant tester ses connaissances.\n\n` +
         `INSTRUCTIONS QUIZ (OBLIGATOIRES) :\n` +
-        `1. Lance IMMÉDIATEMENT le quiz — ne demande pas si l'élève est prêt, commence directement.\n` +
-        `2. Pose 5 questions sur ce chapitre, UNE PAR UNE. Attends la réponse avant la suivante.\n` +
-        `3. Après chaque réponse : dis si c'est correct ou non, explique brièvement pourquoi.\n` +
-        `4. À la fin des 5 questions : donne le score (ex: 3/5) et un message d'encouragement.\n` +
-        `5. Les questions doivent être adaptées au niveau ${chapitre.niveau}, ni trop faciles ni trop difficiles.\n` +
-        `6. Varie les formats : questions ouvertes, à choix multiple (donne 4 options), vrai/faux.\n` +
-        `7. MAXIMUM 3 PHRASES PAR QUESTION — sois concis.\n\n` +
+        `1. Lance IMMÉDIATEMENT la première question — ne demande pas si l'élève est prêt.\n` +
+        `2. Pose 5 questions, UNE PAR UNE. Attends la réponse avant la suivante.\n` +
+        `3. Après chaque réponse : ✅ ou ❌, puis 1 phrase d'explication MAX. Pas de commentaire long.\n` +
+        `4. INTERDIT : donner des indices phonétiques (ex: "persévér...ant?"). Si l'élève bloque, donne un indice de SENS uniquement.\n` +
+        `5. À la fin : score (ex: 4/5) + 1 phrase d'encouragement.\n` +
+        `6. MAXIMUM 2 PHRASES PAR MESSAGE — réponses ultra-courtes.\n` +
+        `7. Varie les formats : QCM (A/B/C/D), vrai/faux, question ouverte courte.\n\n` +
         `Contenu du chapitre : ${chapitre.description}`;
     } else if (mode === "exercice") {
       systemPrompt +=
@@ -228,10 +228,10 @@ export async function POST(req: Request) {
         `INSTRUCTIONS EXERCICE (OBLIGATOIRES) :\n` +
         `1. Donne IMMÉDIATEMENT un exercice concret sur ce chapitre — ne pose pas de questions préliminaires.\n` +
         `2. L'exercice doit être réaliste et du niveau ${chapitre.niveau} (similaire à ce qu'on trouve dans les manuels scolaires).\n` +
-        `3. Attends que l'élève réponde. Guide-le s'il bloque, sans donner la réponse directement.\n` +
-        `4. Corrige et explique quand il a répondu.\n` +
-        `5. Propose ensuite un deuxième exercice légèrement plus difficile.\n` +
-        `6. MAXIMUM 3 PHRASES pour présenter l'exercice.\n\n` +
+        `3. Attends que l'élève réponde. Si l'élève bloque, guide-le par le SENS (ex: "Pense à ce que fait quelqu'un qui n'abandonne jamais") — JAMAIS par des indices phonétiques (INTERDIT: "persévér...ant?", "cou...rageux?").\n` +
+        `4. Corrige en expliquant pourquoi c'est correct ou non. Pas de "Presque !" — dis clairement ce qui est juste.\n` +
+        `5. Propose un deuxième exercice légèrement plus difficile.\n` +
+        `6. MAXIMUM 3 PHRASES par message.\n\n` +
         `Contenu du chapitre : ${chapitre.description}`;
     } else {
       systemPrompt +=
@@ -333,9 +333,13 @@ export async function POST(req: Request) {
   const readable = new ReadableStream({
     async start(controller) {
       try {
+        // Mode quiz/exercice = Haiku (3x plus rapide, réponses courtes)
+        // Mode général = Sonnet (meilleur pour l'explication complexe)
+        const chapMode = (chapitre as any)?.mode;
+        const isQuickMode = chapMode === "quiz" || chapMode === "exercice";
         const stream = getClient().messages.stream({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1024,
+          model: isQuickMode ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6",
+          max_tokens: isQuickMode ? 350 : 1024,
           system: systemPrompt,
           messages: anthropicMessages,
         });
