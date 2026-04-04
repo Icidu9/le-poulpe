@@ -120,7 +120,7 @@ const NAV = [
   { id: "matieres",     label: "Mes matières",   icon: <IconBook />,     path: "/matieres"   },
   { id: "workspace",    label: "Réviser",        icon: <IconChat />,     path: "/"           },
   { id: "planning",     label: "Mon planning",   icon: <IconCalendar />, path: "/planning"   },
-  { id: "progression",  label: "Ma progression", icon: <IconChart />,    path: "/progression"},
+  { id: "progression",  label: "Ce que je travaille", icon: <IconChart />,    path: "/progression"},
 ];
 
 // ── Étapes du tour ────────────────────────────────────────────────────────────
@@ -153,8 +153,8 @@ const TOUR_STEPS: { target: string | null; emoji: string; title: string; message
   {
     target: "progression",
     emoji: "📈",
-    title: "Ma progression",
-    message: "Tes points à renforcer, identifiés dans tes copies, s'accumulent ici, matière par matière. Tu es meilleur(e) que tu le crois — et tu vas le voir. 💪",
+    title: "Ce que je travaille",
+    message: "Les points qu'on a repérés dans tes copies s'affichent ici, matière par matière. C'est ton radar — pas un jugement, juste ce sur quoi on va bosser ensemble. 💪",
   },
 ];
 
@@ -174,9 +174,10 @@ export default function Home() {
   const [matiereActive,  setMatiereActive]  = useState("");
   const [restoredSession, setRestoredSession] = useState(false);
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput]       = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [messages, setMessages]           = useState<Message[]>([]);
+  const [input, setInput]                 = useState("");
+  const [loading, setLoading]             = useState(false);
+  const [isSessionClosed, setIsSessionClosed] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<{ base64: string; mimeType: string; preview: string } | null>(null);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
   const [isRecording,    setIsRecording]    = useState(false);
@@ -321,10 +322,47 @@ export default function Home() {
     setTourStep(null);
   }
 
+  async function endSession() {
+    if (loading || isSessionClosed || messages.length <= 1) return;
+    setLoading(true);
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: messages.map((m) => ({ role: m.role, content: m.content })),
+          failles,
+          sessionId,
+          childName: prenom,
+          emploiDuTemps,
+          closeSession: true,
+        }),
+      });
+      if (!response.ok) throw new Error("Erreur API");
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      setLoading(false);
+      const reader  = response.body!.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const text = decoder.decode(value);
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          return [...prev.slice(0, -1), { ...last, content: last.content + text }];
+        });
+      }
+      setIsSessionClosed(true);
+    } catch {
+      setLoading(false);
+    }
+  }
+
   function newSession() {
     const key = `poulpe_chat_${matiereActive || "general"}`;
     localStorage.removeItem(key);
     setRestoredSession(false);
+    setIsSessionClosed(false);
     const nom = prenom;
     let firstMsg: string;
     if (matiereActive) {
@@ -606,6 +644,18 @@ export default function Home() {
                 <span className="text-[10px] font-normal" style={{ color: C.warmGray }}>· changer</span>
               )}
             </button>
+            {/* Terminer la session */}
+            {messages.length > 1 && !isSessionClosed && (
+              <button
+                onClick={endSession}
+                disabled={loading}
+                className="px-3 py-1.5 rounded-full text-xs font-medium transition-opacity hover:opacity-75 disabled:opacity-40"
+                style={{ background: "#EBF5EE", color: "#2D7A4F", border: "1px solid #B8DFC5" }}
+                title="Terminer la session — le Poulpe résumera ce qu'on a fait"
+              >
+                ✓ Terminer
+              </button>
+            )}
             {/* Nouvelle session — visible dès qu'il y a une conversation */}
             {messages.length > 1 && (
               <button
@@ -716,6 +766,34 @@ export default function Home() {
         <div className="px-6 py-4 border-t flex-shrink-0" style={{ background: C.parchment, borderColor: C.parchmentDark }}>
           <div className="max-w-[680px] mx-auto">
 
+            {/* Carte fin de session */}
+            {isSessionClosed && (
+              <div className="flex flex-col items-center gap-3 py-3">
+                <div className="text-sm font-semibold" style={{ color: "#2D7A4F" }}>
+                  ✅ Session terminée — bien joué !
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={newSession}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                    style={{ background: C.amber }}
+                  >
+                    + Nouvelle session
+                  </button>
+                  <button
+                    onClick={() => router.push("/accueil")}
+                    className="px-4 py-2 rounded-xl text-xs font-medium transition-opacity hover:opacity-75"
+                    style={{ background: C.cream, color: C.warmGray, border: `1px solid ${C.parchmentDark}` }}
+                  >
+                    Retour à l'accueil
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Zone de saisie normale */}
+            {!isSessionClosed && (
+              <>
             {/* Prévisualisation photo */}
             {selectedPhoto && (
               <div className="mb-2 flex items-center gap-2">
@@ -820,6 +898,8 @@ export default function Home() {
             <p className="text-[11px] text-center mt-2" style={{ color: "#B8A898" }}>
               Entrée pour envoyer · Shift+Entrée pour nouvelle ligne · 🎙️ pour parler
             </p>
+              </>
+            )}
           </div>
         </div>
       </div>

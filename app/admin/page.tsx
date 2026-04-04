@@ -41,7 +41,10 @@ export default function AdminPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessions, setSessions] = useState<string[]>([]);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]         = useState(true);
+  const [parentEmail, setParentEmail]  = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailStatus, setEmailStatus]  = useState<"idle" | "ok" | "error">("idle");
 
   // Vérifie si déjà authentifié (sessionStorage — expire à la fermeture du navigateur)
   useEffect(() => {
@@ -87,6 +90,24 @@ export default function AdminPage() {
   }
 
   const sessionMessages = messages.filter((m) => m.session_id === selectedSession);
+
+  async function sendEmailToParent() {
+    if (!selectedSession || !parentEmail.trim() || sendingEmail) return;
+    const childName = sessionMessages[0]?.child_name || "L'enfant";
+    setSendingEmail(true);
+    setEmailStatus("idle");
+    try {
+      const res = await fetch("/api/email-parent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parentEmail: parentEmail.trim(), childName, messages: sessionMessages }),
+      });
+      setEmailStatus(res.ok ? "ok" : "error");
+    } catch {
+      setEmailStatus("error");
+    }
+    setSendingEmail(false);
+  }
 
   function formatTime(ts: string) {
     return new Date(ts).toLocaleString("fr-FR", {
@@ -187,10 +208,40 @@ export default function AdminPage() {
       {/* Contenu session */}
       <div className="flex-1 flex flex-col min-w-0">
         <div className="px-6 py-4 border-b flex-shrink-0" style={{ borderColor: C.parchmentDark, background: C.cream }}>
-          <h1 className="font-semibold text-base" style={{ color: C.charcoal }}>
-            {selectedSession ? sessionLabel(selectedSession) : "Sélectionne une session"}
-          </h1>
-          <p className="text-xs" style={{ color: C.warmGray }}>Lecture seule · Rafraîchissement automatique toutes les 30s</p>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="font-semibold text-base" style={{ color: C.charcoal }}>
+                {selectedSession ? sessionLabel(selectedSession) : "Sélectionne une session"}
+              </h1>
+              <p className="text-xs" style={{ color: C.warmGray }}>Lecture seule · Rafraîchissement automatique toutes les 30s</p>
+            </div>
+            {selectedSession && sessionMessages.length > 0 && (
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <input
+                  type="email"
+                  value={parentEmail}
+                  onChange={(e) => { setParentEmail(e.target.value); setEmailStatus("idle"); }}
+                  placeholder="Email du parent..."
+                  className="rounded-xl px-3 py-2 text-xs border outline-none w-52"
+                  style={{ background: C.parchment, borderColor: C.amberBorder, color: C.charcoal }}
+                />
+                <button
+                  onClick={sendEmailToParent}
+                  disabled={!parentEmail.trim() || sendingEmail}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-40"
+                  style={{ background: "#E8922A", color: "white" }}
+                >
+                  {sendingEmail ? "Envoi..." : "📧 Envoyer"}
+                </button>
+                {emailStatus === "ok" && (
+                  <span className="text-xs font-medium" style={{ color: "#2D7A4F" }}>✓ Envoyé !</span>
+                )}
+                {emailStatus === "error" && (
+                  <span className="text-xs font-medium" style={{ color: "#D94040" }}>Erreur — vérifier RESEND_API_KEY</span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-6" style={{ background: C.cream }}>

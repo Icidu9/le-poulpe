@@ -279,7 +279,7 @@ const MOMENT_JOURNEE = ["Matin", "Après-midi", "Soir", "La nuit 😅", "Ça dé
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-type Phase = "welcome" | "parent" | "transition" | "enfant" | "profil";
+type Phase = "welcome" | "parent" | "transition" | "enfant" | "profil" | "micro";
 
 // ── Page principale ───────────────────────────────────────────────────────────
 
@@ -368,6 +368,55 @@ export default function Onboarding() {
   const [eMomentJournee, setEMomentJournee] = useState<string[]>([]);
   const [eMomentAutre, setEMomentAutre]     = useState("");
 
+  // ── État micro-onboarding ────────────────────────────────────────────────
+
+  const [microStep, setMicroStep]                 = useState(0);
+  const [microPrenom, setMicroPrenom]             = useState("");
+  const [microClasse, setMicroClasse]             = useState("");
+  const [microMatieres, setMicroMatieres]         = useState<string[]>([]);
+  const [microMatieresAutre, setMicroMatieresAutre] = useState("");
+
+  function saveMicroAndFinish() {
+    const profile = {
+      parent: {
+        pClasse: microClasse,
+        pMatieresDiff: microMatieres,
+        pMatieresDiffAutre: microMatieresAutre,
+        pMatieresFort: "",
+        pDiagno: [], pDiagnoAutre: "", pDiagnoInfo: "",
+        pComportement: [], pComportementAutre: "", pPassions: "",
+        pParoleEcole: [], pParoleEcoleAutre: "",
+        pHistoireDuree: [], pHistoireDureeAutre: "",
+        pHistoireEvenement: [], pHistoireEvenementAutre: "",
+        pDevoirsAMaison: [], pDevoirsAMaisonAutre: "",
+        pSoutienPrecedent: [], pSoutienPrecedentAutre: "",
+        pReactionEchec: [], pReactionEchecAutre: "",
+        pAccepteAide: [], pAccepteAideAutre: "",
+        pConfianceCapacites: [], pConfianceCapacitesAutre: "",
+        pMeilleurContexte: "", pEspoir: "",
+      },
+      enfant: {
+        ePrenom: microPrenom, ePassion: "",
+        eCommentApprends: [], eCommentAprendsAutre: "",
+        eQuandComprendPas: [], eQuandComprendPasAutre: "",
+        eStyleApprentissage: [], eStyleAutre: "",
+        eMatinEcole: [], eMatinEcoleAutre: "",
+        eHonteCours: [], eHonteCourAutre: "",
+        eEnerveEcole: [], eEnerveEcoleAutre: "",
+        eNullitePensee: [], eNullitePenseeAutre: "",
+        eFilerte: "", eApprendreReve: "",
+        eSentimentNonCompris: [], eSentimentNonComprisAutre: "",
+        eParleEcole: [], eParleEcoleAutre: "",
+        eConcentration: [], eMomentJournee: [], eMomentAutre: "",
+      },
+    };
+    localStorage.setItem("poulpe_onboarding_done", "true");
+    localStorage.setItem("poulpe_profile", JSON.stringify(profile));
+    localStorage.setItem("poulpe_prenom", microPrenom);
+    localStorage.setItem("poulpe_tour_pending", "true");
+    router.push("/");
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   function toggle(setter: React.Dispatch<React.SetStateAction<string[]>>) {
@@ -452,6 +501,105 @@ export default function Onboarding() {
               💡 Ces réponses permettent au Poulpe de comprendre la <strong>façon de penser</strong> de votre enfant, son histoire avec l'école, et son profil émotionnel. Plus vous êtes précis(e), plus il sera efficace dès la première session.
             </div>
             <Btn label="Commencer — Section parent →" onClick={() => setPhase("parent")} />
+            <div className="flex items-center gap-3 mt-1">
+              <div className="flex-1 h-px" style={{ background: C.parchDark }} />
+              <span className="text-xs" style={{ color: C.warmGray }}>ou</span>
+              <div className="flex-1 h-px" style={{ background: C.parchDark }} />
+            </div>
+            <button
+              onClick={() => setPhase("micro")}
+              className="w-full py-3 rounded-2xl text-sm font-medium border transition-opacity hover:opacity-75"
+              style={{ background: C.cream, color: C.warmGray, border: `1.5px solid ${C.parchDark}` }}
+            >
+              ⚡ Démarrage rapide — 2 minutes
+            </button>
+            <p className="text-xs text-center" style={{ color: C.warmGray }}>
+              Juste le prénom, la classe et les matières — pour commencer tout de suite.
+            </p>
+          </div>
+        )}
+
+        {/* ── MICRO-ONBOARDING ─────────────────────────────────────────────── */}
+        {phase === "micro" && (
+          <div className="space-y-5">
+            <div className="text-center">
+              <Poulpe size={48} />
+              <h1 className="text-xl font-bold mt-3" style={{ color: C.charcoal }}>
+                {microStep === 0 ? "Quelques infos rapides 👋" : "Les matières à travailler 📚"}
+              </h1>
+              <div className="flex justify-center gap-1.5 mt-3">
+                {[0, 1].map((i) => (
+                  <div key={i} className="h-1.5 rounded-full transition-all duration-300"
+                    style={{ width: i === microStep ? "20px" : "6px", background: i === microStep ? C.amber : C.parchDark }} />
+                ))}
+              </div>
+            </div>
+
+            {microStep === 0 && (
+              <Card>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Prénom de l'enfant</Label>
+                    <TextInput value={microPrenom} onChange={setMicroPrenom} placeholder="ex. Arthur" autoFocus />
+                  </div>
+                  <div>
+                    <Label>Sa classe</Label>
+                    <Sub>Clique sur sa classe</Sub>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {CLASSES.map((c) => (
+                        <button key={c} onClick={() => setMicroClasse(c)}
+                          className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+                          style={{
+                            background: microClasse === c ? C.amber : C.cream,
+                            color: microClasse === c ? "white" : C.warmGray,
+                            border: `1.5px solid ${microClasse === c ? C.amber : C.parchDark}`,
+                          }}>
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {microStep === 1 && (
+              <Card>
+                <Label>Matières difficiles</Label>
+                <Sub>Sélectionne autant que nécessaire</Sub>
+                <SelectWithOther
+                  options={MATIERES}
+                  selected={microMatieres}
+                  onToggle={(v) => setMicroMatieres((p) => p.includes(v) ? p.filter((x) => x !== v) : [...p, v])}
+                  other={microMatieresAutre}
+                  onOther={setMicroMatieresAutre}
+                  otherPlaceholder="Autre matière..."
+                />
+              </Card>
+            )}
+
+            <div className="flex gap-3">
+              <button onClick={() => microStep === 0 ? setPhase("welcome") : setMicroStep(0)}
+                className="flex-1 py-3 rounded-2xl text-sm font-medium"
+                style={{ background: C.parchment, color: C.warmGray, border: `1px solid ${C.parchDark}` }}>
+                ← Retour
+              </button>
+              {microStep === 0 ? (
+                <button onClick={() => setMicroStep(1)}
+                  disabled={!microPrenom.trim() || !microClasse}
+                  className="flex-1 py-3 rounded-2xl text-sm font-semibold text-white disabled:opacity-35"
+                  style={{ background: C.amber }}>
+                  Suivant →
+                </button>
+              ) : (
+                <button onClick={saveMicroAndFinish}
+                  disabled={microMatieres.length === 0}
+                  className="flex-1 py-3 rounded-2xl text-sm font-semibold text-white disabled:opacity-35"
+                  style={{ background: C.sage }}>
+                  🐙 C'est parti !
+                </button>
+              )}
+            </div>
           </div>
         )}
 

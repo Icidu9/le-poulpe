@@ -73,7 +73,7 @@ const NAV = [
   { id: "matieres",    label: "Mes matières",   icon: <IconBook />,     path: "/matieres" },
   { id: "workspace",   label: "Réviser",        icon: <IconChat />,     path: "/" },
   { id: "planning",    label: "Mon planning",   icon: <IconCalendar />, path: "/planning" },
-  { id: "progression", label: "Ma progression", icon: <IconChart />,    path: "/progression" },
+  { id: "progression", label: "Ce que je travaille", icon: <IconChart />,    path: "/progression" },
 ];
 
 export default function Sidebar() {

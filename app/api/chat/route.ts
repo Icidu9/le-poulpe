@@ -80,12 +80,13 @@ export async function POST(req: Request) {
     return new Response("Trop de messages. Réessaie dans une heure.", { status: 429 });
   }
 
-  const { messages, failles, sessionId, childName, emploiDuTemps } = (await req.json()) as {
+  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession } = (await req.json()) as {
     messages: IncomingMessage[];
     failles: Record<string, unknown>;
     sessionId?: string;
     childName?: string;
     emploiDuTemps?: Record<string, string[]>;
+    closeSession?: boolean;
   };
 
   const nom = childName || "Arthur";
@@ -139,6 +140,18 @@ export async function POST(req: Request) {
     }
   }
 
+  // Instruction clôture de session
+  if (closeSession) {
+    systemPrompt +=
+      `\n\n---\n\n## INSTRUCTION CLÔTURE DE SESSION\n\n` +
+      `${nom} vient de terminer sa session de travail. Génère un message de fin en 4-5 lignes :\n` +
+      `1. Fais un récapitulatif bref de ce qu'on a travaillé (2-3 points max, bullet points courts)\n` +
+      `2. Encourage ${nom} chaleureusement pour l'effort fourni\n` +
+      `3. Donne-lui un seul conseil ou rappel pour la prochaine fois\n` +
+      `4. Dis au revoir avec ton ton habituel\n` +
+      `Ton positif, concis, motivant. Maximum 6 lignes au total.`;
+  }
+
   // Sauvegarde le dernier message utilisateur dans Supabase
   const lastMessage = messages[messages.length - 1];
   if (lastMessage?.role === "user" && sessionId) {
@@ -151,11 +164,16 @@ export async function POST(req: Request) {
     });
   }
 
+  const anthropicMessages = toAnthropicMessages(messages);
+  if (closeSession) {
+    anthropicMessages.push({ role: "user", content: "C'est tout pour aujourd'hui, résume notre session." });
+  }
+
   const stream = client.messages.stream({
     model: "claude-sonnet-4-6",
     max_tokens: 1024,
     system: systemPrompt,
-    messages: toAnthropicMessages(messages),
+    messages: anthropicMessages,
   });
 
   const encoder = new TextEncoder();
