@@ -2,6 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 
 
 interface Message {
@@ -727,14 +730,27 @@ export default function Home() {
                   {/* Texte si présent */}
                   {msg.content && (
                     <div
-                      className="text-sm leading-relaxed rounded-2xl px-4 py-3"
+                      className="text-sm leading-relaxed rounded-2xl px-4 py-3 prose prose-sm max-w-none"
                       style={
                         msg.role === "user"
                           ? { background: C.amber, color: "white", borderBottomRightRadius: 4 }
                           : { background: C.amberLight, color: C.charcoal, border: `1px solid ${C.amberBorder}`, borderBottomLeftRadius: 4, boxShadow: "0 1px 4px rgba(200,130,60,0.10)" }
                       }
                     >
-                      {msg.content}
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkBreaks]}
+                        components={{
+                          p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                          em: ({ children }) => <em>{children}</em>,
+                          ul: ({ children }) => <ul className="list-disc pl-4 mb-1.5 space-y-0.5">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal pl-4 mb-1.5 space-y-0.5">{children}</ol>,
+                          li: ({ children }) => <li>{children}</li>,
+                          code: ({ children }) => <code className="px-1 py-0.5 rounded text-xs font-mono" style={{ background: "rgba(0,0,0,0.08)" }}>{children}</code>,
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                   )}
                   {/* Chips de démarrage rapide — premier message seulement, avant toute réponse */}
