@@ -11,6 +11,12 @@ type Profile = {
     pDiagnoAutre?: string;
     pDiagnoInfo?: string;
     pComportement?: string[];
+    pComportementAutre?: string;
+    pPassions?: string;
+    pParoleEcole?: string[];
+    pHistoireDuree?: string[];
+    pDevoirsAMaison?: string[];
+    pSoutienPrecedent?: string[];
     pReactionEchec?: string[];
     pAccepteAide?: string[];
     pConfianceCapacites?: string[];
@@ -23,6 +29,10 @@ type Profile = {
     eCommentApprends?: string[];
     eStyleApprentissage?: string[];
     eQuandComprendPas?: string[];
+    eConcentration?: string[];
+    eMomentJournee?: string[];
+    eFilerte?: string;
+    eApprendreReve?: string;
   };
 };
 
@@ -55,10 +65,16 @@ export function buildDynamicProfile(nom: string, profile: Profile | null): strin
   const espoir = p.pEspoir || "";
   const contexte = p.pMeilleurContexte || "";
 
-  const passion = e.ePassion || "";
+  const passion = [e.ePassion, p.pPassions].filter(Boolean).join(" / ") || "";
   const commentApprend = clean(e.eCommentApprends);
   const styleApp = clean(e.eStyleApprentissage);
   const quandComprendPas = clean(e.eQuandComprendPas);
+  const concentration = clean(e.eConcentration);
+  const momentJournee = clean(e.eMomentJournee);
+  const filerte = e.eFilerte || "";
+  const apprendreReve = e.eApprendreReve || "";
+  const devoirsAMaison = clean(p.pDevoirsAMaison);
+  const soutienPrecedent = clean(p.pSoutienPrecedent);
 
   const hasHPI = diagno.some((d) => d.toLowerCase().includes("hpi"));
   const hasTDAH = diagno.some((d) => d.toLowerCase().includes("tdah") || d.toLowerCase().includes("tda"));
@@ -79,10 +95,16 @@ export function buildDynamicProfile(nom: string, profile: Profile | null): strin
   if (matieresFort) s += `- Matière forte : ${matieresFort}\n`;
   if (passion) s += `- Centres d'intérêt : ${passion}\n`;
   if (comportement.length > 0) s += `- Comportement lors des devoirs : ${comportement.join(", ")}\n`;
+  if (devoirsAMaison.length > 0) s += `- Comment se passent les devoirs à la maison : ${devoirsAMaison.join(", ")}\n`;
   if (reactionEchec.length > 0) s += `- Réaction à l'échec : ${reactionEchec.join(", ")}\n`;
   if (accepteAide.length > 0) s += `- Rapport à l'aide : ${accepteAide.join(", ")}\n`;
   if (confiance.length > 0) s += `- Confiance en ses capacités : ${confiance.join(", ")}\n`;
   if (contexte) s += `- Contexte d'apprentissage idéal : ${contexte}\n`;
+  if (soutienPrecedent.length > 0) s += `- Soutien scolaire précédent : ${soutienPrecedent.join(", ")}\n`;
+  if (concentration.length > 0) s += `- Facilité à se concentrer : ${concentration.join(", ")}\n`;
+  if (momentJournee.length > 0) s += `- Meilleur moment de la journée pour travailler : ${momentJournee.join(", ")}\n`;
+  if (filerte) s += `- Ce dont l'élève est fier(e) : ${filerte}\n`;
+  if (apprendreReve) s += `- Ce qu'il/elle aimerait apprendre un jour : ${apprendreReve}\n`;
 
   if (espoir) {
     s += `\n**Ce que le parent espère :**\n${espoir}\n`;

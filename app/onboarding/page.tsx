@@ -519,18 +519,27 @@ export default function Onboarding() {
           <div className="text-center space-y-5">
             <div className="flex justify-center"><Poulpe size={80} /></div>
             <div>
-              <h1 className="text-2xl font-bold" style={{ color: C.charcoal }}>Bienvenue sur Le Poulpe 👋</h1>
+              <h1 className="text-2xl font-bold" style={{ color: C.charcoal }}>Bienvenue sur Le Poulpe</h1>
               <p className="mt-3 text-sm leading-relaxed" style={{ color: C.warmGray }}>
-                2 minutes suffisent pour commencer. On apprend à connaître ton enfant au fil des sessions.
+                Plus vous renseignez le profil de votre enfant, plus le tuteur s'adapte précisément à lui.
+                Un bon profil change tout — prenez 10 minutes.
               </p>
             </div>
-            <Btn label="⚡ Démarrage — 2 minutes" onClick={() => setPhase("micro")} />
+            <div className="rounded-2xl p-4 text-left space-y-2" style={{ background: C.amberLight, border: `1.5px solid ${C.amber}` }}>
+              <p className="text-xs font-semibold" style={{ color: C.terracotta }}>Pourquoi le profil complet ?</p>
+              <ul className="text-xs space-y-1" style={{ color: C.charcoal }}>
+                <li>→ Le Poulpe adapte son rythme, ses explications, ses analogies</li>
+                <li>→ Il sait quand ralentir, quand accélérer, comment débloquer</li>
+                <li>→ Un enfant dyslexique et un enfant HPI n'apprennent pas pareil</li>
+              </ul>
+            </div>
+            <Btn label="Créer le profil de mon enfant →" onClick={() => setPhase("parent")} />
             <button
-              onClick={() => setPhase("parent")}
+              onClick={() => setPhase("micro")}
               className="w-full py-2 rounded-2xl text-xs font-medium transition-opacity hover:opacity-75"
               style={{ color: C.warmGray }}
             >
-              Version complète (profil approfondi) →
+              Démarrage rapide — 2 minutes (profil minimal)
             </button>
           </div>
         )}
