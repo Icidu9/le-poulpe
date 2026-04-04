@@ -415,8 +415,15 @@ export default function Onboarding() {
     localStorage.setItem("poulpe_profile", JSON.stringify(profile));
     localStorage.setItem("poulpe_prenom", microPrenom);
     localStorage.setItem("poulpe_tour_pending", "true");
-    if (microEmailParent.trim()) {
-      localStorage.setItem("poulpe_parent_email", microEmailParent.trim());
+    const emailToSave = microEmailParent.trim() || localStorage.getItem("poulpe_beta_email") || "";
+    if (emailToSave) {
+      localStorage.setItem("poulpe_parent_email", emailToSave);
+      // Sauvegarde le profil dans Supabase pour récupération multi-appareils
+      fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToSave, prenom: microPrenom, profile }),
+      }).catch(() => {});
     }
     router.push("/");
   }
@@ -464,6 +471,14 @@ export default function Onboarding() {
     localStorage.setItem("poulpe_profile", JSON.stringify(profile));
     localStorage.setItem("poulpe_prenom", ePrenom);
     localStorage.setItem("poulpe_tour_pending", "true");
+    const email = localStorage.getItem("poulpe_parent_email") || localStorage.getItem("poulpe_beta_email") || "";
+    if (email) {
+      fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, prenom: ePrenom, profile }),
+      }).catch(() => {});
+    }
     router.push("/");
   }
 

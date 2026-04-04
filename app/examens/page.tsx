@@ -124,6 +124,15 @@ function updateFailles(mat: string, newFailles: Faille[]): FaillesMap {
 
   map[mat].lastUpdated = new Date().toLocaleDateString("fr-FR");
   localStorage.setItem("poulpe_failles", JSON.stringify(map));
+  // Sync vers Supabase
+  const email = localStorage.getItem("poulpe_parent_email") || localStorage.getItem("poulpe_beta_email") || "";
+  if (email) {
+    fetch("/api/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, failles: map }),
+    }).catch(() => {});
+  }
   return map;
 }
 

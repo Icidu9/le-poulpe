@@ -107,10 +107,18 @@ export default function PlanningPage() {
     if (todayNom) setJourActif(todayNom);
   }, [router, todayNom]);
 
-  // Sauvegarde l'EDT à chaque modification
+  // Sauvegarde l'EDT à chaque modification (localStorage + Supabase)
   function saveEdt(newEdt: Record<string, string[]>) {
     setEmploiDuTemps(newEdt);
     localStorage.setItem("poulpe_emploi_du_temps", JSON.stringify(newEdt));
+    const email = localStorage.getItem("poulpe_parent_email") || localStorage.getItem("poulpe_beta_email") || "";
+    if (email) {
+      fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, emploiDuTemps: newEdt }),
+      }).catch(() => {});
+    }
   }
 
   function addCours(cours: string) {

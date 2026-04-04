@@ -221,11 +221,45 @@ export default function Home() {
     const savedEmail = localStorage.getItem("poulpe_parent_email") || localStorage.getItem("poulpe_beta_email") || "";
     if (savedEmail) {
       setParentEmail(savedEmail);
+
       // Charge la mémoire de l'élève depuis Supabase
       fetch(`/api/memory?email=${encodeURIComponent(savedEmail)}`)
         .then((r) => r.json())
         .then((data) => { if (data.memory) setChildMemory(data.memory); })
         .catch(() => {});
+
+      // Si le profil est absent du localStorage (nouvel appareil), le récupère depuis Supabase
+      const hasLocalProfile = !!localStorage.getItem("poulpe_profile");
+      if (!hasLocalProfile) {
+        fetch(`/api/profile?email=${encodeURIComponent(savedEmail)}`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (!data.profile) return;
+            // Restaure le profil dans localStorage et dans l'état
+            localStorage.setItem("poulpe_profile", JSON.stringify(data.profile));
+            localStorage.setItem("poulpe_onboarding_done", "true");
+            if (data.prenom) {
+              localStorage.setItem("poulpe_prenom", data.prenom);
+              setPrenom(data.prenom);
+            }
+            if (data.emploiDuTemps) {
+              localStorage.setItem("poulpe_emploi_du_temps", JSON.stringify(data.emploiDuTemps));
+              setEmploiDuTemps(data.emploiDuTemps);
+            }
+            if (data.failles) {
+              localStorage.setItem("poulpe_failles", JSON.stringify(data.failles));
+              setFailles(data.failles);
+              const total = Object.values(data.failles).reduce((s: number, m: any) => s + (m.failles?.length || 0), 0);
+              setNbFailles(total as number);
+            }
+            if (data.profile?.parent?.pClasse) setClasse(data.profile.parent.pClasse);
+            if (data.profile?.parent?.pMatieresDiff) {
+              setMatieresDiff(data.profile.parent.pMatieresDiff.filter((m: string) => m !== "__autre__"));
+            }
+            setProfile(data.profile);
+          })
+          .catch(() => {});
+      }
     }
     if (profile?.parent?.pMatieresDiff) {
       setMatieresDiff(profile.parent.pMatieresDiff.filter((m: string) => m !== "__autre__"));
