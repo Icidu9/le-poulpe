@@ -68,23 +68,29 @@ function ChapitreContent() {
       return;
     }
 
-    // Génère le cours via l'API
+    // Génère le cours via l'API en streaming (affichage progressif)
+    setLoading(false); // On affiche le contenu dès qu'il arrive
+
     fetch("/api/generate-course", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ matiere, chapitre, description, niveau }),
     })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.content) {
-          localStorage.setItem(cacheKey, data.content);
-          setCourseContent(data.content);
-        } else {
-          setError(true);
+      .then(async (r) => {
+        if (!r.ok || !r.body) { setError(true); return; }
+        const reader = r.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          accumulated += decoder.decode(value);
+          setCourseContent(accumulated);
         }
+        // Met en cache une fois complète
+        if (accumulated) localStorage.setItem(cacheKey, accumulated);
       })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .catch(() => setError(true));
   }, [chapitre, matiere, cacheKey, description, niveau, router]);
 
   function launchMode(mode: "chat" | "quiz" | "exercice") {
@@ -148,13 +154,13 @@ function ChapitreContent() {
             </span>
           </div>
 
-          {loading && <CourseSkeleton />}
+          {!courseContent && !error && <CourseSkeleton />}
           {error && (
             <p className="text-sm" style={{ color: C.warmGray }}>
               Impossible de charger le cours. Vérifie ta connexion et réessaie.
             </p>
           )}
-          {!loading && !error && courseContent && (
+          {!error && courseContent && (
             <div className="prose prose-sm max-w-none" style={{ color: C.charcoal }}>
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkBreaks]}
@@ -197,7 +203,7 @@ function ChapitreContent() {
         </div>
 
         {/* Actions */}
-        {!loading && !error && (
+        {!error && courseContent && (
           <div className="space-y-3">
             <p className="text-xs font-medium" style={{ color: C.warmGray }}>Que veux-tu faire avec ce chapitre ?</p>
 

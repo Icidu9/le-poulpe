@@ -42,16 +42,34 @@ Format EXACT à respecter (markdown) :
 
 Réponds UNIQUEMENT avec le markdown de la fiche, sans commentaire autour.`;
 
-  try {
-    const response = await getClient().messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 800,
-      messages: [{ role: "user", content: prompt }],
-    });
+  const encoder = new TextEncoder();
 
-    const content = response.content[0].type === "text" ? response.content[0].text.trim() : "";
-    return Response.json({ content });
-  } catch (e) {
-    return Response.json({ error: "Erreur génération" }, { status: 500 });
-  }
+  const readable = new ReadableStream({
+    async start(controller) {
+      try {
+        const stream = getClient().messages.stream({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 800,
+          messages: [{ role: "user", content: prompt }],
+        });
+
+        for await (const chunk of stream) {
+          if (
+            chunk.type === "content_block_delta" &&
+            chunk.delta.type === "text_delta"
+          ) {
+            controller.enqueue(encoder.encode(chunk.delta.text));
+          }
+        }
+      } catch {
+        controller.enqueue(encoder.encode("\n\n*Erreur de chargement — réessaie.*"));
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(readable, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
 }
