@@ -137,6 +137,7 @@ const NAV = [
   { id: "accueil",      label: "Accueil",        icon: <IconHome />,     path: "/accueil"    },
   { id: "matieres",     label: "Mes matières",   icon: <IconBook />,     path: "/matieres"   },
   { id: "workspace",    label: "Réviser",        icon: <IconChat />,     path: "/"           },
+  { id: "flashcards",   label: "Flashcards",     icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 4v16"/></svg>, path: "/flashcards" },
   { id: "planning",     label: "Mon planning",   icon: <IconCalendar />, path: "/planning"   },
   { id: "progression",  label: "Ma progression", icon: <IconChart />,    path: "/progression"},
 ];
@@ -208,6 +209,7 @@ export default function Home() {
   const [isRecording,    setIsRecording]    = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [micError, setMicError] = useState(false);
+  const [transcribeError, setTranscribeError] = useState(false);
   const bottomRef        = useRef<HTMLDivElement>(null);
   const textareaRef      = useRef<HTMLTextAreaElement>(null);
   const fileInputRef     = useRef<HTMLInputElement>(null);
@@ -645,7 +647,13 @@ export default function Home() {
     }
 
     audioChunksRef.current = [];
-    const recorder = new MediaRecorder(stream);
+    // Safari utilise audio/mp4, Chrome/Firefox utilisent audio/webm
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+      ? "audio/webm;codecs=opus"
+      : MediaRecorder.isTypeSupported("audio/webm")
+      ? "audio/webm"
+      : "audio/mp4";
+    const recorder = new MediaRecorder(stream, { mimeType });
     mediaRecorderRef.current = recorder;
 
     recorder.ondataavailable = (e) => {
@@ -656,9 +664,10 @@ export default function Home() {
       setIsRecording(false);
       setIsTranscribing(true);
 
-      const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+      const blob = new Blob(audioChunksRef.current, { type: mimeType });
+      const ext = mimeType.includes("mp4") ? "enregistrement.mp4" : "enregistrement.webm";
       const form = new FormData();
-      form.append("audio", blob, "enregistrement.webm");
+      form.append("audio", blob, ext);
 
       try {
         const res = await fetch("/api/transcribe", { method: "POST", body: form });
@@ -670,10 +679,12 @@ export default function Home() {
             return;
           }
         } else {
-          setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Transcription indisponible — la clé GROQ n'est pas configurée sur ce serveur. Tape ton message à la place." }]);
+          setTranscribeError(true);
+          setTimeout(() => setTranscribeError(false), 5000);
         }
       } catch {
-        setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Impossible de transcrire l'audio. Réessaie ou tape ton message." }]);
+        setTranscribeError(true);
+        setTimeout(() => setTranscribeError(false), 5000);
       }
       setIsTranscribing(false);
     };
@@ -1133,6 +1144,14 @@ export default function Home() {
                 style={{ background: "#FDEAEA", border: "1px solid #F0C0C0" }}>
                 <span className="text-xs font-medium" style={{ color: "#C03030" }}>
                   🎙️ Micro bloqué. Clique sur l'icône 🔒 à gauche de l'adresse du site, puis autorise le microphone et recharge la page.
+                </span>
+              </div>
+            )}
+            {transcribeError && (
+              <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl"
+                style={{ background: "#FDEAEA", border: "1px solid #F0C0C0" }}>
+                <span className="text-xs font-medium" style={{ color: "#C03030" }}>
+                  🎙️ Transcription échouée. Réessaie ou tape ton message.
                 </span>
               </div>
             )}
