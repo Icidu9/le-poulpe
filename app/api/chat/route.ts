@@ -161,16 +161,20 @@ export async function POST(req: Request) {
       `Ton positif, concis, motivant. Maximum 6 lignes au total.`;
   }
 
-  // Sauvegarde le dernier message utilisateur dans Supabase
+  // Sauvegarde le dernier message utilisateur dans Supabase (non-bloquant)
   const lastMessage = messages[messages.length - 1];
   if (lastMessage?.role === "user" && sessionId) {
-    await getSupabase().from("messages").insert({
-      session_id: sessionId,
-      role: "user",
-      content: lastMessage.content || "(photo)",
-      image_sent: !!lastMessage.imageBase64,
-      child_name: childName || "Arthur",
-    });
+    void (async () => {
+      try {
+        await getSupabase().from("messages").insert({
+          session_id: sessionId,
+          role: "user",
+          content: lastMessage.content || "(photo)",
+          image_sent: !!lastMessage.imageBase64,
+          child_name: childName || "Arthur",
+        });
+      } catch {}
+    })();
   }
 
   const anthropicMessages = toAnthropicMessages(messages);
@@ -201,15 +205,17 @@ export async function POST(req: Request) {
       }
       controller.close();
 
-      // Sauvegarde la réponse du Poulpe dans Supabase après le stream
+      // Sauvegarde la réponse du Poulpe dans Supabase après le stream (non-bloquant)
       if (sessionId && fullResponse) {
-        await getSupabase().from("messages").insert({
-          session_id: sessionId,
-          role: "assistant",
-          content: fullResponse,
-          image_sent: false,
-          child_name: childName || "Arthur",
-        });
+        try {
+          await getSupabase().from("messages").insert({
+            session_id: sessionId,
+            role: "assistant",
+            content: fullResponse,
+            image_sent: false,
+            child_name: childName || "Arthur",
+          });
+        } catch {}
       }
     },
   });
