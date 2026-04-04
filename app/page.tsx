@@ -195,6 +195,7 @@ export default function Home() {
   const [matiereActive,  setMatiereActive]  = useState("");
   const [chapitreActif, setChapitreActif] = useState<{ matiere: string; chapitre: string; description: string; niveau: string } | null>(null);
   const [restoredSession, setRestoredSession] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
   const [messages, setMessages]           = useState<Message[]>([]);
   const [input, setInput]                 = useState("");
@@ -225,6 +226,8 @@ export default function Home() {
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
     if (!done) { router.replace("/onboarding"); return; }
+
+    setIsDark(localStorage.getItem("poulpe_theme") === "dark");
 
     const p = localStorage.getItem("poulpe_prenom") || "";
     const profileRaw = localStorage.getItem("poulpe_profile");
@@ -415,7 +418,7 @@ export default function Home() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        messages: [],
+        messages: [{ role: "user", content: mode === "quiz" ? "Lance le quiz !" : "Lance l'exercice !" }],
         failles: faillesToSend,
         sessionId,
         childName: prenom,
@@ -771,7 +774,7 @@ export default function Home() {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: C.cream, fontFamily: '"Inter", system-ui, sans-serif', color: C.charcoal }}>
+    <div className="flex h-screen overflow-hidden" style={{ background: isDark ? "#030D18" : C.cream, fontFamily: '"Inter", system-ui, sans-serif', color: isDark ? "rgba(255,255,255,0.92)" : C.charcoal }}>
 
       {/* ── SIDEBAR — z-50 pour passer au-dessus du tour overlay ─────────── */}
       <aside className="relative z-50 flex flex-col w-56 flex-shrink-0"
@@ -863,10 +866,10 @@ export default function Home() {
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0"
-          style={{ background: C.cream, borderColor: C.parchmentDark }}>
+          style={{ background: isDark ? "rgba(6,26,38,0.75)" : C.cream, borderColor: isDark ? "rgba(255,255,255,0.08)" : C.parchmentDark }}>
           <div>
-            <h1 className="font-semibold text-base" style={{ color: C.charcoal }}>Réviser</h1>
-            <p className="text-xs" style={{ color: C.warmGray }}>
+            <h1 className="font-semibold text-base" style={{ color: isDark ? "rgba(255,255,255,0.92)" : C.charcoal }}>Réviser</h1>
+            <p className="text-xs" style={{ color: isDark ? "rgba(255,255,255,0.45)" : C.warmGray }}>
               {restoredSession ? "Session précédente reprise ↩" : "Session avec Le Poulpe"}
             </p>
           </div>
@@ -909,16 +912,16 @@ export default function Home() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-6 py-6" style={{ background: C.cream }}>
+        <div className="flex-1 overflow-y-auto px-6 py-6" style={{ background: isDark ? "#030D18" : C.cream }}>
           <div className="max-w-[680px] mx-auto space-y-4">
             {/* Bannière session restaurée */}
             {restoredSession && (
               <div className="flex items-center gap-3 py-1">
-                <div className="h-px flex-1" style={{ background: C.parchmentDark }} />
-                <span className="text-[11px] whitespace-nowrap" style={{ color: C.warmGray }}>
+                <div className="h-px flex-1" style={{ background: isDark ? "rgba(255,255,255,0.08)" : C.parchmentDark }} />
+                <span className="text-[11px] whitespace-nowrap" style={{ color: isDark ? "rgba(255,255,255,0.45)" : C.warmGray }}>
                   ↩ Conversation précédente reprise
                 </span>
-                <div className="h-px flex-1" style={{ background: C.parchmentDark }} />
+                <div className="h-px flex-1" style={{ background: isDark ? "rgba(255,255,255,0.08)" : C.parchmentDark }} />
               </div>
             )}
             {messages.map((msg, i) => (
@@ -968,6 +971,8 @@ export default function Home() {
                       style={
                         msg.role === "user"
                           ? { background: C.amber, color: "white", borderBottomRightRadius: 4 }
+                          : isDark
+                          ? { background: "rgba(6,26,38,0.85)", color: "rgba(255,255,255,0.92)", border: "1px solid rgba(255,255,255,0.08)", borderBottomLeftRadius: 4, boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }
                           : { background: C.amberLight, color: C.charcoal, border: `1px solid ${C.amberBorder}`, borderBottomLeftRadius: 4, boxShadow: "0 1px 4px rgba(200,130,60,0.10)" }
                       }
                     >
@@ -1018,7 +1023,7 @@ export default function Home() {
             {loading && (
               <div className="flex items-end gap-2.5 justify-start">
                 <div className="flex-shrink-0 mb-1"><Poulpe size={26} /></div>
-                <div className="rounded-2xl px-4 py-3" style={{ background: C.amberLight, border: `1px solid ${C.amberBorder}`, borderBottomLeftRadius: 4 }}>
+                <div className="rounded-2xl px-4 py-3" style={{ background: isDark ? "rgba(6,26,38,0.85)" : C.amberLight, border: isDark ? "1px solid rgba(255,255,255,0.08)" : `1px solid ${C.amberBorder}`, borderBottomLeftRadius: 4 }}>
                   <div className="flex gap-1 items-center h-4">
                     {[0, 150, 300].map((d) => (
                       <span key={d} className="w-2 h-2 rounded-full animate-bounce"
@@ -1033,7 +1038,7 @@ export default function Home() {
         </div>
 
         {/* Saisie */}
-        <div className="px-6 py-4 border-t flex-shrink-0" style={{ background: C.parchment, borderColor: C.parchmentDark }}>
+        <div className="px-6 py-4 border-t flex-shrink-0" style={{ background: isDark ? "rgba(6,26,38,0.75)" : C.parchment, borderColor: isDark ? "rgba(255,255,255,0.08)" : C.parchmentDark }}>
           <div className="max-w-[680px] mx-auto">
 
             {/* Carte fin de session */}
@@ -1072,7 +1077,7 @@ export default function Home() {
                   <button
                     onClick={() => router.push("/accueil")}
                     className="px-4 py-2 rounded-xl text-xs font-medium transition-opacity hover:opacity-75"
-                    style={{ background: C.cream, color: C.warmGray, border: `1px solid ${C.parchmentDark}` }}
+                    style={{ background: isDark ? "rgba(255,255,255,0.06)" : C.cream, color: isDark ? "rgba(255,255,255,0.45)" : C.warmGray, border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : C.parchmentDark}` }}
                   >
                     Retour à l'accueil
                   </button>
@@ -1132,8 +1137,8 @@ export default function Home() {
 
             <div className="flex gap-2 items-end rounded-2xl px-3 py-2.5"
               style={{
-                background: C.cream,
-                border: `1.5px solid ${isRecording ? "#D94040" : selectedPhotos.length > 0 ? C.amber : C.amberBorder}`,
+                background: isDark ? "rgba(3,13,24,0.8)" : C.cream,
+                border: `1.5px solid ${isRecording ? "#D94040" : selectedPhotos.length > 0 ? C.amber : isDark ? "rgba(255,255,255,0.12)" : C.amberBorder}`,
               }}>
               {/* Input file caché */}
               <input
@@ -1168,7 +1173,7 @@ export default function Home() {
               <textarea
                 ref={textareaRef}
                 className="flex-1 resize-none bg-transparent text-sm outline-none"
-                style={{ color: C.charcoal, minHeight: "24px", maxHeight: "120px", lineHeight: "1.5" }}
+                style={{ color: isDark ? "rgba(255,255,255,0.92)" : C.charcoal, minHeight: "24px", maxHeight: "120px", lineHeight: "1.5" }}
                 rows={1}
                 placeholder={
                   isTranscribing
