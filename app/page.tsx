@@ -214,6 +214,7 @@ export default function Home() {
   const textareaRef      = useRef<HTMLTextAreaElement>(null);
   const fileInputRef     = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const isRecordingRef   = useRef(false); // ref synchrone pour éviter le stale closure
   const audioChunksRef   = useRef<Blob[]>([]);
   const micStreamRef     = useRef<MediaStream | null>(null);
 
@@ -632,7 +633,8 @@ export default function Home() {
   const recordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function toggleVoice() {
-    if (isRecording) {
+    // Utilise le ref (synchrone) plutôt que le state React (async) — évite le stale closure
+    if (isRecordingRef.current) {
       if (recordingTimerRef.current) { clearTimeout(recordingTimerRef.current); recordingTimerRef.current = null; }
       mediaRecorderRef.current?.stop();
       speechRecognitionRef.current?.stop();
@@ -668,6 +670,7 @@ export default function Home() {
     };
 
     recorder.onstop = async () => {
+      isRecordingRef.current = false;
       setIsRecording(false);
       setIsTranscribing(true);
 
@@ -701,8 +704,9 @@ export default function Home() {
       setIsTranscribing(false);
     };
 
-    recorder.start(); // pas de timeslice → 1 seul blob complet
+    isRecordingRef.current = true;
     setIsRecording(true);
+    recorder.start(); // pas de timeslice → 1 seul blob complet
     // Arrêt automatique après 60s max — évite l'enregistrement infini
     recordingTimerRef.current = setTimeout(() => {
       if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
