@@ -209,7 +209,7 @@ export default function Home() {
   const [isRecording,    setIsRecording]    = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [micError, setMicError] = useState(false);
-  const [transcribeError, setTranscribeError] = useState(false);
+  const [transcribeErrorMsg, setTranscribeErrorMsg] = useState("");
   const bottomRef        = useRef<HTMLDivElement>(null);
   const textareaRef      = useRef<HTMLTextAreaElement>(null);
   const fileInputRef     = useRef<HTMLInputElement>(null);
@@ -683,13 +683,18 @@ export default function Home() {
 
       try {
         const res = await fetch("/api/transcribe", { method: "POST", body: form });
-        if (res.ok) {
-          const text = await res.text();
-          if (text.trim()) { setIsTranscribing(false); sendMessage(text.trim()); return; }
+        const text = await res.text();
+        if (res.ok && text.trim()) {
+          setIsTranscribing(false);
+          sendMessage(text.trim());
+          return;
         }
-        fallbackWebSpeech();
-      } catch {
-        fallbackWebSpeech();
+        // Affiche l'erreur exacte pour diagnostic
+        setTranscribeErrorMsg(text || `HTTP ${res.status}`);
+        setTimeout(() => setTranscribeErrorMsg(""), 8000);
+      } catch (e: any) {
+        setTranscribeErrorMsg(e?.message || "Erreur réseau");
+        setTimeout(() => setTranscribeErrorMsg(""), 8000);
       }
       setIsTranscribing(false);
     };
@@ -1176,11 +1181,11 @@ export default function Home() {
                 </span>
               </div>
             )}
-            {transcribeError && (
+            {transcribeErrorMsg && (
               <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl"
                 style={{ background: "#FDEAEA", border: "1px solid #F0C0C0" }}>
                 <span className="text-xs font-medium" style={{ color: "#C03030" }}>
-                  🎙️ Transcription échouée. Réessaie ou tape ton message.
+                  🎙️ {transcribeErrorMsg}
                 </span>
               </div>
             )}
