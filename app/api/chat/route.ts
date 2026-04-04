@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
-import { ARTHUR_SYSTEM_PROMPT } from "../../../arthur-system-prompt";
+import { MASTER_SYSTEM_PROMPT } from "../../../master-system-prompt";
 import { injectProfileIntoPrompt } from "../../../build-system-prompt";
 
 function getClient() {
@@ -190,10 +190,8 @@ export async function POST(req: Request) {
 
   const nom = childName || "Arthur";
 
-  // Construit le system prompt : profil dynamique si profile fourni, sinon fallback Arthur
-  let systemPrompt = profile
-    ? injectProfileIntoPrompt(ARTHUR_SYSTEM_PROMPT, nom, profile as any)
-    : ARTHUR_SYSTEM_PROMPT.replaceAll("Arthur", nom);
+  // Construit le system prompt : profil dynamique injecté dans le prompt maître universel
+  let systemPrompt = injectProfileIntoPrompt(MASTER_SYSTEM_PROMPT, nom, profile as any);
   // Injecte la mémoire des sessions précédentes
   if (memory && memory.trim()) {
     systemPrompt +=

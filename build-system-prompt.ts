@@ -156,7 +156,7 @@ export function buildDynamicProfile(nom: string, profile: Profile | null): strin
 // Injecte le profil dynamique dans le system prompt existant
 export function injectProfileIntoPrompt(basePrompt: string, nom: string, profile: Profile | null): string {
   // Trouve et remplace la section "CE QUE TU SAIS SUR ..."
-  const sectionStart = /## CE QUE TU SAIS SUR [A-ZÀÁÂÄÆÃÅÇÉÈÊËÎÏÔÙÚÛÜ]+\n/;
+  const sectionStart = /## CE QUE TU SAIS SUR [^\n]+\n/;
   const sectionEnd = /\n---\n\n## RÈGLES FONDAMENTALES/;
 
   const startMatch = basePrompt.search(sectionStart);
