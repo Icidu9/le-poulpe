@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
-import BrainSVG from "./BrainSVG";
 
 // ── Design System ────────────────────────────────────────────────────────────
 const MAT_COLORS: Record<string, { gradient: string; light: string; text: string; border: string }> = {
@@ -216,11 +215,6 @@ export default function AccueilPage() {
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ fontFamily: '"Inter", system-ui, sans-serif', position: "relative", background: bgColor }}>
-
-      {/* ── Brain background (absolute, z-0) ──────────────────────── */}
-      <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <BrainSVG activeSubjects={workedSubjects} isDark={isDark} />
-      </div>
 
       {/* ── Sidebar ───────────────────────────────────────────────── */}
       <div style={{ position: "relative", zIndex: 50, flexShrink: 0, height: "100%" }}>
