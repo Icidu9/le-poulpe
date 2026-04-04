@@ -207,6 +207,7 @@ export default function Home() {
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
   const [isRecording,    setIsRecording]    = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [micError, setMicError] = useState(false);
   const bottomRef        = useRef<HTMLDivElement>(null);
   const textareaRef      = useRef<HTMLTextAreaElement>(null);
   const fileInputRef     = useRef<HTMLInputElement>(null);
@@ -645,7 +646,8 @@ export default function Home() {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         micStreamRef.current = stream;
       } catch {
-        alert("Accès au microphone refusé. Autorise le micro dans ton navigateur.");
+        setMicError(true);
+        setTimeout(() => setMicError(false), 4000);
         return;
       }
     }
@@ -1131,6 +1133,14 @@ export default function Home() {
                 <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "#E8922A" }} />
                 <span className="text-xs font-medium" style={{ color: "#C05C2A" }}>
                   Transcription en cours...
+                </span>
+              </div>
+            )}
+            {micError && (
+              <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl"
+                style={{ background: "#FDEAEA", border: "1px solid #F0C0C0" }}>
+                <span className="text-xs font-medium" style={{ color: "#C03030" }}>
+                  🎙️ Micro non autorisé. Va dans les réglages de ton navigateur pour l'activer.
                 </span>
               </div>
             )}
