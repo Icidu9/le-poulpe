@@ -30,9 +30,28 @@ export default function BetaPage() {
       const data = await res.json();
       if (data.valid) {
         setCookie(BETA_COOKIE, code.trim().toUpperCase(), 30);
-        // Sauvegarde l'email pour pré-remplir la charte
-        if (email.trim()) {
-          localStorage.setItem("poulpe_beta_email", email.trim().toLowerCase());
+        const emailNorm = email.trim().toLowerCase();
+        if (emailNorm) {
+          localStorage.setItem("poulpe_beta_email", emailNorm);
+
+          // Vérifie si un profil existe déjà dans Supabase pour cet email
+          try {
+            const profileRes = await fetch(`/api/profile?email=${encodeURIComponent(emailNorm)}`);
+            const profileData = await profileRes.json();
+
+            if (profileData.profile) {
+              // Compte existant — restaure tout et saute charte + onboarding
+              localStorage.setItem("poulpe_onboarding_done", "true");
+              localStorage.setItem("poulpe_charte_accepted", "true");
+              localStorage.setItem("poulpe_profile", JSON.stringify(profileData.profile));
+              localStorage.setItem("poulpe_parent_email", emailNorm);
+              if (profileData.prenom) localStorage.setItem("poulpe_prenom", profileData.prenom);
+              if (profileData.emploiDuTemps) localStorage.setItem("poulpe_emploi_du_temps", JSON.stringify(profileData.emploiDuTemps));
+              if (profileData.failles) localStorage.setItem("poulpe_failles", JSON.stringify(profileData.failles));
+              router.replace("/accueil");
+              return;
+            }
+          } catch {}
         }
         router.replace("/charte");
       } else {
