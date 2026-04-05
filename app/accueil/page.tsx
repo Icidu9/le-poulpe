@@ -103,6 +103,16 @@ function QuickCard({ emoji, label, sub, onClick, accent, glass }: {
   );
 }
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+type ProgrammeItem = {
+  matiere: string;
+  concept?: string;
+  description?: string;
+  urgenceLabel: string;
+  urgenceColor: "red" | "orange" | "yellow";
+  priority: number;
+};
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function AccueilPage() {
   const router = useRouter();
@@ -117,8 +127,7 @@ export default function AccueilPage() {
   const [hasSession,   setHasSession]   = useState(false);
   const [workedSubjects, setWorkedSubjects] = useState<string[]>([]);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
-  const [focusFaille, setFocusFaille] = useState<{ concept: string; description: string; matiere: string } | null>(null);
-  const [todayRevisions, setTodayRevisions] = useState<{ matiere: string; label: string; jLabel: string }[]>([]);
+  const [programme, setProgramme] = useState<ProgrammeItem[]>([]);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -192,34 +201,12 @@ export default function AccueilPage() {
       if (chat) { try { const p = JSON.parse(chat); setHasSession(Array.isArray(p) && p.length >= 2); } catch {} }
     }
 
-    // Focus faille prioritaire
+    // ── Programme du jour : algorithme de priorisation ────────────────────
     const fRaw = localStorage.getItem("poulpe_failles");
-    if (fRaw) {
-      try {
-        const failles = JSON.parse(fRaw) as Record<string, { failles: { concept: string; criticite: string; description: string }[] }>;
-        let found: { concept: string; description: string; matiere: string } | null = null;
-        for (const mat of Object.keys(failles)) {
-          const h = failles[mat]?.failles?.find((f) => f.criticite === "haute");
-          if (h) { found = { concept: h.concept, description: h.description, matiere: mat }; break; }
-        }
-        if (!found) {
-          for (const mat of Object.keys(failles)) {
-            const m = failles[mat]?.failles?.[0];
-            if (m) { found = { concept: m.concept, description: m.description, matiere: mat }; break; }
-          }
-        }
-        setFocusFaille(found);
-      } catch {}
-    }
-
-    // Révisions du jour — EDT + méthode J
     const edtRaw = localStorage.getItem("poulpe_emploi_du_temps");
     const examensRaw = localStorage.getItem("poulpe_examens");
-    const JOURS_MAP: Record<number, string> = { 0: "Dimanche", 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi" };
-    const todayKey = JOURS_MAP[new Date().getDay()] || "";
-    const todayEdt: string[] = edtRaw ? (() => { try { return JSON.parse(edtRaw)[todayKey] || []; } catch { return []; } })() : [];
 
-    // Parse examens to get last date per subject
+    // Dernière date de copie par matière (pour méthode J)
     const lastExamDate: Record<string, Date> = {};
     if (examensRaw) {
       try {
@@ -234,35 +221,62 @@ export default function AccueilPage() {
       } catch {}
     }
 
-    function jLabel(mat: string): string {
+    // EDT du jour
+    const JOURS_MAP: Record<number, string> = { 0: "Dimanche", 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi" };
+    const todayKey = JOURS_MAP[new Date().getDay()] || "";
+    const todayEdt: string[] = edtRaw ? (() => { try { return JSON.parse(edtRaw)[todayKey] || []; } catch { return []; } })() : [];
+
+    // Calcule la fenêtre J pour une matière
+    function getJInfo(mat: string): { label: string; priority: number; color: "red" | "orange" | "yellow" } | null {
       const last = lastExamDate[mat];
-      if (!last) return "Commencer";
+      if (!last) return null;
       const days = Math.floor((Date.now() - last.getTime()) / 86400000);
-      if (days === 0) return "J — Apprendre";
-      if (days === 1) return "J+1 — Revoir";
-      if (days <= 4) return "J+3 — Consolider";
-      if (days <= 10) return "J+7 — Vérifier";
-      return "J+15 — Long terme";
+      if (days === 1)  return { label: "J+1 · À revoir maintenant", priority: 1, color: "red" };
+      if (days <= 4)   return { label: "J+3 · Consolider", priority: 2, color: "orange" };
+      if (days <= 10)  return { label: "J+7 · Vérifier", priority: 5, color: "orange" };
+      if (days <= 20)  return { label: "J+15 · Long terme", priority: 8, color: "yellow" };
+      return null;
     }
 
-    // Build today revisions: EDT subjects first, then faille subjects
-    const revs: { matiere: string; label: string; jLabel: string }[] = [];
-    for (const mat of todayEdt) {
-      revs.push({ matiere: mat, label: "Cours d'aujourd'hui", jLabel: jLabel(mat) });
-    }
-    // Add faille subjects not already in EDT
+    const candidates: ProgrammeItem[] = [];
+    const addedMatieres = new Set<string>();
+
+    // 1. Failles — priorisées par J puis criticité
     if (fRaw) {
       try {
-        const failles = JSON.parse(fRaw) as Record<string, { failles: { concept: string; criticite: string }[] }>;
+        const failles = JSON.parse(fRaw) as Record<string, { failles: { concept: string; criticite: string; description: string }[] }>;
         for (const mat of Object.keys(failles)) {
-          if (!revs.find((r) => r.matiere.toLowerCase().includes(mat.toLowerCase()) || mat.toLowerCase().includes(r.matiere.toLowerCase()))) {
-            const hasFaille = failles[mat]?.failles?.length > 0;
-            if (hasFaille) revs.push({ matiere: mat, label: "Point à travailler", jLabel: jLabel(mat) });
+          const mFailles = failles[mat]?.failles || [];
+          if (mFailles.length === 0) continue;
+          const topHaute = mFailles.find(f => f.criticite === "haute");
+          const top = topHaute || mFailles[0];
+          const jInfo = getJInfo(mat);
+          if (jInfo) {
+            candidates.push({ matiere: mat, concept: top.concept, description: top.description, urgenceLabel: jInfo.label, urgenceColor: jInfo.color, priority: jInfo.priority });
+          } else if (top.criticite === "haute") {
+            candidates.push({ matiere: mat, concept: top.concept, description: top.description, urgenceLabel: "Priorité haute", urgenceColor: "orange", priority: 3 });
+          } else if (top.criticite === "moyenne") {
+            candidates.push({ matiere: mat, concept: top.concept, description: top.description, urgenceLabel: "À travailler", urgenceColor: "yellow", priority: 6 });
+          } else {
+            candidates.push({ matiere: mat, concept: top.concept, description: top.description, urgenceLabel: "À travailler", urgenceColor: "yellow", priority: 9 });
           }
+          addedMatieres.add(mat.toLowerCase());
         }
       } catch {}
     }
-    setTodayRevisions(revs.slice(0, 4));
+
+    // 2. EDT du jour — matières pas encore dans la liste
+    for (const mat of todayEdt) {
+      const norm = mat.toLowerCase();
+      const alreadyIn = [...addedMatieres].some(m => m.includes(norm.split(" ")[0]) || norm.includes(m.split(" ")[0]));
+      if (!alreadyIn) {
+        const jInfo = getJInfo(mat);
+        candidates.push({ matiere: mat, urgenceLabel: jInfo ? jInfo.label : "Cours aujourd'hui", urgenceColor: jInfo ? jInfo.color : "yellow", priority: jInfo ? jInfo.priority : 8 });
+      }
+    }
+
+    candidates.sort((a, b) => a.priority - b.priority);
+    setProgramme(candidates.slice(0, 3));
   }, [router]);
 
   const toggleTheme = () => {
@@ -420,84 +434,107 @@ export default function AccueilPage() {
             ))}
           </div>
 
-          {/* ── Focus du moment ─────────────────────────────────────── */}
-          {focusFaille && (
-            <button
-              onClick={() => {
-                localStorage.setItem("poulpe_matiere_active", focusFaille.matiere);
-                router.push("/");
-              }}
-              className="w-full text-left rounded-3xl px-6 py-5 transition-all hover:scale-[1.01] active:scale-[0.99]"
-              style={{
-                background: isDark ? "rgba(6,26,38,0.75)" : "#FFFFFF",
-                border: "1.5px solid rgba(232,146,42,0.45)",
-                boxShadow: isDark ? "0 0 30px rgba(232,146,42,0.12), inset 0 0 40px rgba(232,146,42,0.04)" : "0 4px 20px rgba(232,146,42,0.15)",
-              }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-base">🎯</span>
-                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>Focus du moment</span>
-              </div>
-              <p className="font-bold text-base leading-snug mb-2" style={{ color: textMain }}>{focusFaille.concept}</p>
-              <p className="text-xs leading-relaxed mb-3" style={{ color: textSub }}>{focusFaille.description}</p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium" style={{ color: "#E8922A" }}>{getMatEmoji(focusFaille.matiere)} {focusFaille.matiere}</span>
-                <span
-                  className="text-xs font-bold px-4 py-2 rounded-xl text-white"
-                  style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
-                >
-                  On travaille ça →
-                </span>
-              </div>
-            </button>
-          )}
+          {/* ── Programme du jour ───────────────────────────────────── */}
+          {programme.length > 0 && (() => {
+            const first = programme[0];
+            const rest = programme.slice(1);
+            const urgBg = (c: string) => c === "red" ? "rgba(239,68,68,0.15)" : c === "orange" ? "rgba(232,146,42,0.15)" : "rgba(234,179,8,0.12)";
+            const urgText = (c: string) => c === "red" ? "#DC2626" : c === "orange" ? "#C05C2A" : "#A16207";
+            return (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-bold" style={{ color: textMain }}>📅 Programme du jour</h2>
+                  <button className="text-xs font-semibold" style={{ color: "#E8922A" }} onClick={() => router.push("/planning")}>
+                    Mon planning →
+                  </button>
+                </div>
 
-          {/* ── Révisions du jour ───────────────────────────────────── */}
-          {todayRevisions.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold" style={{ color: textMain }}>Révisions du jour</h2>
-                <button className="text-xs font-semibold" style={{ color: "#E8922A" }} onClick={() => router.push("/planning")}>
-                  Mon planning →
-                </button>
-              </div>
-              <div className="space-y-2">
-                {todayRevisions.map((rev) => {
-                  const matStyle = getMatStyle(rev.matiere);
-                  const emoji = getMatEmoji(rev.matiere);
-                  return (
-                    <button
-                      key={rev.matiere}
-                      onClick={() => {
-                        localStorage.setItem("poulpe_matiere_active", rev.matiere);
-                        localStorage.removeItem("poulpe_chapitre_actif");
-                        router.push("/");
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
-                      style={glass}
+                {/* Priorité #1 — grande carte */}
+                <button
+                  onClick={() => {
+                    localStorage.setItem("poulpe_matiere_active", first.matiere);
+                    localStorage.removeItem("poulpe_chapitre_actif");
+                    router.push("/");
+                  }}
+                  className="w-full text-left rounded-3xl px-6 py-5 mb-3 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                  style={{
+                    background: isDark ? "rgba(6,26,38,0.75)" : "#FFFFFF",
+                    border: `1.5px solid ${first.urgenceColor === "red" ? "rgba(239,68,68,0.5)" : "rgba(232,146,42,0.45)"}`,
+                    boxShadow: first.urgenceColor === "red"
+                      ? (isDark ? "0 0 30px rgba(239,68,68,0.12)" : "0 4px 20px rgba(239,68,68,0.12)")
+                      : (isDark ? "0 0 30px rgba(232,146,42,0.12)" : "0 4px 20px rgba(232,146,42,0.12)"),
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span
+                      className="text-[10px] font-bold px-2.5 py-1 rounded-lg"
+                      style={{ background: urgBg(first.urgenceColor), color: urgText(first.urgenceColor) }}
                     >
-                      <span
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                        style={{ background: matStyle.gradient }}
-                      >
-                        {emoji}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm" style={{ color: textMain }}>{rev.matiere}</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: textSub }}>{rev.label}</p>
-                      </div>
-                      <span
-                        className="text-[10px] font-bold px-2 py-1 rounded-lg flex-shrink-0"
-                        style={{ background: isDark ? "rgba(232,146,42,0.15)" : "#FFF3E0", color: "#C05C2A" }}
-                      >
-                        {rev.jLabel}
-                      </span>
-                    </button>
-                  );
-                })}
+                      {first.urgenceLabel}
+                    </span>
+                    <span className="text-xs font-medium" style={{ color: textSub }}>{getMatEmoji(first.matiere)} {first.matiere}</span>
+                  </div>
+                  {first.concept && (
+                    <p className="font-bold text-base leading-snug mb-1.5" style={{ color: textMain }}>{first.concept}</p>
+                  )}
+                  {first.description && (
+                    <p className="text-xs leading-relaxed mb-3" style={{ color: textSub }}>{first.description}</p>
+                  )}
+                  <div className="flex justify-end">
+                    <span
+                      className="text-xs font-bold px-4 py-2 rounded-xl text-white"
+                      style={{ background: first.urgenceColor === "red" ? "linear-gradient(135deg, #EF4444, #DC2626)" : "linear-gradient(135deg, #E8922A, #C05C2A)" }}
+                    >
+                      Commencer →
+                    </span>
+                  </div>
+                </button>
+
+                {/* Ensuite — items 2 et 3 */}
+                {rest.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide px-1 mb-1" style={{ color: textSub }}>Ensuite</p>
+                    {rest.map((item) => {
+                      const matStyle = getMatStyle(item.matiere);
+                      return (
+                        <button
+                          key={item.matiere + (item.concept || "")}
+                          onClick={() => {
+                            localStorage.setItem("poulpe_matiere_active", item.matiere);
+                            localStorage.removeItem("poulpe_chapitre_actif");
+                            router.push("/");
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
+                          style={glass}
+                        >
+                          <span
+                            className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                            style={{ background: matStyle.gradient }}
+                          >
+                            {getMatEmoji(item.matiere)}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm" style={{ color: textMain }}>
+                              {item.concept ? item.concept : item.matiere}
+                            </p>
+                            {item.concept && (
+                              <p className="text-[11px] mt-0.5 truncate" style={{ color: textSub }}>{item.matiere}</p>
+                            )}
+                          </div>
+                          <span
+                            className="text-[10px] font-bold px-2 py-1 rounded-lg flex-shrink-0"
+                            style={{ background: urgBg(item.urgenceColor), color: urgText(item.urgenceColor) }}
+                          >
+                            {item.urgenceLabel}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ── Point fort ──────────────────────────────────────────── */}
           {matieresFort && (
