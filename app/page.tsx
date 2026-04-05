@@ -646,6 +646,7 @@ export default function Home() {
   // L'audio est traité par le navigateur (Chrome/Safari), jamais envoyé à Le Poulpe.
 
   const speechRecognitionRef = useRef<any>(null);
+  const [micReady, setMicReady] = useState(false); // true = micro chaud, parle maintenant
 
   function toggleVoice() {
     // Si enregistrement en cours → arrêter
@@ -663,6 +664,12 @@ export default function Home() {
       return;
     }
 
+    // Démarre l'enregistrement immédiatement mais attend 400ms avant de signaler
+    // que le micro est prêt — évite de couper le début de la phrase
+    isRecordingRef.current = true;
+    setIsRecording(true);
+    setMicReady(false);
+
     const recognition = new SpeechRecognition();
     speechRecognitionRef.current = recognition;
     recognition.lang = "fr-FR";
@@ -672,7 +679,6 @@ export default function Home() {
     recognition.onresult = (event: any) => {
       const transcript = event.results[0]?.[0]?.transcript || "";
       if (transcript.trim()) {
-        // Met dans le champ texte — l'enfant peut vérifier avant d'envoyer
         setInput(transcript.trim());
       }
     };
@@ -681,22 +687,23 @@ export default function Home() {
       speechRecognitionRef.current = null;
       isRecordingRef.current = false;
       setIsRecording(false);
+      setMicReady(false);
     };
 
     recognition.onerror = (event: any) => {
       speechRecognitionRef.current = null;
       isRecordingRef.current = false;
       setIsRecording(false);
-      // "no-speech" = l'enfant n'a rien dit, pas une vraie erreur
+      setMicReady(false);
       if (event.error !== "no-speech") {
         setMicError(true);
         setTimeout(() => setMicError(false), 4000);
       }
     };
 
-    isRecordingRef.current = true;
-    setIsRecording(true);
     recognition.start();
+    // Après 400ms le micro est chaud — on signale à l'enfant qu'il peut parler
+    setTimeout(() => setMicReady(true), 400);
   }
 
   // ── Chat ──────────────────────────────────────────────────────────────────
@@ -1144,10 +1151,10 @@ export default function Home() {
             {/* Indicateur vocal */}
             {isRecording && (
               <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl"
-                style={{ background: "#FDEAEA", border: "1px solid #F0C0C0" }}>
-                <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "#D94040" }} />
-                <span className="text-xs font-medium" style={{ color: "#C03030" }}>
-                  J'écoute... Appuie à nouveau sur le micro pour terminer.
+                style={{ background: micReady ? "#FDEAEA" : "#FFF8E0", border: micReady ? "1px solid #F0C0C0" : "1px solid #F0D888" }}>
+                <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: micReady ? "#D94040" : "#E8A020" }} />
+                <span className="text-xs font-medium" style={{ color: micReady ? "#C03030" : "#A06010" }}>
+                  {micReady ? "🎙️ Parle maintenant — appuie à nouveau pour terminer." : "⏳ Micro en cours de démarrage…"}
                 </span>
               </div>
             )}
