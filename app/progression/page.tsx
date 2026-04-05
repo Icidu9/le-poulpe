@@ -151,6 +151,7 @@ export default function ProgressionPage() {
   const [streak, setStreak] = useState(0);
   const [sessionCount, setSessionCount] = useState(0);
   const [mastery, setMastery] = useState<MasteryData>({});
+  const [showMemTip, setShowMemTip] = useState(false);
 
   useEffect(() => {
     const onb = localStorage.getItem("poulpe_onboarding_done");
@@ -281,24 +282,51 @@ export default function ProgressionPage() {
           </div>
 
           {/* Métriques */}
-          {(() => {
-            const stats = [
-              { value: sessionCount,    label: "sessions" },
-              { value: matieresSuivies, label: `matière${matieresSuivies > 1 ? "s" : ""}` },
-              { value: longTermCount,   label: "mémoire longue", green: longTermCount > 0 },
-            ];
-            return (
-              <div className="rounded-2xl flex overflow-hidden" style={{ background: card, border: `1px solid ${brd}` }}>
-                {stats.map(({ value, label, green }, i) => (
-                  <div key={label} className="flex-1 py-4 text-center"
-                    style={{ borderRight: i < stats.length - 1 ? `1px solid ${brd}` : "none" }}>
-                    <div className="text-2xl font-bold leading-none" style={{ color: green ? "#10B981" : tx }}>{value}</div>
-                    <div className="text-[10px] mt-1.5 leading-tight" style={{ color: txSub }}>{label}</div>
-                  </div>
-                ))}
+          <div className="rounded-2xl flex overflow-hidden" style={{ background: card, border: `1px solid ${brd}` }}>
+            {/* Matières */}
+            <div className="flex-1 py-4 text-center" style={{ borderRight: `1px solid ${brd}` }}>
+              <div className="text-2xl font-bold leading-none" style={{ color: tx }}>{matieresSuivies}</div>
+              <div className="text-[10px] mt-1.5 leading-tight" style={{ color: txSub }}>
+                {`matière${matieresSuivies > 1 ? "s" : ""}`}
               </div>
-            );
-          })()}
+            </div>
+            {/* Mémoire longue + tooltip */}
+            <div className="flex-1 py-4 text-center">
+              <div className="text-2xl font-bold leading-none" style={{ color: longTermCount > 0 ? "#10B981" : tx }}>
+                {longTermCount}
+              </div>
+              <div className="flex items-center justify-center gap-1 mt-1.5 relative">
+                <span className="text-[10px] leading-tight" style={{ color: txSub }}>mémoire longue</span>
+                <span
+                  onMouseEnter={() => setShowMemTip(true)}
+                  onMouseLeave={() => setShowMemTip(false)}
+                  style={{ fontSize: 10, color: txSub, opacity: 0.55, cursor: "default", lineHeight: 1 }}
+                >ⓘ</span>
+                {showMemTip && (
+                  <div style={{
+                    position: "absolute",
+                    bottom: "calc(100% + 8px)",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    background: isDark ? "#0D2030" : "#fff",
+                    border: `1px solid ${brd}`,
+                    borderRadius: 12,
+                    padding: "10px 14px",
+                    width: 230,
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+                    zIndex: 50,
+                    textAlign: "left",
+                    pointerEvents: "none",
+                  }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: "#10B981", marginBottom: 4 }}>Mémoire longue</p>
+                    <p style={{ fontSize: 11, lineHeight: 1.55, color: txSub }}>
+                      Un concept est en mémoire longue quand tu l&apos;as réussi à J1, J4, J10, J21... Il restera accessible même avant un contrôle dans 1 mois, sans avoir à le réviser en urgence.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Point fort */}
           {matieresFort && (
@@ -348,15 +376,9 @@ export default function ProgressionPage() {
           {/* Concepts du jour — Le Poulpe évalue, pas l'élève */}
           {hasFailles && !allClear && matiereActives.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 px-1">
-                <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: txSub }}>
-                  Pour aujourd&apos;hui
-                </p>
-                <span className="text-[10px] px-2 py-0.5 rounded-full"
-                  style={{ background: isDark ? "rgba(255,128,0,0.12)" : "#FFF3E0", color: "#FF8000" }}>
-                  Le Poulpe évalue
-                </span>
-              </div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest px-1" style={{ color: txSub }}>
+                Pour aujourd&apos;hui
+              </p>
 
               {matiereActives.map(mat => {
                 const active = getActiveConcept(mat)!;
