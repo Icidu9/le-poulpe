@@ -311,125 +311,94 @@ export default function AccueilPage() {
 
       {/* ── Main ── */}
       <div className="flex-1 overflow-y-auto" style={{ position: "relative", zIndex: 10, opacity: navigating ? 0 : 1, transition: "opacity 180ms ease" }}>
-        <div className="max-w-lg mx-auto px-6 py-7 space-y-5">
+        <div className="max-w-lg mx-auto px-6 py-9 space-y-9">
 
-          {/* ── Header ── */}
-          <div className="flex items-center justify-between gap-3">
+          {/* ── Greeting ── */}
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-medium" style={{ color: textSub }}>{dateCap}</p>
-              <h1 className="text-2xl font-bold mt-0.5 tracking-tight" style={{ color: textMain }}>
-                {greeting}, {prenom} 👋
+              <p className="text-[11px] font-medium uppercase tracking-widest mb-3" style={{ color: textSub }}>
+                {dateCap}
+              </p>
+              <h1 className="text-[2.2rem] font-bold tracking-tight leading-none" style={{ color: textMain }}>
+                {greeting},
               </h1>
+              <h1 className="text-[2.2rem] font-bold tracking-tight leading-tight" style={{ color: textMain }}>
+                {prenom}
+              </h1>
+              {streak > 0 && (
+                <div className="flex items-center gap-1.5 mt-3">
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: streakColor }} />
+                  <span className="text-xs font-medium" style={{ color: streakColor }}>
+                    {streak} jour{streak > 1 ? "s" : ""} de suite
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <div
-                className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl flex-shrink-0"
-                style={{ ...glass, border: streak >= 3 ? "1.5px solid rgba(249,115,22,0.3)" : (glass.border as string) }}
-              >
-                <span className="text-lg">{streakEmoji}</span>
-                <p className="text-sm font-bold leading-none" style={{ color: streakColor }}>{streak}</p>
-                <p className="text-[9px] font-medium" style={{ color: textSub }}>jours</p>
-              </div>
-              <button
-                onClick={toggleTheme}
-                className="w-9 h-9 rounded-2xl flex items-center justify-center text-base transition-all hover:scale-110 active:scale-95 flex-shrink-0"
-                style={glass}
-              >
-                {isDark ? "🌙" : "☀️"}
-              </button>
-            </div>
+            <button
+              onClick={toggleTheme}
+              className="w-9 h-9 rounded-2xl flex items-center justify-center text-base mt-1 flex-shrink-0 transition-all hover:scale-105"
+              style={glass}
+            >
+              {isDark ? "🌙" : "☀️"}
+            </button>
           </div>
 
-          {/* ── XP bar ── */}
-          <button
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all hover:scale-[1.01] text-left"
-            style={glass}
-            onClick={() => router.push("/cerveau")}
-          >
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)", color: "white" }}
-            >
-              {level}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-semibold" style={{ color: textMain }}>Niveau {level}</p>
-                <p className="text-[10px]" style={{ color: textSub }}>{xp} XP</p>
-              </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}>
-                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #E8922A, #F5A552)" }} />
-              </div>
-            </div>
-            <p className="text-[10px] flex-shrink-0" style={{ color: "rgba(232,146,42,0.8)" }}>🧠</p>
-          </button>
-
-          {/* ══════════════════════════════════════════════════════════════
-              SECTION 1 — COURS D'AUJOURD'HUI
-          ══════════════════════════════════════════════════════════════ */}
+          {/* ── Cours du jour ── */}
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold" style={{ color: textMain }}>📚 Cours d'aujourd'hui</h2>
-              <button className="text-xs font-semibold" style={{ color: "#E8922A" }} onClick={() => router.push("/planning")}>
-                Mon planning →
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: textSub }}>
+                Cours du jour
+              </p>
+              <button
+                className="text-[11px] font-medium"
+                style={{ color: "#E8922A" }}
+                onClick={() => router.push("/planning")}
+              >
+                Planning →
               </button>
             </div>
 
             {coursJour.length === 0 ? (
-              <div
-                className="flex items-center gap-3 px-4 py-4 rounded-2xl"
-                style={glass}
-              >
-                <span className="text-2xl">🎉</span>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: textMain }}>Pas de cours aujourd'hui</p>
-                  <p className="text-xs mt-0.5" style={{ color: textSub }}>Profite pour avancer sur tes révisions</p>
-                </div>
+              <div className="px-5 py-5 rounded-2xl" style={glass}>
+                <p className="text-sm font-semibold" style={{ color: textMain }}>Pas de cours planifié</p>
+                <p className="text-xs mt-1" style={{ color: textSub }}>Profite pour avancer sur tes révisions</p>
               </div>
             ) : (
-              <div
-                className="rounded-2xl overflow-hidden"
-                style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}
-              >
-                {coursJour.map((mat, i) => {
+              <div className="space-y-2">
+                {coursJour.map((mat) => {
                   const fait = coursVus.some(v => v.toLowerCase() === mat.toLowerCase());
                   const matStyle = getMatStyle(mat);
                   const emoji = getMatEmoji(mat);
-                  const isLast = i === coursJour.length - 1;
                   return (
                     <button
                       key={mat}
                       onClick={() => toggleCoursVu(mat)}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:opacity-90"
+                      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-all hover:opacity-80"
                       style={{
-                        background: fait
-                          ? (isDark ? "rgba(16,185,129,0.06)" : "rgba(16,185,129,0.04)")
-                          : (isDark ? "rgba(6,26,38,0.6)" : "rgba(255,255,255,0.8)"),
-                        borderBottom: isLast ? "none" : `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}`,
+                        background: isDark ? "rgba(6,26,38,0.55)" : "rgba(255,255,255,0.72)",
+                        border: `1px solid ${fait
+                          ? "rgba(16,185,129,0.18)"
+                          : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"
+                        }`,
+                        opacity: fait ? 0.6 : 1,
                       }}
                     >
                       <span
                         className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
-                        style={{ background: fait ? "rgba(16,185,129,0.2)" : matStyle.gradient }}
+                        style={{ background: fait ? "rgba(16,185,129,0.18)" : matStyle.gradient }}
                       >
                         {fait ? "✓" : emoji}
                       </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm" style={{ color: fait ? "#10B981" : textMain }}>{mat}</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: fait ? "#10B981" : textSub }}>
-                          {fait ? "Fait aujourd'hui · Appuie pour décocher" : "Cours du jour · Revoir avec le Poulpe"}
-                        </p>
-                      </div>
+                      <p className="flex-1 font-semibold text-sm" style={{ color: fait ? "#10B981" : textMain }}>
+                        {mat}
+                      </p>
                       {!fait && (
                         <span
-                          className="text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 text-white"
+                          className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0"
                           style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
                         >
                           Commencer →
                         </span>
-                      )}
-                      {fait && (
-                        <span className="text-lg flex-shrink-0">✅</span>
                       )}
                     </button>
                   );
@@ -438,19 +407,13 @@ export default function AccueilPage() {
             )}
           </div>
 
-          {/* ══════════════════════════════════════════════════════════════
-              SECTION 2 — À RÉVISER MAINTENANT
-          ══════════════════════════════════════════════════════════════ */}
+          {/* ── À réviser ── */}
           {revisions.length > 0 && (
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold" style={{ color: textMain }}>🔁 À réviser aujourd'hui</h2>
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: urgBg("orange"), color: urgText("orange") }}>
-                  {revisions.length} point{revisions.length > 1 ? "s" : ""}
-                </span>
-              </div>
-
-              <div className="space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: textSub }}>
+                À réviser
+              </p>
+              <div className="space-y-2">
                 {revisions.map((rev) => (
                   <button
                     key={rev.matiere + rev.concept}
@@ -464,36 +427,26 @@ export default function AccueilPage() {
                         matiere: rev.matiere,
                       }));
                     })}
-                    className="w-full text-left rounded-2xl px-5 py-4 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                    className="w-full text-left flex items-center gap-4 px-4 py-4 rounded-2xl transition-all hover:scale-[1.005] active:scale-[0.99]"
                     style={{
-                      background: isDark ? "rgba(6,26,38,0.7)" : "#FFFFFF",
-                      border: `1.5px solid ${urgBorder(rev.urgenceColor)}`,
-                      boxShadow: isDark ? "0 0 20px rgba(232,146,42,0.08)" : "0 2px 16px rgba(232,146,42,0.06)",
+                      background: isDark ? "rgba(6,26,38,0.55)" : "rgba(255,255,255,0.72)",
+                      border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}`,
                     }}
                   >
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <span
-                        className="text-[10px] font-bold px-2 py-1 rounded-md leading-none flex-shrink-0"
-                        style={{ background: urgBg(rev.urgenceColor), color: urgText(rev.urgenceColor) }}
-                      >
-                        {rev.urgenceLabel}
-                      </span>
-                      <span className="text-xs font-medium flex-shrink-0" style={{ color: textSub }}>
-                        {getMatEmoji(rev.matiere)} {rev.matiere}
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: textSub }}>
+                        {rev.matiere}
+                      </p>
+                      <p className="font-semibold text-sm leading-snug truncate" style={{ color: textMain }}>
+                        {rev.concept}
+                      </p>
                     </div>
-                    <p className="font-bold text-sm leading-snug mb-1" style={{ color: textMain }}>{rev.concept}</p>
-                    {rev.description && (
-                      <p className="text-xs leading-relaxed mb-3 line-clamp-2" style={{ color: textSub }}>{rev.description}</p>
-                    )}
-                    <div className="flex justify-end">
-                      <span
-                        className="text-xs font-bold px-3 py-1.5 rounded-lg text-white"
-                        style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
-                      >
-                        Réviser →
-                      </span>
-                    </div>
+                    <span
+                      className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0"
+                      style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
+                    >
+                      Réviser →
+                    </span>
                   </button>
                 ))}
               </div>
@@ -504,26 +457,20 @@ export default function AccueilPage() {
           {matieresFort && (
             <div
               className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
-              style={{ ...glass, border: "1px solid rgba(16,185,129,0.3)" }}
+              style={{
+                background: isDark ? "rgba(16,185,129,0.06)" : "#F0FDF4",
+                border: "1px solid rgba(16,185,129,0.18)",
+              }}
             >
-              <span className="text-xl">⭐</span>
-              <p className="text-xs font-medium" style={{ color: isDark ? "rgba(255,255,255,0.8)" : "#065F46" }}>
-                Point fort : <strong>{matieresFort}</strong>, continue comme ça !
+              <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#10B981" }} />
+              <p className="text-xs font-medium" style={{ color: isDark ? "rgba(255,255,255,0.75)" : "#065F46" }}>
+                Point fort · <strong>{matieresFort}</strong>
               </p>
             </div>
           )}
 
         </div>
       </div>
-
-      <style>{`
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-      `}</style>
     </div>
   );
 }
