@@ -674,13 +674,21 @@ export default function Home() {
     speechRecognitionRef.current = recognition;
     recognition.lang = "fr-FR";
     recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.interimResults = true; // affiche le texte en direct pendant la dictée
 
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0]?.[0]?.transcript || "";
-      if (transcript.trim()) {
-        setInput(transcript.trim());
+      let interim = "";
+      let final = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          final += t;
+        } else {
+          interim += t;
+        }
       }
+      // Affiche en direct (interim) ou finalise — l'enfant voit et peut corriger
+      setInput((final || interim).trim());
     };
 
     recognition.onend = () => {
