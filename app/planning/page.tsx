@@ -467,7 +467,17 @@ export default function PlanningPage() {
             className="flex items-start gap-3 px-4 py-3.5 rounded-2xl"
             style={{ background: cardBg, border: `1px solid ${border}` }}
           >
-            <img src="/icon-192.png" alt="" style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0 }} />
+            <svg width="32" height="32" viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0 }}>
+              <ellipse cx="24" cy="20" rx="13" ry="14" fill="#E8922A" />
+              <circle cx="19" cy="18" r="2.5" fill="white" /><circle cx="29" cy="18" r="2.5" fill="white" />
+              <circle cx="19.8" cy="18.5" r="1.2" fill="#0F172A" /><circle cx="29.8" cy="18.5" r="1.2" fill="#0F172A" />
+              <path d="M21 22.5 Q24 25 27 22.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+              <path d="M14 30 Q11 36 13 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+              <path d="M18 32 Q16 39 18 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+              <path d="M24 33 Q24 40 24 44" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+              <path d="M30 32 Q32 39 30 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+              <path d="M34 30 Q37 36 35 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+            </svg>
             <p className="text-xs leading-relaxed" style={{ color: textSub }}>
               Quand tu ouvres une session, Le Poulpe sait quels cours tu as eu aujourd'hui. Il peut anticiper ce que tu dois réviser, t'aider sur un devoir de la journée, ou adapter le niveau.
             </p>
