@@ -211,6 +211,8 @@ export default function Home() {
   const [micError, setMicError] = useState(false);
   const [transcribeErrorMsg, setTranscribeErrorMsg] = useState("");
   const bottomRef        = useRef<HTMLDivElement>(null);
+  const chatScrollRef    = useRef<HTMLDivElement>(null);
+  const userScrolledUp   = useRef(false);
   const textareaRef      = useRef<HTMLTextAreaElement>(null);
   const fileInputRef     = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -458,7 +460,9 @@ export default function Home() {
   }, [chapitreActif]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!userScrolledUp.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -667,7 +671,10 @@ export default function Home() {
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0]?.[0]?.transcript || "";
-      if (transcript.trim()) sendMessage(transcript.trim());
+      if (transcript.trim()) {
+        // Met dans le champ texte — l'enfant peut vérifier avant d'envoyer
+        setInput(transcript.trim());
+      }
     };
 
     recognition.onend = () => {
@@ -921,7 +928,17 @@ export default function Home() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-6 py-6" style={{ background: isDark ? "#030D18" : C.cream }}>
+        <div
+          ref={chatScrollRef}
+          className="flex-1 overflow-y-auto px-6 py-6"
+          style={{ background: isDark ? "#030D18" : C.cream }}
+          onScroll={() => {
+            const el = chatScrollRef.current;
+            if (!el) return;
+            const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+            userScrolledUp.current = !atBottom;
+          }}
+        >
           <div className="max-w-[680px] mx-auto space-y-4">
             {/* Bannière session restaurée */}
             {restoredSession && (
