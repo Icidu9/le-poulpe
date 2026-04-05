@@ -137,7 +137,7 @@ const NAV = [
   { id: "accueil",      label: "Accueil",        icon: <IconHome />,     path: "/accueil"    },
   { id: "matieres",     label: "Mes matières",   icon: <IconBook />,     path: "/matieres"   },
   { id: "workspace",    label: "Réviser",        icon: <IconChat />,     path: "/"           },
-  { id: "flashcards",   label: "Flashcards",     icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 2H8a2 2 0 0 0-2 2v2h12V4a2 2 0 0 0-2-2z"/></svg>, path: "/flashcards" },
+  { id: "flashcards",   label: "Fiches de révision", icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 2H8a2 2 0 0 0-2 2v2h12V4a2 2 0 0 0-2-2z"/></svg>, path: "/flashcards" },
   { id: "planning",     label: "Mon planning",   icon: <IconCalendar />, path: "/planning"   },
   { id: "progression",  label: "Ma progression", icon: <IconChart />,    path: "/progression"},
 ];
@@ -580,13 +580,24 @@ export default function Home() {
       if (!res.ok) throw new Error();
       const data = await res.json();
       if (data.flashcards?.length) {
-        const existing = JSON.parse(localStorage.getItem("poulpe_flashcards") || "[]");
         const newCards = data.flashcards.map((f: { question: string; reponse: string; matiere: string }) => ({
           ...f,
           id: `fc_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
           date: new Date().toISOString(),
+          source: "session" as const,
         }));
-        localStorage.setItem("poulpe_flashcards", JSON.stringify([...existing, ...newCards]));
+        // Sauvegarde par matière pour que la page Fiches de révision puisse les lire
+        const byMat: Record<string, typeof newCards> = {};
+        for (const card of newCards) {
+          const m = card.matiere || matiereActive || "Général";
+          if (!byMat[m]) byMat[m] = [];
+          byMat[m].push(card);
+        }
+        for (const [mat, cards] of Object.entries(byMat)) {
+          const key = `poulpe_flashcards_${mat}`;
+          const existing = JSON.parse(localStorage.getItem(key) || "[]");
+          localStorage.setItem(key, JSON.stringify([...existing, ...cards]));
+        }
         setFlashcardsReady(true);
       }
     } catch {}

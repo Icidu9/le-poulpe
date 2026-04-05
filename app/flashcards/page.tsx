@@ -342,10 +342,10 @@ export default function FlashcardsPage() {
                   textShadow: isDark ? "0 0 30px rgba(232,146,42,0.4)" : "none",
                 }}
               >
-                Flashcards
+                Fiches de révision
               </h1>
               <p className="text-sm mt-1" style={{ color: textSub }}>
-                {totalCards > 0 ? `${totalCards} carte${totalCards > 1 ? "s" : ""} · Révise à ton rythme` : "Tes fiches de révision"}
+                {totalCards > 0 ? `${totalCards} carte${totalCards > 1 ? "s" : ""} · Révise à ton rythme` : "Tes fiches par matière"}
               </p>
             </div>
           )}
@@ -425,7 +425,7 @@ export default function FlashcardsPage() {
                     </p>
                     <p className="text-sm leading-relaxed mt-2 max-w-xs mx-auto" style={{ color: textSub }}>
                       {tab === "session"
-                        ? "Après une session, clique sur \"Créer des flashcards\" pour générer tes fiches."
+                        ? "Après une session, clique sur \"Créer mes fiches de révision\" pour générer tes fiches."
                         : "Travaille un chapitre du programme, des fiches seront générées automatiquement."}
                     </p>
                   </div>

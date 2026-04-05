@@ -75,7 +75,7 @@ const NAV = [
   { id: "accueil",     label: "Accueil",        icon: <IconHome />,     path: "/accueil" },
   { id: "matieres",    label: "Mes matières",   icon: <IconBook />,     path: "/matieres" },
   { id: "workspace",   label: "Réviser",        icon: <IconChat />,     path: "/" },
-  { id: "flashcards",  label: "Flashcards",     icon: <IconCards />,    path: "/flashcards" },
+  { id: "flashcards",  label: "Fiches de révision", icon: <IconCards />, path: "/flashcards" },
   { id: "planning",    label: "Mon planning",   icon: <IconCalendar />, path: "/planning" },
   { id: "progression", label: "Ma progression", icon: <IconChart />,    path: "/progression" },
 ];
