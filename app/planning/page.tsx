@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 
-const JOURS       = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-const JOURS_COURT = ["Lun",   "Mar",   "Mer",      "Jeu",   "Ven",      "Sam"   ];
+const JOURS       = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+const JOURS_COURT = ["Lun",   "Mar",   "Mer",      "Jeu",   "Ven",      "Sam",    "Dim"      ];
 
 const MATIERES_PICKER = [
   { nom: "Français",        emoji: "📖" },
@@ -35,7 +35,7 @@ function buildRevisions(matieres: string[]): Record<string, string[]> {
   const plan: Record<string, string[]> = {};
   let idx = 0;
   for (const jour of JOURS) {
-    const max = jour === "Mercredi" || jour === "Samedi" ? 1 : 2;
+    const max = jour === "Mercredi" || jour === "Samedi" || jour === "Dimanche" ? 1 : 2;
     plan[jour] = [];
     for (let i = 0; i < max && idx < matieres.length; i++) {
       plan[jour].push(matieres[idx % matieres.length]);
@@ -46,7 +46,7 @@ function buildRevisions(matieres: string[]): Record<string, string[]> {
 }
 
 const EMPTY_EDT: Record<string, string[]> = {
-  Lundi: [], Mardi: [], Mercredi: [], Jeudi: [], Vendredi: [], Samedi: [],
+  Lundi: [], Mardi: [], Mercredi: [], Jeudi: [], Vendredi: [], Samedi: [], Dimanche: [],
 };
 
 export default function PlanningPage() {
@@ -59,7 +59,7 @@ export default function PlanningPage() {
   const [autreInput,    setAutreInput]    = useState("");
 
   const todayIdx = new Date().getDay();
-  const todayNom = { 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi" }[todayIdx] || "";
+  const todayNom = { 0: "Dimanche", 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi" }[todayIdx] || "";
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
