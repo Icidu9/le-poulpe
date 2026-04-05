@@ -199,6 +199,7 @@ export default function Home() {
   const [restoredSession, setRestoredSession] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [focusContext, setFocusContext] = useState<{ concept: string; description: string; matiere: string } | null>(null);
+  const [useClaudeMode, setUseClaudeMode] = useState(false);
 
   const [messages, setMessages]           = useState<Message[]>([]);
   const [input, setInput]                 = useState("");
@@ -361,7 +362,10 @@ export default function Home() {
       try { focusData = JSON.parse(focusRaw); } catch {}
       localStorage.removeItem("poulpe_focus_context");
     }
-    if (focusData) setFocusContext(focusData);
+    if (focusData) {
+      setFocusContext(focusData);
+      setUseClaudeMode(true);
+    }
 
     let coursMode: { matiere: string } | null = null;
     const coursModeRaw = localStorage.getItem("poulpe_cours_mode");
@@ -508,6 +512,7 @@ export default function Home() {
         memory: childMemory,
         parentEmail: email,
         matiereActive: focusContext.matiere,
+        useClaude: true,
       }),
     })
       .then(async (response) => {
@@ -847,6 +852,7 @@ export default function Home() {
           memory: childMemory,
           parentEmail,
           chapitre: chapitreActif,
+          useClaude: useClaudeMode,
         }),
       });
 

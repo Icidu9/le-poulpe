@@ -182,7 +182,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession, profile, memory, parentEmail, chapitre } = (await req.json()) as {
+  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession, profile, memory, parentEmail, chapitre, useClaude } = (await req.json()) as {
     messages: IncomingMessage[];
     failles: Record<string, unknown>;
     sessionId?: string;
@@ -193,6 +193,7 @@ export async function POST(req: Request) {
     memory?: string | null;
     parentEmail?: string;
     chapitre?: { matiere: string; chapitre: string; description: string; niveau: string } | null;
+    useClaude?: boolean;
   };
 
   const nom = childName || "Arthur";
@@ -360,9 +361,27 @@ export async function POST(req: Request) {
               controller.enqueue(encoder.encode(chunk.delta.text));
             }
           }
+        } else if (useClaude) {
+          // ── Claude Sonnet — mode focus/révision sans image ────────────────────
+          const claudeTextRes = await getClient().messages.create({
+            model: "claude-sonnet-4-6",
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: toAnthropicMessages(messages),
+            stream: true,
+          });
+          for await (const chunk of claudeTextRes) {
+            if (
+              chunk.type === "content_block_delta" &&
+              chunk.delta.type === "text_delta"
+            ) {
+              fullResponse += chunk.delta.text;
+              controller.enqueue(encoder.encode(chunk.delta.text));
+            }
+          }
         } else {
           // ── Mistral (EU) — conversations texte ───────────────────────────────
-          // Mistral Large pour le tutoring général, Small pour quiz/exercices
+          // Mistral Large pour le tutoring général et quiz/exercices
           const chapMode = (chapitre as any)?.mode;
           const isQuickMode = chapMode === "quiz" || chapMode === "exercice";
 
@@ -380,7 +399,7 @@ export async function POST(req: Request) {
           }
 
           const stream = await getMistral().chat.stream({
-            model: isQuickMode ? "mistral-small-latest" : "mistral-large-latest",
+            model: isQuickMode ? "mistral-large-latest" : "mistral-large-latest",
             maxTokens: isQuickMode ? 350 : 1024,
             messages: mistralMessages,
           });
