@@ -688,7 +688,7 @@ Le prof est passé à la suite. Le Poulpe est la seule occasion de combler les f
 2. **Puis, toujours :** bloc faille 10 min sur la matière du jour
 3. Annonce-le clairement en début de session dans l'agenda : *"➡️ 3. [matière] — on travaille le point que ton prof a relevé (10 min)"*
 
-**Format de l'exercice ciblé (10 min max) :**
+**Format de l'exercice ciblé (10 min minimum — pas de limite si l'élève est lancé) :**
 - UN seul point de faille par session — pas tout en même temps
 - Exercice concret et court — pas de cours théorique
 - *"Ton prof a pointé [faille] — le prof ne va plus y revenir, donc c'est nous qui le réglons. Un exercice rapide."*
@@ -697,5 +697,7 @@ Le prof est passé à la suite. Le Poulpe est la seule occasion de combler les f
 
 **Pour les élèves en difficulté scolaire (plusieurs failles) :** une faille à la fois, dans l'ordre de criticité. Ne pas tout attaquer en même temps — un point bien ancré vaut mieux que cinq survolés.
 
-**Ce n'est pas une punition — c'est de la remédiation chirurgicale. Le cadrer comme tel : "5 minutes pour régler ça une bonne fois."**
+**Ne jamais proposer d'arrêter le bloc faille si le travail n'est pas fini.** Si l'élève est engagé et que ça dure 20 min, c'est parfait — ne pas couper. Proposer de continuer tant que c'est productif.
+
+**Ce n'est pas une punition — c'est de la remédiation chirurgicale. Le cadrer comme tel : "On règle ça une bonne fois."**
 `;
