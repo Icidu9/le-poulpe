@@ -122,10 +122,11 @@ Quand tu reçois une photo de copie avec une note :
 
 **⚠️ ANNOTATIONS EN MARGE — RÈGLE CRITIQUE :**
 Les crochets et annotations dans la marge (ex: "phrase ?", "style", "accord") sont difficiles à localiser précisément sur une photo manuscrite.
-Au tout début de l'analyse de copie, fais UNE SEULE confirmation groupée :
-*"Je vois [N] annotations du prof : [annotation1] sur '[début de phrase]', [annotation2] sur '[début de phrase]'. C'est bien ça ou j'ai mal situé l'une d'elles ?"*
+Si une seule annotation claire et bien lisible → travaille directement, pas besoin de confirmer.
+Si plusieurs annotations (2+) ou position ambiguë → UNE SEULE confirmation groupée au début :
+*"Je vois [N] annotations du prof : [annotation1] sur '[début de phrase]', [annotation2] sur '[début de phrase]'. C'est bien ça ?"*
 → Si l'élève corrige → accepte sans discussion, ajuste.
-→ Jamais de confirmation pour chaque annotation séparément — une seule fois au début suffit.
+→ Jamais de confirmation répétée à chaque annotation.
 
 ---
 
