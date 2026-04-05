@@ -85,7 +85,7 @@ type RevisionItem = {
   concept: string;
   description: string;
   urgenceLabel: string;
-  urgenceColor: "red" | "orange" | "yellow";
+  urgenceColor: "orange" | "yellow";
   priority: number;
 };
 
@@ -119,6 +119,7 @@ export default function AccueilPage() {
   const [coursJour,    setCoursJour]    = useState<string[]>([]);
   const [coursVus,     setCoursVus]     = useState<string[]>([]);
   const [revisions,    setRevisions]    = useState<RevisionItem[]>([]);
+  const [navigating,   setNavigating]   = useState(false);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -201,15 +202,15 @@ export default function AccueilPage() {
       } catch {}
     }
 
-    function getJInfo(mat: string): { label: string; priority: number; color: "red" | "orange" | "yellow" } | null {
+    function getJInfo(mat: string): { label: string; priority: number; color: "orange" | "yellow" } | null {
       const last = lastExamDate[mat];
       if (!last) return null;
       const days = Math.floor((Date.now() - last.getTime()) / 86400000);
-      if (days === 0)  return { label: "Tu as vu ça aujourd'hui · Commence ce soir", priority: 1, color: "red" };
-      if (days === 1)  return { label: "Tu as vu ça hier · Premier rappel aujourd'hui", priority: 1, color: "red" };
-      if (days <= 4)   return { label: "Ça fait 3 jours · Consolide avant d'oublier", priority: 2, color: "orange" };
-      if (days <= 10)  return { label: "Ça fait une semaine · Vérifie que c'est ancré", priority: 4, color: "orange" };
-      if (days <= 20)  return { label: "Révision longue durée · Garde-le en mémoire", priority: 7, color: "yellow" };
+      if (days === 0)  return { label: "Tu as vu ça aujourd'hui · À revoir ce soir", priority: 1, color: "orange" };
+      if (days === 1)  return { label: "Tu as vu ça hier · Premier rappel", priority: 1, color: "orange" };
+      if (days <= 4)   return { label: "Ça fait 3 jours · Consolide", priority: 2, color: "orange" };
+      if (days <= 10)  return { label: "Ça fait une semaine · Vérifie", priority: 4, color: "yellow" };
+      if (days <= 20)  return { label: "Révision longue durée", priority: 7, color: "yellow" };
       return null;
     }
 
@@ -266,9 +267,39 @@ export default function AccueilPage() {
     : { background: "rgba(255,255,255,0.62)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.5)" };
   const streakColor = streak >= 7 ? "#F97316" : streak >= 3 ? "#8B5CF6" : textSub;
 
-  const urgBg = (c: string) => c === "red" ? "rgba(239,68,68,0.15)" : c === "orange" ? "rgba(232,146,42,0.15)" : "rgba(234,179,8,0.12)";
-  const urgText = (c: string) => c === "red" ? "#DC2626" : c === "orange" ? "#C05C2A" : "#A16207";
-  const urgBorder = (c: string) => c === "red" ? "rgba(239,68,68,0.4)" : c === "orange" ? "rgba(232,146,42,0.4)" : "rgba(234,179,8,0.3)";
+  const urgBg = (c: string) => c === "orange" ? "rgba(232,146,42,0.15)" : "rgba(234,179,8,0.12)";
+  const urgText = (c: string) => c === "orange" ? "#C05C2A" : "#A16207";
+  const urgBorder = (c: string) => c === "orange" ? "rgba(232,146,42,0.35)" : "rgba(234,179,8,0.25)";
+
+  function goTo(path: string, setup: () => void) {
+    setup();
+    setNavigating(true);
+    setTimeout(() => router.push(path), 180);
+  }
+
+  function toggleCoursVu(mat: string) {
+    const estVu = coursVus.some(v => v.toLowerCase() === mat.toLowerCase());
+    if (estVu) {
+      // Décocher
+      const next = coursVus.filter(v => v.toLowerCase() !== mat.toLowerCase());
+      setCoursVus(next);
+      try {
+        const key = getDailyKey();
+        const data = JSON.parse(localStorage.getItem(key) || "{}");
+        localStorage.setItem(key, JSON.stringify({ ...data, coursVus: next }));
+      } catch {}
+    } else {
+      // Cocher et naviguer
+      markCoursVu(mat);
+      setCoursVus(prev => [...prev, mat]);
+      goTo("/", () => {
+        localStorage.setItem("poulpe_matiere_active", mat);
+        localStorage.removeItem("poulpe_chapitre_actif");
+        localStorage.removeItem("poulpe_focus_context");
+        localStorage.setItem("poulpe_cours_mode", JSON.stringify({ matiere: mat }));
+      });
+    }
+  }
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ fontFamily: '"Inter", system-ui, sans-serif', background: bgColor }}>
@@ -279,7 +310,7 @@ export default function AccueilPage() {
       </div>
 
       {/* ── Main ── */}
-      <div className="flex-1 overflow-y-auto" style={{ position: "relative", zIndex: 10 }}>
+      <div className="flex-1 overflow-y-auto" style={{ position: "relative", zIndex: 10, opacity: navigating ? 0 : 1, transition: "opacity 180ms ease" }}>
         <div className="max-w-lg mx-auto px-6 py-7 space-y-5">
 
           {/* ── Header ── */}
@@ -368,24 +399,13 @@ export default function AccueilPage() {
                   return (
                     <button
                       key={mat}
-                      onClick={() => {
-                        if (fait) return;
-                        markCoursVu(mat);
-                        setCoursVus(prev => [...prev, mat]);
-                        localStorage.setItem("poulpe_matiere_active", mat);
-                        localStorage.removeItem("poulpe_chapitre_actif");
-                        localStorage.removeItem("poulpe_focus_context");
-                        localStorage.setItem("poulpe_cours_mode", JSON.stringify({ matiere: mat }));
-                        router.push("/");
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all"
+                      onClick={() => toggleCoursVu(mat)}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:opacity-90"
                       style={{
                         background: fait
                           ? (isDark ? "rgba(16,185,129,0.06)" : "rgba(16,185,129,0.04)")
                           : (isDark ? "rgba(6,26,38,0.6)" : "rgba(255,255,255,0.8)"),
                         borderBottom: isLast ? "none" : `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}`,
-                        cursor: fait ? "default" : "pointer",
-                        opacity: fait ? 0.65 : 1,
                       }}
                     >
                       <span
@@ -397,7 +417,7 @@ export default function AccueilPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm" style={{ color: fait ? "#10B981" : textMain }}>{mat}</p>
                         <p className="text-[11px] mt-0.5" style={{ color: fait ? "#10B981" : textSub }}>
-                          {fait ? "Fait aujourd'hui" : "Cours du jour · Revoir avec le Poulpe"}
+                          {fait ? "Fait aujourd'hui · Appuie pour décocher" : "Cours du jour · Revoir avec le Poulpe"}
                         </p>
                       </div>
                       {!fait && (
@@ -424,7 +444,7 @@ export default function AccueilPage() {
           {revisions.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold" style={{ color: textMain }}>🔁 À réviser maintenant</h2>
+                <h2 className="text-sm font-bold" style={{ color: textMain }}>🔁 À réviser aujourd'hui</h2>
                 <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: urgBg("orange"), color: urgText("orange") }}>
                   {revisions.length} point{revisions.length > 1 ? "s" : ""}
                 </span>
@@ -434,7 +454,7 @@ export default function AccueilPage() {
                 {revisions.map((rev) => (
                   <button
                     key={rev.matiere + rev.concept}
-                    onClick={() => {
+                    onClick={() => goTo("/", () => {
                       localStorage.setItem("poulpe_matiere_active", rev.matiere);
                       localStorage.removeItem("poulpe_chapitre_actif");
                       localStorage.removeItem("poulpe_cours_mode");
@@ -443,15 +463,12 @@ export default function AccueilPage() {
                         description: rev.description,
                         matiere: rev.matiere,
                       }));
-                      router.push("/");
-                    }}
+                    })}
                     className="w-full text-left rounded-2xl px-5 py-4 transition-all hover:scale-[1.01] active:scale-[0.99]"
                     style={{
                       background: isDark ? "rgba(6,26,38,0.7)" : "#FFFFFF",
                       border: `1.5px solid ${urgBorder(rev.urgenceColor)}`,
-                      boxShadow: rev.urgenceColor === "red"
-                        ? (isDark ? "0 0 20px rgba(239,68,68,0.1)" : "0 2px 16px rgba(239,68,68,0.08)")
-                        : (isDark ? "0 0 20px rgba(232,146,42,0.08)" : "0 2px 16px rgba(232,146,42,0.06)"),
+                      boxShadow: isDark ? "0 0 20px rgba(232,146,42,0.08)" : "0 2px 16px rgba(232,146,42,0.06)",
                     }}
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
@@ -472,7 +489,7 @@ export default function AccueilPage() {
                     <div className="flex justify-end">
                       <span
                         className="text-xs font-bold px-3 py-1.5 rounded-lg text-white"
-                        style={{ background: rev.urgenceColor === "red" ? "linear-gradient(135deg, #EF4444, #DC2626)" : "linear-gradient(135deg, #E8922A, #C05C2A)" }}
+                        style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
                       >
                         Réviser →
                       </span>
