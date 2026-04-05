@@ -645,73 +645,77 @@ export default function Home() {
   // ── Vocal — Web Speech API (100% local, RGPD-compliant) ──────────────────
   // L'audio est traité par le navigateur (Chrome/Safari), jamais envoyé à Le Poulpe.
 
-  const speechRecognitionRef = useRef<any>(null);
   const [micReady, setMicReady] = useState(false); // true = micro chaud, parle maintenant
 
-  function toggleVoice() {
+  async function toggleVoice() {
     // Si enregistrement en cours → arrêter
-    if (speechRecognitionRef.current) {
-      speechRecognitionRef.current.stop();
+    if (isRecordingRef.current) {
+      mediaRecorderRef.current?.stop();
       return;
     }
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setMicError(false);
+    setTranscribeErrorMsg("");
 
-    if (!SpeechRecognition) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = stream;
+      audioChunksRef.current = [];
+
+      // Choisit le format supporté par le navigateur
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : "audio/mp4";
+
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        micStreamRef.current = null;
+        isRecordingRef.current = false;
+        setIsRecording(false);
+        setMicReady(false);
+
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        if (blob.size < 500) return; // trop court, on ignore
+
+        setIsTranscribing(true);
+        try {
+          const fd = new FormData();
+          fd.append("audio", blob, mimeType.includes("mp4") ? "recording.mp4" : "recording.webm");
+          const res = await fetch("/api/transcribe", { method: "POST", body: fd });
+          const data = await res.json();
+          if (data.text) {
+            setInput(data.text);
+          } else {
+            setTranscribeErrorMsg("Transcription impossible, réessaie.");
+            setTimeout(() => setTranscribeErrorMsg(""), 4000);
+          }
+        } catch {
+          setTranscribeErrorMsg("Erreur de transcription.");
+          setTimeout(() => setTranscribeErrorMsg(""), 4000);
+        } finally {
+          setIsTranscribing(false);
+        }
+      };
+
+      recorder.start();
+      isRecordingRef.current = true;
+      setIsRecording(true);
+      setMicReady(false);
+      // 400ms pour que le micro soit chaud avant de signaler "parle maintenant"
+      setTimeout(() => setMicReady(true), 400);
+    } catch {
       setMicError(true);
       setTimeout(() => setMicError(false), 5000);
-      return;
     }
-
-    // Démarre l'enregistrement immédiatement mais attend 400ms avant de signaler
-    // que le micro est prêt — évite de couper le début de la phrase
-    isRecordingRef.current = true;
-    setIsRecording(true);
-    setMicReady(false);
-
-    const recognition = new SpeechRecognition();
-    speechRecognitionRef.current = recognition;
-    recognition.lang = "fr-FR";
-    recognition.continuous = false;
-    recognition.interimResults = true; // affiche le texte en direct pendant la dictée
-
-    recognition.onresult = (event: any) => {
-      let interim = "";
-      let final = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          final += t;
-        } else {
-          interim += t;
-        }
-      }
-      // Affiche en direct (interim) ou finalise — l'enfant voit et peut corriger
-      setInput((final || interim).trim());
-    };
-
-    recognition.onend = () => {
-      speechRecognitionRef.current = null;
-      isRecordingRef.current = false;
-      setIsRecording(false);
-      setMicReady(false);
-    };
-
-    recognition.onerror = (event: any) => {
-      speechRecognitionRef.current = null;
-      isRecordingRef.current = false;
-      setIsRecording(false);
-      setMicReady(false);
-      if (event.error !== "no-speech") {
-        setMicError(true);
-        setTimeout(() => setMicError(false), 4000);
-      }
-    };
-
-    recognition.start();
-    // Après 400ms le micro est chaud — on signale à l'enfant qu'il peut parler
-    setTimeout(() => setMicReady(true), 400);
   }
 
   // ── Chat ──────────────────────────────────────────────────────────────────
