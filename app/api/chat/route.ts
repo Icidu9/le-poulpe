@@ -344,10 +344,10 @@ export async function POST(req: Request) {
     async start(controller) {
       try {
         if (hasImages) {
-          // ── Claude (Anthropic) — messages avec photos ─────────────────────────
-          // Claude a la meilleure vision pour les copies manuscrites françaises
+          // ── Claude Haiku — photos quotidiennes (cours, exercices) ──────────────
+          // Haiku suffit pour lire les photos de cours — Sonnet réservé aux copies
           const stream = getClient().messages.stream({
-            model: "claude-sonnet-4-6",
+            model: "claude-haiku-4-5-20251001",
             max_tokens: 1024,
             system: systemPrompt,
             messages: anthropicMessages,
