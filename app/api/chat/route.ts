@@ -182,7 +182,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession, profile, memory, parentEmail, chapitre, useClaude } = (await req.json()) as {
+  const { messages, failles, sessionId, childName, emploiDuTemps, closeSession, profile, memory, parentEmail, chapitre, useClaude, reviewContext } = (await req.json()) as {
     messages: IncomingMessage[];
     failles: Record<string, unknown>;
     sessionId?: string;
@@ -194,6 +194,7 @@ export async function POST(req: Request) {
     parentEmail?: string;
     chapitre?: { matiere: string; chapitre: string; description: string; niveau: string } | null;
     useClaude?: boolean;
+    reviewContext?: { concept: string; matiere: string; mode: "learning" | "review"; level: number } | null;
   };
 
   const nom = childName || "Arthur";
@@ -310,6 +311,29 @@ export async function POST(req: Request) {
       `3. Donne-lui un seul conseil ou rappel pour la prochaine fois\n` +
       `4. Dis au revoir avec ton ton habituel\n` +
       `Ton positif, concis, motivant. Maximum 6 lignes au total.`;
+
+    // Si c'est une session de révision SM-2 : évaluer silencieusement la maîtrise
+    if (reviewContext?.concept) {
+      systemPrompt +=
+        `\n\nÉVALUATION MASTERY OBLIGATOIRE : Cette session portait sur le concept "${reviewContext.concept}" en ${reviewContext.matiere} (mode: ${reviewContext.mode === "review" ? "révision" : "apprentissage"}, niveau actuel: ${reviewContext.level}).\n` +
+        `Après ton message de fin normal, ajoute OBLIGATOIREMENT sur une nouvelle ligne ce bloc JSON — sans aucun texte avant ou après sur cette ligne :\n` +
+        `[EVAL]{"concept":"${reviewContext.concept}","matiere":"${reviewContext.matiere}","result":"pass"}[/EVAL]\n` +
+        `Remplace "pass" par "fail" si ${nom} a eu des difficultés significatives sur ce concept précis (plusieurs erreurs, n'a pas compris malgré les explications).\n` +
+        `Critère pass : ${nom} a répondu correctement à la majorité des exercices sur ce concept OU a clairement compris l'explication.\n` +
+        `Critère fail : ${nom} a répété les mêmes erreurs, n'a pas réussi à appliquer le concept seul.`;
+    }
+  }
+
+  // Si mode révision : instructions spéciales pour que le Poulpe teste (pas enseigne)
+  if (reviewContext?.mode === "review" && !closeSession) {
+    systemPrompt +=
+      `\n\n---\n\n## MODE RÉVISION SM-2\n\n` +
+      `Cette session est une RÉVISION CIBLÉE sur le concept : "${reviewContext.concept}" (${reviewContext.matiere}).\n` +
+      `RÈGLE ABSOLUE : commence DIRECTEMENT par 3 à 5 exercices sur ce concept SANS réenseigner. Tu testes, tu n'expliques pas d'abord.\n` +
+      `Format : exercices courts (1-2 lignes), variés, progressifs. Pas de cours introductif.\n` +
+      `Si ${nom} réussit facilement → valide avec enthousiasme et termine en 3-4 minutes.\n` +
+      `Si ${nom} fait des erreurs → corrige brièvement, donne 1-2 exercices supplémentaires.\n` +
+      `Durée cible : 3 à 5 minutes maximum.`;
   }
 
   // Sauvegarde le dernier message utilisateur dans Supabase (non-bloquant)

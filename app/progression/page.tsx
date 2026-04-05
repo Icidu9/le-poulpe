@@ -1,41 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
+import {
+  type MasteryData, type MasteryEntry,
+  loadMasteryData, masteryKey, isDueToday,
+  getLevelLabel, getLevelColor, isInLongTermMemory,
+  setReviewContext,
+} from "../../lib/mastery";
 
 type Faille = { concept: string; criticite: string; description: string; count: number };
 type FaillesData = { failles: Faille[] };
-
-// ── Mastery (méthode J / Ebbinghaus) ─────────────────────────────────────────
-// Intervalles : nouveau → J+1 → J+3 → J+7 → maîtrisé
-const REVIEW_INTERVALS = [1, 3, 7]; // jours
-
-interface MasteryEntry {
-  review_count: number;   // 0 = jamais vu, 1-3 = en cours, 4 = maîtrisé
-  next_review: string;    // YYYY-MM-DD
-  mastered: boolean;
-}
-type MasteryData = Record<string, MasteryEntry>; // clé = "matiere::concept"
-
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
-}
-function addDaysISO(days: number) {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-function loadMastery(): MasteryData {
-  if (typeof window === "undefined") return {};
-  try { return JSON.parse(localStorage.getItem("poulpe_mastery") || "{}"); } catch { return {}; }
-}
-function saveMastery(data: MasteryData) {
-  localStorage.setItem("poulpe_mastery", JSON.stringify(data));
-}
-function masteryKey(matiere: string, concept: string) {
-  return `${matiere}::${concept}`;
-}
 
 // ── Design helpers ────────────────────────────────────────────────────────────
 const MAT_EMOJI: Record<string, string> = {
@@ -60,19 +36,18 @@ function getMatColor(mat: string) {
     if (mat.toLowerCase().includes(k.toLowerCase())) return v;
   return "#FF8000";
 }
-
 function getOrUpdateStreak(): number {
   if (typeof window === "undefined") return 0;
   const today = new Date().toDateString();
-  const lastDate = localStorage.getItem("poulpe_streak_last") || "";
+  const last  = localStorage.getItem("poulpe_streak_last") || "";
   const streak = parseInt(localStorage.getItem("poulpe_streak_count") || "0", 10);
   const yesterday = new Date(Date.now() - 86400000).toDateString();
-  if (lastDate === today) return streak;
-  if (lastDate === yesterday) {
-    const next = streak + 1;
-    localStorage.setItem("poulpe_streak_count", String(next));
+  if (last === today) return streak;
+  if (last === yesterday) {
+    const n = streak + 1;
+    localStorage.setItem("poulpe_streak_count", String(n));
     localStorage.setItem("poulpe_streak_last", today);
-    return next;
+    return n;
   }
   localStorage.setItem("poulpe_streak_count", "1");
   localStorage.setItem("poulpe_streak_last", today);
@@ -84,10 +59,8 @@ function PoulpeHero({ size = 54 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0 }}>
       <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.92" />
-      <circle cx="19" cy="18" r="2.5" fill="white" />
-      <circle cx="29" cy="18" r="2.5" fill="white" />
-      <circle cx="19.8" cy="18.5" r="1.2" fill="#7C2A00" />
-      <circle cx="29.8" cy="18.5" r="1.2" fill="#7C2A00" />
+      <circle cx="19" cy="18" r="2.5" fill="white" /><circle cx="29" cy="18" r="2.5" fill="white" />
+      <circle cx="19.8" cy="18.5" r="1.2" fill="#7C2A00" /><circle cx="29.8" cy="18.5" r="1.2" fill="#7C2A00" />
       <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#7C2A00" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.6"/>
       <path d="M14 30 Q11 36 13 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
       <path d="M18 32 Q16 39 18 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
@@ -98,81 +71,42 @@ function PoulpeHero({ size = 54 }: { size?: number }) {
   );
 }
 
-// ── ConceptCard ───────────────────────────────────────────────────────────────
-function ConceptCard({
-  matiere, concept, entry, celebrating,
-  isDark, card, tx, txSub, brd,
-  onSais, onPasEncore, onReviser,
-}: {
-  matiere: string;
-  concept: Faille;
-  entry: MasteryEntry | undefined;
-  celebrating: "sais" | "encore" | null;
+// ── Concept card ──────────────────────────────────────────────────────────────
+function ConceptCard({ matiere, concept, entry, isDark, card, tx, txSub, brd, onGo }: {
+  matiere: string; concept: Faille; entry: MasteryEntry | undefined;
   isDark: boolean; card: string; tx: string; txSub: string; brd: string;
-  onSais: () => void;
-  onPasEncore: () => void;
-  onReviser: () => void;
+  onGo: () => void;
 }) {
-  const color = getMatColor(matiere);
-  const isReview = entry && entry.review_count > 0; // déjà vu au moins 1 fois
-  const reviewLabel = isReview
-    ? entry.review_count === 1 ? "Révision J+3"
-    : entry.review_count === 2 ? "Révision J+7"
-    : "Dernière révision"
-    : null;
-
-  // ── État célébration "Je sais" ──────────────────────────────────────────────
-  if (celebrating === "sais") {
-    return (
-      <div className="rounded-2xl p-5 text-center space-y-2"
-        style={{ background: isDark ? "rgba(16,185,129,0.09)" : "#F0FDF4", border: "1.5px solid rgba(16,185,129,0.3)" }}>
-        <div className="text-3xl">✅</div>
-        <p className="text-sm font-bold" style={{ color: "#10B981" }}>
-          {entry && entry.review_count >= 3 ? "Maîtrisé ! 🎉" : "Noté ! On revient bientôt."}
-        </p>
-        <p className="text-[11px]" style={{ color: isDark ? "rgba(52,211,153,0.55)" : "#4A7A5A" }}>
-          {entry && entry.review_count >= 3
-            ? "Le Poulpe s'en souvient pour toi."
-            : `Prochain passage dans ${REVIEW_INTERVALS[(entry?.review_count ?? 1) - 1] ?? 7} jour${(REVIEW_INTERVALS[(entry?.review_count ?? 1) - 1] ?? 7) > 1 ? "s" : ""}.`}
-        </p>
-      </div>
-    );
-  }
-
-  // ── État célébration "Pas encore" ───────────────────────────────────────────
-  if (celebrating === "encore") {
-    return (
-      <div className="rounded-2xl p-5 text-center space-y-2"
-        style={{ background: isDark ? "rgba(232,146,42,0.07)" : "#FFFBF5", border: "1.5px solid rgba(232,146,42,0.25)" }}>
-        <div className="text-3xl">🔄</div>
-        <p className="text-sm font-bold" style={{ color: "#FF8000" }}>Pas de souci !</p>
-        <p className="text-[11px]" style={{ color: txSub }}>On repassera demain. C&apos;est comme ça qu&apos;on apprend.</p>
-      </div>
-    );
-  }
+  const matColor = getMatColor(matiere);
+  const level    = entry?.level ?? 0;
+  const levelColor = getLevelColor(level);
+  const isReview   = level > 0;
+  const lastResult = entry?.last_result;
 
   return (
     <div className="rounded-2xl p-4" style={{ background: card, border: `1px solid ${brd}` }}>
 
-      {/* Header matière */}
+      {/* Header matière + niveau */}
       <div className="flex items-center gap-3 mb-3">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
-          style={{ background: `${color}15`, border: `1px solid ${color}22` }}>
+          style={{ background: `${matColor}15`, border: `1px solid ${matColor}22` }}>
           {getEmoji(matiere)}
         </div>
         <div className="flex-1 min-w-0">
           <span className="text-xs font-semibold" style={{ color: "#FF8000" }}>{matiere}</span>
-          {reviewLabel && (
-            <p className="text-[10px]" style={{ color: isDark ? "rgba(16,185,129,0.7)" : "#4A7A5A" }}>
-              {reviewLabel}
-            </p>
-          )}
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+              style={{ background: `${levelColor}15`, color: levelColor }}>
+              {getLevelLabel(level)}
+            </span>
+            {lastResult === "fail" && (
+              <span className="text-[10px]" style={{ color: txSub }}>· à retravailler</span>
+            )}
+          </div>
         </div>
         {concept.count > 1 && (
           <span className="text-[10px] px-2 py-0.5 rounded-full"
-            style={{ background: "rgba(255,128,0,0.12)", color: "#FF8000" }}>
-            ×{concept.count}
-          </span>
+            style={{ background: "rgba(255,128,0,0.12)", color: "#FF8000" }}>×{concept.count}</span>
         )}
       </div>
 
@@ -181,45 +115,26 @@ function ConceptCard({
         {concept.concept}
       </p>
 
-      {/* Actions */}
-      {isReview ? (
-        // Mode révision — le Poulpe demande si tu t'en souviens
-        <div className="space-y-2">
-          <p className="text-xs text-center mb-3" style={{ color: txSub }}>
-            Tu t&apos;en souviens ?
-          </p>
-          <div className="flex gap-2">
-            <button onClick={onSais}
-              className="flex-1 py-2.5 rounded-xl text-xs font-bold"
-              style={{ background: isDark ? "rgba(16,185,129,0.12)" : "#F0FDF4", color: "#10B981", border: "1px solid rgba(16,185,129,0.3)" }}>
-              Oui ✓
-            </button>
-            <button onClick={onPasEncore}
-              className="flex-1 py-2.5 rounded-xl text-xs font-bold"
-              style={{ background: isDark ? "rgba(255,128,0,0.08)" : "#FFF7ED", color: "#FF8000", border: "1px solid rgba(255,128,0,0.25)" }}>
-              Pas encore 🔄
-            </button>
-          </div>
-          <button onClick={onReviser}
-            className="w-full py-2 rounded-xl text-xs font-medium"
-            style={{ color: txSub, background: "transparent" }}>
-            Retravailler avec Le Poulpe →
-          </button>
-        </div>
-      ) : (
-        // Mode nouveau concept
-        <div className="space-y-2">
-          <button onClick={onReviser}
-            className="w-full py-3 rounded-xl text-sm font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #FF8000 0%, #E06000 100%)", boxShadow: isDark ? "0 4px 16px rgba(255,128,0,0.3)" : "0 2px 8px rgba(255,128,0,0.25)" }}>
-            C&apos;est parti →
-          </button>
-          <button onClick={onSais}
-            className="w-full py-2 rounded-xl text-xs font-medium"
-            style={{ color: isDark ? "rgba(16,185,129,0.7)" : "#4A7A5A", background: "transparent" }}>
-            Je le connais déjà ✓
-          </button>
-        </div>
+      {/* CTA — Le Poulpe évalue, pas l'élève */}
+      <button
+        onClick={onGo}
+        className="w-full py-3 rounded-xl text-sm font-bold text-white"
+        style={{
+          background: isReview
+            ? "linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)"
+            : "linear-gradient(135deg, #FF8000 0%, #E06000 100%)",
+          boxShadow: isDark
+            ? `0 4px 16px ${isReview ? "rgba(139,92,246,0.3)" : "rgba(255,128,0,0.3)"}`
+            : `0 2px 8px ${isReview ? "rgba(139,92,246,0.2)" : "rgba(255,128,0,0.2)"}`,
+        }}
+      >
+        {isReview ? "Révision rapide →" : "C'est parti →"}
+      </button>
+
+      {isReview && (
+        <p className="text-[10px] text-center mt-2" style={{ color: txSub }}>
+          Le Poulpe va te tester — 3 à 5 minutes.
+        </p>
       )}
     </div>
   );
@@ -236,7 +151,6 @@ export default function ProgressionPage() {
   const [streak, setStreak] = useState(0);
   const [sessionCount, setSessionCount] = useState(0);
   const [mastery, setMastery] = useState<MasteryData>({});
-  const [celebrating, setCelebrating] = useState<Record<string, "sais" | "encore" | null>>({});
 
   useEffect(() => {
     const onb = localStorage.getItem("poulpe_onboarding_done");
@@ -247,7 +161,7 @@ export default function ProgressionPage() {
         localStorage.setItem("poulpe_parent_email", decodeURIComponent(email));
       } else { router.replace("/onboarding"); return; }
     }
-    const t = localStorage.getItem("poulpe_theme") as "dark" | "light" | null;
+    const t = localStorage.getItem("poulpe_theme") as "dark"|"light"|null;
     if (t) setTheme(t);
     const p = localStorage.getItem("poulpe_prenom") || ""; if (p) setPrenom(p);
     const f = localStorage.getItem("poulpe_failles");
@@ -259,7 +173,7 @@ export default function ProgressionPage() {
       if (profile.parent?.pMatieresFort) setMatieresFort(profile.parent.pMatieresFort);
     } catch {}
     setStreak(getOrUpdateStreak());
-    setMastery(loadMastery());
+    setMastery(loadMasteryData());
     let count = 0;
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i) || "";
@@ -270,47 +184,18 @@ export default function ProgressionPage() {
     setSessionCount(count);
   }, [router]);
 
-  // ── Marquer "Je sais" ─────────────────────────────────────────────────────
-  const markSais = useCallback((mat: string, concept: string) => {
-    const key = masteryKey(mat, concept);
-    setCelebrating(prev => ({ ...prev, [key]: "sais" }));
-    setMastery(prev => {
-      const entry = prev[key];
-      const count = (entry?.review_count ?? 0) + 1;
-      const updated: MasteryData = {
-        ...prev,
-        [key]: {
-          review_count: count,
-          next_review: count >= REVIEW_INTERVALS.length + 1
-            ? addDaysISO(999) // mastered, ne revient plus
-            : addDaysISO(REVIEW_INTERVALS[count - 1] ?? 7),
-          mastered: count > REVIEW_INTERVALS.length,
-        },
-      };
-      saveMastery(updated);
-      return updated;
+  // ── Naviguer vers le chat avec le contexte de révision ────────────────────
+  function goWork(mat: string, concept: Faille) {
+    const entry = mastery[masteryKey(mat, concept.concept)];
+    setReviewContext({
+      concept: concept.concept,
+      matiere: mat,
+      mode: (entry?.level ?? 0) > 0 ? "review" : "learning",
+      level: entry?.level ?? 0,
     });
-    setTimeout(() => setCelebrating(prev => ({ ...prev, [key]: null })), 2000);
-  }, []);
-
-  // ── Marquer "Pas encore" ──────────────────────────────────────────────────
-  const markEncore = useCallback((mat: string, concept: string) => {
-    const key = masteryKey(mat, concept);
-    setCelebrating(prev => ({ ...prev, [key]: "encore" }));
-    setMastery(prev => {
-      const updated: MasteryData = {
-        ...prev,
-        [key]: {
-          review_count: prev[key]?.review_count ?? 0,
-          next_review: addDaysISO(1),
-          mastered: false,
-        },
-      };
-      saveMastery(updated);
-      return updated;
-    });
-    setTimeout(() => setCelebrating(prev => ({ ...prev, [key]: null })), 2000);
-  }, []);
+    localStorage.setItem("poulpe_matiere_active", mat);
+    router.push("/");
+  }
 
   // ── Tokens ─────────────────────────────────────────────────────────────────
   const isDark = theme === "dark";
@@ -321,39 +206,41 @@ export default function ProgressionPage() {
   const brd   = isDark ? "rgba(255,255,255,0.07)" : "#E8EFF2";
 
   // ── Données ────────────────────────────────────────────────────────────────
-  const today = todayISO();
   const critOrder: Record<string, number> = { haute: 0, moyenne: 1, faible: 2 };
   const matieresFailles = Object.keys(failles).filter(m => failles[m]?.failles?.length > 0);
   const hasFailles = matieresFailles.length > 0;
   const matieresSuivies = matieresFailles.length || matieresDiff.length;
 
-  // Concepts maîtrisés (toutes matières)
-  const totalMastered = Object.values(mastery).filter(e => e.mastered).length;
+  // Compte les concepts en mémoire longue (level >= 5)
+  const longTermCount = Object.values(mastery).filter(e => isInLongTermMemory(e.level)).length;
 
-  // Pour chaque matière : trouver le concept actif DÛ aujourd'hui
-  function getActiveForMat(mat: string): Faille | null {
+  // Pour chaque matière : concept actif = premier concept dû aujourd'hui
+  function getActiveConcept(mat: string): Faille | null {
     const all = [...(failles[mat]?.failles || [])].sort(
       (a, b) => (critOrder[a.criticite] ?? 1) - (critOrder[b.criticite] ?? 1)
     );
     for (const f of all) {
-      const key = masteryKey(mat, f.concept);
-      const entry = mastery[key];
-      if (entry?.mastered) continue;              // maîtrisé, on skip
-      if (entry && entry.next_review > today) continue; // pas encore dû
-      return f;                                   // nouveau ou dû aujourd'hui
+      const entry = mastery[masteryKey(mat, f.concept)];
+      if (!isDueToday(entry)) continue;
+      return f;
     }
     return null;
   }
 
-  const matiereActives = matieresFailles.filter(m => getActiveForMat(m) !== null);
-  const matiereTerminees = matieresFailles.filter(m => {
-    const all = failles[m]?.failles || [];
-    return all.every(f => {
-      const e = mastery[masteryKey(m, f.concept)];
-      return e?.mastered || (e && e.next_review > today);
-    });
+  const matiereActives  = matieresFailles.filter(m => getActiveConcept(m) !== null);
+  const matiereEnAttente = matieresFailles.filter(m => {
+    const active = getActiveConcept(m);
+    return !active && (failles[m]?.failles || []).length > 0;
   });
   const allClear = hasFailles && matiereActives.length === 0;
+
+  // Prochaine date de révision parmi les matières en attente
+  function nextReviewFor(mat: string): string | null {
+    const all = failles[mat]?.failles || [];
+    const dates = all.map(f => mastery[masteryKey(mat, f.concept)]?.next_review).filter(Boolean) as string[];
+    if (!dates.length) return null;
+    return dates.sort()[0];
+  }
 
   const streakEmoji = streak >= 14 ? "🔥" : streak >= 7 ? "⚡" : streak >= 3 ? "✨" : "";
   const streakMsg   = streak >= 14 ? "Tu es en feu !" : streak >= 7 ? "Belle régularité !" : streak >= 3 ? "Continue comme ça !" : "Chaque jour compte.";
@@ -364,23 +251,21 @@ export default function ProgressionPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-lg mx-auto px-5 pt-8 pb-12 space-y-5">
 
-          {/* ── TITRE ──────────────────────────────────────────────────────── */}
+          {/* Titre */}
           <h1 className="text-2xl font-bold px-1"
             style={{ color: isDark ? "#FF8000" : "#0A2030", textShadow: isDark ? "0 0 30px rgba(255,128,0,0.35)" : "none" }}>
             Ma progression
           </h1>
 
-          {/* ── HERO CARD ──────────────────────────────────────────────────── */}
+          {/* Hero */}
           <div className="rounded-3xl p-6 relative overflow-hidden"
             style={{ background: "linear-gradient(135deg, #FF8000 0%, #C04000 50%, #0D1B2A 100%)" }}>
             <div style={{ position: "absolute", top: -30, right: -30, width: 160, height: 160, background: "radial-gradient(circle, rgba(255,200,80,0.22) 0%, transparent 70%)", pointerEvents: "none" }} />
             <div style={{ position: "absolute", bottom: -40, right: 30, width: 130, height: 130, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)", pointerEvents: "none" }} />
-
             <div className="flex items-start justify-between relative z-10">
               <div className="flex-1 mr-4">
-                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2"
-                  style={{ color: "rgba(255,255,255,0.5)" }}>
-                  {prenom ? `${prenom} ·` : ""}Ma progression
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  {prenom ? `${prenom} · ` : ""}Ma progression
                 </p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-5xl font-bold text-white leading-none">{streak}</span>
@@ -395,12 +280,12 @@ export default function ProgressionPage() {
             </div>
           </div>
 
-          {/* ── MÉTRIQUES ÉPURÉES ─────────────────────────────────────────── */}
+          {/* Métriques */}
           {(() => {
             const stats = [
-              { value: sessionCount, label: "sessions" },
+              { value: sessionCount,    label: "sessions" },
               { value: matieresSuivies, label: `matière${matieresSuivies > 1 ? "s" : ""}` },
-              { value: totalMastered, label: "maîtrisés", green: totalMastered > 0 },
+              { value: longTermCount,   label: "mémoire longue", green: longTermCount > 0 },
             ];
             return (
               <div className="rounded-2xl flex overflow-hidden" style={{ background: card, border: `1px solid ${brd}` }}>
@@ -415,7 +300,7 @@ export default function ProgressionPage() {
             );
           })()}
 
-          {/* ── POINT FORT ───────────────────────────────────────────────── */}
+          {/* Point fort */}
           {matieresFort && (
             <div className="flex items-center gap-4 px-5 py-4 rounded-2xl"
               style={{ background: isDark ? "rgba(16,185,129,0.07)" : "#F0FDF4", border: isDark ? "1px solid rgba(16,185,129,0.14)" : "1px solid #BBF7D0" }}>
@@ -431,13 +316,13 @@ export default function ProgressionPage() {
             </div>
           )}
 
-          {/* ── ÉTAT VIDE ─────────────────────────────────────────────────── */}
+          {/* État vide */}
           {!hasFailles && (
             <div className="rounded-3xl p-8 text-center space-y-4" style={{ background: card, border: `1px solid ${brd}` }}>
               <div className="text-4xl">📄</div>
               <p className="text-sm font-semibold" style={{ color: tx }}>Dépose ta première copie</p>
               <p className="text-xs leading-relaxed max-w-xs mx-auto" style={{ color: txSub }}>
-                Le Poulpe analyse tes copies corrigées et identifie tes points d&apos;amélioration — un par un.
+                Le Poulpe analyse tes copies et identifie tes points d&apos;amélioration — un par un.
               </p>
               <button onClick={() => router.push("/examens")}
                 className="px-6 py-3 rounded-xl text-sm font-bold text-white"
@@ -447,64 +332,70 @@ export default function ProgressionPage() {
             </div>
           )}
 
-          {/* ── TOUT BON POUR AUJOURD'HUI ─────────────────────────────────── */}
+          {/* Tout bon pour aujourd'hui */}
           {allClear && (
             <div className="rounded-3xl p-8 text-center space-y-3"
               style={{ background: isDark ? "rgba(16,185,129,0.07)" : "#F0FDF4", border: "1px solid rgba(16,185,129,0.25)" }}>
               <div className="text-4xl">🎉</div>
               <p className="text-base font-bold" style={{ color: "#10B981" }}>Tout bon pour aujourd&apos;hui !</p>
               <p className="text-xs" style={{ color: txSub }}>
-                {totalMastered > 0
-                  ? `${totalMastered} concept${totalMastered > 1 ? "s" : ""} maîtrisé${totalMastered > 1 ? "s" : ""}. Reviens demain pour la suite.`
-                  : "Reviens demain pour tes révisions."}
+                {longTermCount > 0 ? `${longTermCount} concept${longTermCount > 1 ? "s" : ""} en mémoire longue. ` : ""}
+                Reviens demain pour tes révisions.
               </p>
             </div>
           )}
 
-          {/* ── CONCEPTS DUS AUJOURD'HUI ─────────────────────────────────── */}
+          {/* Concepts du jour — Le Poulpe évalue, pas l'élève */}
           {hasFailles && !allClear && matiereActives.length > 0 && (
             <div className="space-y-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest px-1" style={{ color: txSub }}>
-                Pour aujourd&apos;hui
-              </p>
+              <div className="flex items-center gap-2 px-1">
+                <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: txSub }}>
+                  Pour aujourd&apos;hui
+                </p>
+                <span className="text-[10px] px-2 py-0.5 rounded-full"
+                  style={{ background: isDark ? "rgba(255,128,0,0.12)" : "#FFF3E0", color: "#FF8000" }}>
+                  Le Poulpe évalue
+                </span>
+              </div>
 
               {matiereActives.map(mat => {
-                const active = getActiveForMat(mat);
-                if (!active) return null;
-                const key = masteryKey(mat, active.concept);
+                const active = getActiveConcept(mat)!;
                 return (
                   <ConceptCard
                     key={mat}
                     matiere={mat}
                     concept={active}
-                    entry={mastery[key]}
-                    celebrating={celebrating[key] ?? null}
+                    entry={mastery[masteryKey(mat, active.concept)]}
                     isDark={isDark}
                     card={card}
                     tx={tx}
                     txSub={txSub}
                     brd={brd}
-                    onSais={() => markSais(mat, active.concept)}
-                    onPasEncore={() => markEncore(mat, active.concept)}
-                    onReviser={() => { localStorage.setItem("poulpe_matiere_active", mat); router.push("/"); }}
+                    onGo={() => goWork(mat, active)}
                   />
                 );
               })}
             </div>
           )}
 
-          {/* ── MATIÈRES TERMINÉES / EN ATTENTE ──────────────────────────── */}
-          {matiereTerminees.length > 0 && (
+          {/* Matières en attente (concepts pas encore dus) */}
+          {matiereEnAttente.length > 0 && (
             <div className="space-y-2">
-              {matiereTerminees.map(mat => {
-                const allMastered = (failles[mat]?.failles || []).every(f => mastery[masteryKey(mat, f.concept)]?.mastered);
+              <p className="text-[10px] font-semibold uppercase tracking-widest px-1" style={{ color: txSub }}>
+                À venir
+              </p>
+              {matiereEnAttente.map(mat => {
+                const next = nextReviewFor(mat);
+                const daysUntil = next
+                  ? Math.max(0, Math.ceil((new Date(next).getTime() - Date.now()) / 86400000))
+                  : null;
                 return (
                   <div key={mat} className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-                    style={{ background: isDark ? (allMastered ? "rgba(16,185,129,0.06)" : "rgba(255,255,255,0.02)") : (allMastered ? "#F0FDF4" : "#F9FAFB"), border: `1px solid ${allMastered ? "rgba(16,185,129,0.15)" : brd}` }}>
+                    style={{ background: isDark ? "rgba(255,255,255,0.02)" : "#F9FAFB", border: `1px solid ${brd}` }}>
                     <span className="text-base">{getEmoji(mat)}</span>
                     <span className="flex-1 text-sm font-medium" style={{ color: tx }}>{mat}</span>
-                    <span className="text-xs font-semibold" style={{ color: allMastered ? "#10B981" : txSub }}>
-                      {allMastered ? "Maîtrisé ✓" : "À demain ·"}
+                    <span className="text-[10px] font-medium" style={{ color: txSub }}>
+                      {daysUntil !== null ? `dans ${daysUntil}j` : "planifié"}
                     </span>
                   </div>
                 );
@@ -512,7 +403,7 @@ export default function ProgressionPage() {
             </div>
           )}
 
-          {/* ── MESSAGE BAS ───────────────────────────────────────────────── */}
+          {/* Message bas */}
           {hasFailles && (
             <p className="text-center text-[11px] leading-relaxed pt-1 pb-2"
               style={{ color: isDark ? "rgba(255,255,255,0.18)" : "#9BB5BF" }}>

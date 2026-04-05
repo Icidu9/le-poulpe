@@ -200,6 +200,7 @@ export default function Home() {
   const [isDark, setIsDark] = useState(false);
   const [focusContext, setFocusContext] = useState<{ concept: string; description: string; matiere: string } | null>(null);
   const [useClaudeMode, setUseClaudeMode] = useState(false);
+  const [reviewCtx, setReviewCtx] = useState<{ concept: string; matiere: string; mode: "learning" | "review"; level: number } | null>(null);
 
   const [messages, setMessages]           = useState<Message[]>([]);
   const [input, setInput]                 = useState("");
@@ -355,6 +356,15 @@ export default function Home() {
 
     const nom = p || "";
 
+    // Contexte révision SM-2 (depuis /progression)
+    const reviewRaw = localStorage.getItem("poulpe_review_context");
+    let reviewData: { concept: string; matiere: string; mode: "learning" | "review"; level: number } | null = null;
+    if (reviewRaw) {
+      try { reviewData = JSON.parse(reviewRaw); } catch {}
+      // Ne pas supprimer maintenant — supprimé après évaluation dans endSession
+      if (reviewData) { setReviewCtx(reviewData); setUseClaudeMode(true); }
+    }
+
     // Contexte focus (À réviser → Réviser) ou cours mode (Cours du jour → Commencer)
     let focusData: { concept: string; description: string; matiere: string } | null = null;
     const focusRaw = localStorage.getItem("poulpe_focus_context");
@@ -374,14 +384,25 @@ export default function Home() {
       localStorage.removeItem("poulpe_cours_mode");
     }
 
-    if (restoredMsgs.length >= 2 && !focusData && !coursMode) {
-      // Restaure la conversation précédente — sauf si on vient avec un focus/cours spécifique
+    if (restoredMsgs.length >= 2 && !focusData && !coursMode && !reviewData) {
+      // Restaure la conversation précédente — sauf si on vient avec un focus/cours/révision spécifique
       setRestoredSession(true);
       setMessages(restoredMsgs);
     } else {
       // Nouvelle session — message d'accueil contextuel selon mode / chapitre / matière / EDT
       let firstMsg: string;
-      if (focusData) {
+      if (reviewData) {
+        // Mode révision SM-2 : le Poulpe teste directement (pas de cours)
+        if (reviewData.mode === "review") {
+          firstMsg = nom
+            ? `Salut ${nom} ! Petite révision de **${reviewData.concept}** en ${reviewData.matiere} — 3 à 5 minutes, c'est parti ! ✏️`
+            : `Petite révision de **${reviewData.concept}** en ${reviewData.matiere} — c'est parti ! ✏️`;
+        } else {
+          firstMsg = nom
+            ? `Salut ${nom} ! Aujourd'hui on travaille **${reviewData.concept}** en ${reviewData.matiere}. Je t'explique et on s'entraîne ensemble ! 🎯`
+            : `Aujourd'hui on travaille **${reviewData.concept}** en ${reviewData.matiere}. C'est parti ! 🎯`;
+        }
+      } else if (focusData) {
         // Mode révision : le Poulpe commence la leçon directement
         firstMsg = nom
           ? `Salut ${nom} ! Aujourd'hui on attaque **${focusData.concept}** en ${focusData.matiere}. Je t'explique ça maintenant, c'est parti ! 🎯`
@@ -592,6 +613,7 @@ export default function Home() {
           memory: childMemory,
           parentEmail,
           chapitre: chapitreActif,
+          reviewContext: reviewCtx ?? null,
         }),
       });
       if (!response.ok) throw new Error("Erreur API");
@@ -599,16 +621,40 @@ export default function Home() {
       setLoading(false);
       const reader  = response.body!.getReader();
       const decoder = new TextDecoder();
+      let fullText = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const text = decoder.decode(value);
+        fullText += text;
         setMessages((prev) => {
           const last = prev[prev.length - 1];
           return [...prev.slice(0, -1), { ...last, content: last.content + text }];
         });
       }
       setIsSessionClosed(true);
+
+      // ── Parse évaluation mastery SM-2 si session de révision ──────────────
+      if (reviewCtx) {
+        const evalMatch = fullText.match(/\[EVAL\](.*?)\[\/EVAL\]/s);
+        if (evalMatch) {
+          try {
+            const evalData = JSON.parse(evalMatch[1]) as { concept: string; matiere: string; result: "pass" | "fail" };
+            const { updateMastery, loadMasteryData, saveMasteryData } = await import("../lib/mastery");
+            const currentMastery = loadMasteryData();
+            const updated = updateMastery(currentMastery, evalData.matiere, evalData.concept, evalData.result);
+            saveMasteryData(updated);
+          } catch {}
+        }
+        // Nettoyer le bloc EVAL de l'affichage + supprimer le contexte
+        setMessages(prev => prev.map((m, i) =>
+          i === prev.length - 1
+            ? { ...m, content: m.content.replace(/\n?\[EVAL\].*?\[\/EVAL\]/s, "").trim() }
+            : m
+        ));
+        localStorage.removeItem("poulpe_review_context");
+        setReviewCtx(null);
+      }
 
       // Auto-email parent si email configuré
       if (parentEmail) {
