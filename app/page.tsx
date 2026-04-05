@@ -935,9 +935,11 @@ export default function Home() {
                         boxShadow: "0 0 16px rgba(232,146,42,0.15)",
                       }
                     : isActive
-                    ? { background: "rgba(232,146,42,0.18)", color: "#E8922A", fontWeight: 600, boxShadow: "0 0 16px rgba(232,146,42,0.12)" }
+                    ? { background: "rgba(232,146,42,0.18)", color: "#E8922A", fontWeight: 600, fontSize: "0.875rem", boxShadow: "0 0 16px rgba(232,146,42,0.12)" }
                     : {
                         color: "rgba(255,255,255,0.42)",
+                        fontWeight: 400,
+                        fontSize: "0.875rem",
                         opacity: isTourDimmed ? 0.3 : 1,
                       }),
                 }}
@@ -958,7 +960,7 @@ export default function Home() {
             onClick={() => router.push("/examens")}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-colors text-left"
             style={{ background: nbCopies > 0 ? "rgba(232,146,42,0.15)" : "rgba(255,255,255,0.04)", color: nbCopies > 0 ? "#E8922A" : "rgba(255,255,255,0.42)" }}>
-            <span>📤</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             <span className="font-medium text-xs">Mes copies</span>
             {nbCopies > 0 && (
               <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full"
