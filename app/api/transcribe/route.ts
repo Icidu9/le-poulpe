@@ -1,57 +1,11 @@
-import OpenAI from "openai";
+// Transcription vocale — désactivée côté serveur pour conformité RGPD
+// La voix des élèves ne quitte jamais leur appareil.
+// La dictée utilise désormais Web Speech API (navigateur, 100% local).
+// Ce endpoint n'est plus utilisé — conservé pour compatibilité ascendante.
 
-function getGroq() {
-  return new OpenAI({
-    apiKey: process.env.GROQ_API_KEY,
-    baseURL: "https://api.groq.com/openai/v1",
-  });
-}
-
-export async function POST(req: Request) {
-  if (!process.env.GROQ_API_KEY) {
-    return new Response("GROQ_API_KEY manquante", { status: 503 });
-  }
-
-  let formData: FormData;
-  try {
-    formData = await req.formData();
-  } catch {
-    return new Response("Impossible de lire le formulaire audio", { status: 400 });
-  }
-
-  const audio = formData.get("audio") as File | null;
-  if (!audio || audio.size === 0) {
-    return new Response("Fichier audio manquant ou vide", { status: 400 });
-  }
-
-  // Reconstitue un File avec le bon type MIME pour Groq
-  const ext = audio.name?.split(".").pop()?.toLowerCase() || "webm";
-  const mimeMap: Record<string, string> = {
-    webm: "audio/webm",
-    mp4: "audio/mp4",
-    m4a: "audio/mp4",
-    wav: "audio/wav",
-    mp3: "audio/mpeg",
-    ogg: "audio/ogg",
-  };
-  const mimeType = mimeMap[ext] || "audio/webm";
-  const audioFile = new File([await audio.arrayBuffer()], `audio.${ext}`, { type: mimeType });
-
-  try {
-    const transcription = await getGroq().audio.transcriptions.create({
-      file: audioFile,
-      model: "whisper-large-v3",
-      language: "fr",
-      response_format: "text",
-      prompt: "Élève de collège ou lycée en France. Matières : maths, français, histoire, géographie, physique, chimie, SVT, anglais, espagnol, philosophie. Vocabulaire : verbes, conjugaison, équation, fraction, accord, participe, imparfait, subjonctif, hypothèse, démonstration, exercice, devoir, contrôle, réviser.",
-    });
-
-    return new Response(transcription as unknown as string, {
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    });
-  } catch (err: any) {
-    const msg = err?.message || "Erreur Groq inconnue";
-    console.error("[transcribe] Groq error:", msg);
-    return new Response(msg, { status: 500 });
-  }
+export async function POST() {
+  return new Response(
+    JSON.stringify({ error: "Transcription serveur désactivée. Utilise Web Speech API côté client." }),
+    { status: 410, headers: { "Content-Type": "application/json" } }
+  );
 }

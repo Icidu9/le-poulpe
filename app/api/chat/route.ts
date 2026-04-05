@@ -1,10 +1,17 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { Mistral } from "@mistralai/mistralai";
 import { createClient } from "@supabase/supabase-js";
 import { MASTER_SYSTEM_PROMPT } from "../../../master-system-prompt";
 import { injectProfileIntoPrompt } from "../../../build-system-prompt";
 
+// Claude — pour l'analyse d'images (vision manuscrite) et la mise à jour mémoire
 function getClient() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+}
+
+// Mistral — pour toutes les conversations texte (EU, RGPD-compliant)
+function getMistral() {
+  return new Mistral({ apiKey: process.env.MISTRAL_API_KEY });
 }
 
 // ── Rate limiting simple en mémoire (par IP) ─────────────────────────────────
@@ -320,6 +327,10 @@ export async function POST(req: Request) {
     })();
   }
 
+  const hasImages = messages.some(
+    (m) => m.images?.length || m.imageBase64
+  );
+
   const anthropicMessages = toAnthropicMessages(messages);
   if (closeSession) {
     anthropicMessages.push({ role: "user", content: "C'est tout pour aujourd'hui, résume notre session." });
@@ -331,28 +342,58 @@ export async function POST(req: Request) {
   const readable = new ReadableStream({
     async start(controller) {
       try {
-        // Mode quiz/exercice = Haiku (3x plus rapide, réponses courtes)
-        // Mode général = Sonnet (meilleur pour l'explication complexe)
-        const chapMode = (chapitre as any)?.mode;
-        const isQuickMode = chapMode === "quiz" || chapMode === "exercice";
-        const stream = getClient().messages.stream({
-          model: isQuickMode ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6",
-          max_tokens: isQuickMode ? 350 : 1024,
-          system: systemPrompt,
-          messages: anthropicMessages,
-        });
+        if (hasImages) {
+          // ── Claude (Anthropic) — messages avec photos ─────────────────────────
+          // Claude a la meilleure vision pour les copies manuscrites françaises
+          const stream = getClient().messages.stream({
+            model: "claude-sonnet-4-6",
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: anthropicMessages,
+          });
+          for await (const chunk of stream) {
+            if (
+              chunk.type === "content_block_delta" &&
+              chunk.delta.type === "text_delta"
+            ) {
+              fullResponse += chunk.delta.text;
+              controller.enqueue(encoder.encode(chunk.delta.text));
+            }
+          }
+        } else {
+          // ── Mistral (EU) — conversations texte ───────────────────────────────
+          // Mistral Large pour le tutoring général, Small pour quiz/exercices
+          const chapMode = (chapitre as any)?.mode;
+          const isQuickMode = chapMode === "quiz" || chapMode === "exercice";
 
-        for await (const chunk of stream) {
-          if (
-            chunk.type === "content_block_delta" &&
-            chunk.delta.type === "text_delta"
-          ) {
-            fullResponse += chunk.delta.text;
-            controller.enqueue(encoder.encode(chunk.delta.text));
+          const mistralMessages: { role: "system" | "user" | "assistant"; content: string }[] = [
+            { role: "system", content: systemPrompt },
+            ...messages
+              .filter((m) => !m.images?.length && !m.imageBase64)
+              .map((m) => ({
+                role: m.role as "user" | "assistant",
+                content: m.content || "",
+              })),
+          ];
+          if (closeSession) {
+            mistralMessages.push({ role: "user", content: "C'est tout pour aujourd'hui, résume notre session." });
+          }
+
+          const stream = await getMistral().chat.stream({
+            model: isQuickMode ? "mistral-small-latest" : "mistral-large-latest",
+            maxTokens: isQuickMode ? 350 : 1024,
+            messages: mistralMessages,
+          });
+
+          for await (const chunk of stream) {
+            const text = chunk.data.choices[0]?.delta?.content || "";
+            if (text) {
+              fullResponse += text;
+              controller.enqueue(encoder.encode(text));
+            }
           }
         }
       } catch (err) {
-        // Renvoie l'erreur réelle dans le stream pour que le client puisse la voir
         const errMsg = err instanceof Error ? err.message : String(err);
         controller.enqueue(encoder.encode(`[ERREUR API: ${errMsg}]`));
       }
