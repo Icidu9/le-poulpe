@@ -695,9 +695,8 @@ export default function Home() {
           if (data.text) {
             setInput(data.text);
           } else {
-            // Affiche l'erreur exacte pour debug
-            setTranscribeErrorMsg(data.error || "Transcription impossible");
-            setTimeout(() => setTranscribeErrorMsg(""), 8000);
+            setTranscribeErrorMsg("Transcription impossible, réessaie.");
+            setTimeout(() => setTranscribeErrorMsg(""), 4000);
           }
         } catch {
           setTranscribeErrorMsg("Erreur de transcription.");
