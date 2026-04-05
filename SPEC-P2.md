@@ -170,12 +170,23 @@ type Faille = {
 - Texte principal : `rgba(255,255,255,0.92)`
 - Texte secondaire : `rgba(255,255,255,0.42)`
 
-### Règles UI
+### Règles UI (philosophie Apple)
 - Pas de rouge (anxiogène pour les enfants)
 - Transitions douces (180ms opacity)
-- Font size sidebar fixe : `0.875rem` (14px) actif ET inactif
+- Font size sidebar fixe : `0.875rem` (14px) actif ET inactif — évite le flash de taille
 - Max 2 items par section dans le dashboard élève
 - Parents voient tout, enfants voient l'essentiel seulement
+- Sections collapsibles par défaut — jamais d'information subie
+- Jamais de chiffre déficit ("11 à travailler") — uniquement ce qui progresse
+- Max 3 chips de concepts visibles dans la progression (+N autres)
+- Mascottes poulpe SVG dans les cartes info (pas de l'icône app)
+
+### Sidebar
+- Composant partagé `Sidebar.tsx` pour toutes les pages sauf workspace (`/`)
+- Workspace (`app/page.tsx`) a sa propre sidebar inline — doit rester synchronisée
+- Icône "Mes copies" : SVG upload (pas emoji 📤) dans les deux sidebars
+- Bouton "Mes copies" orange si failles > 0, gris sinon
+- Lien "Espace parent" discret en bas (11px, opacité 25%)
 
 ---
 
@@ -197,6 +208,29 @@ type Faille = {
 
 ---
 
+## Page Progression (`/progression`)
+
+### Philosophie
+- Aucun chiffre de dette visible (supprimé "11 points à travailler")
+- Sections fermées par défaut → page courte, pas d'overwhelm
+- Clic pour dérouler une matière → chips de concepts (max 3 visibles)
+- Mastery décidée par Le Poulpe uniquement (pas de bouton manuel)
+
+### Structure
+1. **Header** : titre + phrase courte sur les matières actives
+2. **Point fort** (si renseigné dans le profil parent) — carte verte discrète
+3. **Liste matières** — une seule carte, rows collapsibles :
+   - Orange dot = concepts en travail
+   - ✓ vert = aucune faille repérée
+   - Déplié : max 3 chips orange + "+N autres" + bouton "Réviser avec Le Poulpe →"
+4. **Le Poulpe te dit** — carte encourageante avec mascotte SVG
+
+### Données utilisées
+- `poulpe_failles` : concepts identifiés par matière
+- `poulpe_profile` : matières fortes/difficiles déclarées par les parents
+
+---
+
 ## Roadmap beta (en cours)
 
 - [x] Auth parent + profil enfant
@@ -208,6 +242,10 @@ type Faille = {
 - [x] Répétition espacée méthode J
 - [x] Espace parent
 - [x] Mémoire inter-sessions (Supabase)
+- [x] Page progression redesignée (chips, collapsible, Apple-style)
+- [x] Mascottes poulpe SVG dans les cartes info (planning + progression)
+- [x] Architecture IA hybride (Sonnet copies / Haiku photos / Mistral texte)
+- [ ] Mastery automatique détectée par Le Poulpe (pas de bouton manuel)
 - [ ] Planning de révisions
 - [ ] Fiches de cours par matière complètes
 - [ ] Flashcards
