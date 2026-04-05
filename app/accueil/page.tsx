@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
+import BrainCerveau from "../cerveau/BrainCerveau";
 
 // ── Design System ────────────────────────────────────────────────────────────
 const MAT_COLORS: Record<string, { gradient: string; light: string; text: string; border: string }> = {
@@ -117,6 +118,7 @@ export default function AccueilPage() {
   const [coursVus,     setCoursVus]     = useState<string[]>([]);
   const [revisions,    setRevisions]    = useState<RevisionItem[]>([]);
   const [navigating,   setNavigating]   = useState(false);
+  const [workedSubjects, setWorkedSubjects] = useState<string[]>([]);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -149,12 +151,17 @@ export default function AccueilPage() {
 
     // Compte sessions et flashcards pour XP
     let count = 0, flashTotal = 0;
+    const worked: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i) || "";
-      if (key.startsWith("poulpe_chat_")) {
+      if (key.startsWith("poulpe_chat_") && key !== "poulpe_chat_general") {
         try {
           const msgs = JSON.parse(localStorage.getItem(key) || "[]");
-          if (Array.isArray(msgs) && msgs.length >= 2) count++;
+          if (Array.isArray(msgs) && msgs.length >= 2) {
+            count++;
+            const sub = key.replace("poulpe_chat_", "");
+            if (sub) worked.push(sub);
+          }
         } catch {}
       }
       if (key.startsWith("poulpe_flashcards_")) {
@@ -166,6 +173,7 @@ export default function AccueilPage() {
     }
     setSessionCount(count);
     setFlashCount(flashTotal);
+    setWorkedSubjects(worked);
 
     // ── Cours d'aujourd'hui depuis l'EDT ──────────────────────────────────
     const JOURS_MAP: Record<number, string> = {
@@ -310,49 +318,48 @@ export default function AccueilPage() {
       <div className="flex-1 overflow-y-auto" style={{ position: "relative", zIndex: 10, opacity: navigating ? 0 : 1, transition: "opacity 180ms ease" }}>
         <div className="max-w-lg mx-auto px-6 py-7 space-y-7">
 
-          {/* ── Hero greeting ── */}
-          <div className="flex items-center justify-between gap-4">
-            {/* Texte gauche */}
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: textSub }}>
-                {dateCap}
-              </p>
-              <h1 className="text-[1.6rem] font-bold tracking-tight leading-tight" style={{ color: textMain }}>
-                {greeting}, {prenom}
-              </h1>
-              <p className="text-xs mt-2" style={{ color: textSub }}>
-                {streak > 1 ? `${streak} jours de travail de suite` : "Bonne session."}
-              </p>
-            </div>
-
-            {/* Poulpe card droite */}
-            <div className="relative flex-shrink-0" style={{ width: 88, height: 88 }}>
-              {/* Halo ambiant */}
-              <div style={{
-                position: "absolute", inset: -8,
-                borderRadius: "50%",
-                background: "radial-gradient(circle, rgba(232,146,42,0.28) 0%, transparent 70%)",
-                pointerEvents: "none",
-              }} />
-              {/* Fond carte */}
-              <div className="rounded-2xl w-full h-full relative overflow-hidden flex items-center justify-center"
-                style={{ background: "linear-gradient(145deg, #1A2E42 0%, #0D1B2A 100%)", border: "1px solid rgba(232,146,42,0.2)" }}>
-                {/* Inner glow */}
-                <div style={{
-                  position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)",
-                  width: 60, height: 60,
-                  background: "radial-gradient(circle, rgba(232,146,42,0.18) 0%, transparent 70%)",
-                  pointerEvents: "none",
-                }} />
-                <Poulpe size={52} />
+          {/* ── Hero — Cerveau card ── */}
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => router.push("/cerveau")}
+              className="w-full rounded-3xl text-left transition-all hover:scale-[1.01] active:scale-[0.99] overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, #0D2035 0%, #061020 100%)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                boxShadow: workedSubjects.length > 0 ? "0 0 40px rgba(16,185,129,0.06)" : "none",
+              }}
+            >
+              <div className="flex items-center gap-2 px-5 pt-5 pb-3">
+                {/* Texte gauche */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest mb-2"
+                    style={{ color: "rgba(255,255,255,0.35)" }}>{dateCap}</p>
+                  <h1 className="text-xl font-bold text-white leading-snug">
+                    {greeting}, {prenom}
+                  </h1>
+                  <p className="text-xs mt-1.5 font-medium" style={{ color: workedSubjects.length > 0 ? "#10B981" : "rgba(255,255,255,0.35)" }}>
+                    {workedSubjects.length > 0
+                      ? `${Math.min(workedSubjects.length, 5)} zone${workedSubjects.length > 1 ? "s" : ""} active${workedSubjects.length > 1 ? "s" : ""}`
+                      : streak > 1 ? `${streak} jours de suite` : "Commence pour activer ton cerveau"}
+                  </p>
+                </div>
+                {/* Mini brain */}
+                <div className="flex-shrink-0" style={{ width: 110, height: 90 }}>
+                  <BrainCerveau activeSubjects={workedSubjects} isDark={true} />
+                </div>
               </div>
-            </div>
-
-            {/* Theme toggle */}
+              {/* Footer */}
+              <div className="px-5 pb-4">
+                <p className="text-[10px] font-medium" style={{ color: "rgba(255,255,255,0.22)" }}>
+                  Ton cerveau en action →
+                </p>
+              </div>
+            </button>
+            {/* Theme toggle flottant */}
             <button
               onClick={toggleTheme}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-sm flex-shrink-0 transition-all hover:scale-105"
-              style={glass}
+              className="absolute top-3 right-3 w-7 h-7 rounded-xl flex items-center justify-center text-xs transition-all hover:scale-105"
+              style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(8px)" }}
             >
               {isDark ? "🌙" : "☀️"}
             </button>
