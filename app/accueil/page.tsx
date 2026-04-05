@@ -310,40 +310,49 @@ export default function AccueilPage() {
       <div className="flex-1 overflow-y-auto" style={{ position: "relative", zIndex: 10, opacity: navigating ? 0 : 1, transition: "opacity 180ms ease" }}>
         <div className="max-w-lg mx-auto px-6 py-7 space-y-7">
 
-          {/* ── Hero greeting card ── */}
-          <div style={{ position: "relative" }}>
-            <div className="rounded-3xl p-6 relative overflow-hidden"
-              style={{ background: "linear-gradient(135deg, #E8922A 0%, #C05C2A 50%, #0D1B2A 100%)" }}>
-              {/* Halo */}
-              <div style={{ position: "absolute", top: -30, right: -30, width: 170, height: 170,
-                background: "radial-gradient(circle, rgba(255,200,80,0.2) 0%, transparent 70%)",
-                pointerEvents: "none" }} />
-              {/* Cercle décoratif */}
-              <div style={{ position: "absolute", bottom: -40, right: 50, width: 130, height: 130,
-                borderRadius: "50%", border: "1px solid rgba(255,255,255,0.08)", pointerEvents: "none" }} />
-              {/* Poulpe */}
-              <div style={{ position: "absolute", right: 20, top: "50%", transform: "translateY(-50%)" }}>
-                <Poulpe size={54} />
-              </div>
-              {/* Contenu */}
-              <div style={{ maxWidth: "68%" }}>
-                <p className="text-[10px] font-semibold uppercase tracking-widest mb-3"
-                  style={{ color: "rgba(255,255,255,0.5)" }}>{dateCap}</p>
-                <h1 className="text-xl font-bold text-white leading-snug">
-                  {greeting}, {prenom}
-                </h1>
-                <p className="text-sm mt-2 font-medium" style={{ color: "rgba(255,255,255,0.65)" }}>
-                  {streak > 1
-                    ? `${streak} jours de travail de suite`
-                    : "Chaque jour compte."}
-                </p>
+          {/* ── Hero greeting ── */}
+          <div className="flex items-center justify-between gap-4">
+            {/* Texte gauche */}
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: textSub }}>
+                {dateCap}
+              </p>
+              <h1 className="text-[1.6rem] font-bold tracking-tight leading-tight" style={{ color: textMain }}>
+                {greeting}, {prenom}
+              </h1>
+              <p className="text-xs mt-2" style={{ color: textSub }}>
+                {streak > 1 ? `${streak} jours de travail de suite` : "Bonne session."}
+              </p>
+            </div>
+
+            {/* Poulpe card droite */}
+            <div className="relative flex-shrink-0" style={{ width: 88, height: 88 }}>
+              {/* Halo ambiant */}
+              <div style={{
+                position: "absolute", inset: -8,
+                borderRadius: "50%",
+                background: "radial-gradient(circle, rgba(232,146,42,0.28) 0%, transparent 70%)",
+                pointerEvents: "none",
+              }} />
+              {/* Fond carte */}
+              <div className="rounded-2xl w-full h-full relative overflow-hidden flex items-center justify-center"
+                style={{ background: "linear-gradient(145deg, #1A2E42 0%, #0D1B2A 100%)", border: "1px solid rgba(232,146,42,0.2)" }}>
+                {/* Inner glow */}
+                <div style={{
+                  position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)",
+                  width: 60, height: 60,
+                  background: "radial-gradient(circle, rgba(232,146,42,0.18) 0%, transparent 70%)",
+                  pointerEvents: "none",
+                }} />
+                <Poulpe size={52} />
               </div>
             </div>
-            {/* Theme toggle flottant */}
+
+            {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="absolute top-3 right-3 w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all hover:scale-105"
-              style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-sm flex-shrink-0 transition-all hover:scale-105"
+              style={glass}
             >
               {isDark ? "🌙" : "☀️"}
             </button>
