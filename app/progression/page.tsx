@@ -93,7 +93,7 @@ export default function ProgressionPage() {
           {/* Header */}
           <div className="space-y-1">
             <h1 className="text-2xl font-bold" style={{ color: isDark ? "#E8922A" : "#0A2030" }}>
-              Ma progression
+              Ce que je travaille
             </h1>
             <p className="text-sm" style={{ color: txSub }}>
               {hasFailles
