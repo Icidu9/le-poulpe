@@ -133,8 +133,8 @@ export default function Sidebar() {
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
               style={
                 isActive
-                  ? { background: "rgba(232,146,42,0.18)", color: "#E8922A", fontWeight: 600, boxShadow: "0 0 16px rgba(232,146,42,0.12)" }
-                  : { color: "rgba(255,255,255,0.42)" }
+                  ? { background: "rgba(232,146,42,0.18)", color: "#E8922A", fontWeight: 600, fontSize: "0.875rem", boxShadow: "0 0 16px rgba(232,146,42,0.12)" }
+                  : { color: "rgba(255,255,255,0.42)", fontWeight: 400, fontSize: "0.875rem" }
               }
             >
               <span>{item.icon}</span>
