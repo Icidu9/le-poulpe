@@ -38,6 +38,224 @@ type Flashcard = {
   date: string;
 };
 
+type ExamenLocal = { id: string; matiere: string; date: string; note: string; analysis: { failles: unknown[] } };
+
+// ── Brain XP ─────────────────────────────────────────────────────────────
+
+const BRAIN_HEMISPHERE =
+  "M 170,185 C 125,190 78,185 45,174 C 18,162 2,134 5,104 " +
+  "C 8,75 20,50 38,33 C 57,14 90,6 130,5 " +
+  "C 166,4 194,16 212,37 C 228,58 228,86 221,112 " +
+  "C 215,134 202,152 184,163 C 178,168 174,176 170,185 Z";
+
+const CEREBELLUM_PATH =
+  "M 188,158 C 205,153 232,158 246,174 " +
+  "C 257,187 248,202 228,202 C 210,202 192,192 188,178 " +
+  "C 186,170 186,162 188,158 Z";
+
+const BRAIN_REGIONS = [
+  {
+    id: "frontal",     label: "Logique",
+    subjects: ["Mathématiques", "Maths", "Physique-Chimie", "Physique", "Chimie"],
+    emoji: "📐",
+    ellipse: { cx: 65, cy: 100, rx: 62, ry: 82 },
+    badge:   { x: 62,  y: 100 },
+    isCerebellum: false,
+  },
+  {
+    id: "parietal",    label: "Sciences",
+    subjects: ["SVT", "Sciences de la Vie"],
+    emoji: "🌿",
+    ellipse: { cx: 162, cy: 48, rx: 58, ry: 42 },
+    badge:   { x: 162,  y: 48 },
+    isCerebellum: false,
+  },
+  {
+    id: "temporal",    label: "Lettres",
+    subjects: ["Français", "Latin"],
+    emoji: "📖",
+    ellipse: { cx: 100, cy: 160, rx: 82, ry: 28 },
+    badge:   { x: 98,   y: 160 },
+    isCerebellum: false,
+  },
+  {
+    id: "occipital",   label: "Histoire",
+    subjects: ["Histoire-Géo", "Histoire", "Géographie", "Histoire-Géographie"],
+    emoji: "🌍",
+    ellipse: { cx: 210, cy: 110, rx: 30, ry: 55 },
+    badge:   { x: 208,  y: 110 },
+    isCerebellum: false,
+  },
+  {
+    id: "cerebellum",  label: "Langues",
+    subjects: ["Anglais", "Espagnol", "Allemand"],
+    emoji: "🇬🇧",
+    ellipse: { cx: 218, cy: 183, rx: 30, ry: 18 },
+    badge:   { x: 218,  y: 183 },
+    isCerebellum: true,
+  },
+] as const;
+
+function getRegionLevel(
+  subjects: readonly string[],
+  examens: ExamenLocal[],
+  flashcards: { matiere: string }[]
+): number {
+  const match = (mat: string) =>
+    subjects.some(
+      (s) => mat.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(mat.toLowerCase())
+    );
+  let pts = 0;
+  for (const e of examens) if (match(e.matiere || "")) pts += 2;
+  for (const f of flashcards) if (match(f.matiere || "")) pts += 0.5;
+  return pts === 0 ? 0 : Math.min(10, Math.max(1, Math.round(pts)));
+}
+
+function BrainXP({
+  examens,
+  flashcards,
+  isDark,
+}: {
+  examens: ExamenLocal[];
+  flashcards: { matiere: string }[];
+  isDark: boolean;
+}) {
+  const cardBg   = isDark ? "rgba(6,26,38,0.75)" : "#FFFFFF";
+  const border   = isDark ? "rgba(255,255,255,0.08)" : "#DCE9ED";
+  const textSub  = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
+  const brainFill   = isDark ? "rgba(3,13,24,0.85)" : "rgba(235,245,255,0.9)";
+  const strokeColor = isDark ? "rgba(255,255,255,0.14)" : "rgba(0,40,80,0.14)";
+  const gyriColor   = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+
+  const levels = BRAIN_REGIONS.map((r) => ({
+    ...r,
+    level: getRegionLevel(r.subjects, examens, flashcards),
+  }));
+
+  const regionFill = (level: number) =>
+    level === 0
+      ? "rgba(255,255,255,0.02)"
+      : `rgba(232,146,42,${Math.min(0.82, 0.15 + (level / 10) * 0.67)})`;
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: cardBg, border: `1px solid ${border}`, padding: "20px 16px 16px", position: "relative" }}
+    >
+      {/* Ambient lights */}
+      <div style={{ position: "absolute", top: -50, left: -50, width: 220, height: 220, borderRadius: "50%", background: "radial-gradient(circle, rgba(232,146,42,0.10) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: -40, right: 20, width: 180, height: 180, borderRadius: "50%", background: "radial-gradient(circle, rgba(232,146,42,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
+
+      <div className="text-center mb-3">
+        <div className="text-xs font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>🧠 Mon cerveau</div>
+        <div className="text-[11px] mt-0.5" style={{ color: textSub }}>
+          Chaque session active une zone — plus tu travailles, plus ton cerveau brille
+        </div>
+      </div>
+
+      <svg viewBox="0 0 280 215" width="100%" style={{ display: "block", maxHeight: 195, margin: "0 auto" }}>
+        <defs>
+          <filter id="bxp-glow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="7" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="bxp-glow-sm" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <clipPath id="bxp-hemisphere"><path d={BRAIN_HEMISPHERE}/></clipPath>
+          <clipPath id="bxp-cerebellum"><path d={CEREBELLUM_PATH}/></clipPath>
+        </defs>
+
+        {/* Base fills */}
+        <path d={BRAIN_HEMISPHERE} fill={brainFill} stroke={strokeColor} strokeWidth="1.5"/>
+        <path d={CEREBELLUM_PATH}  fill={brainFill} stroke={strokeColor} strokeWidth="1.5"/>
+
+        {/* Gyri texture */}
+        <g stroke={gyriColor} strokeWidth="1.5" fill="none">
+          <path d="M 15,90 C 35,78 58,72 80,75"/>
+          <path d="M 8,115 C 30,108 58,105 85,108 C 110,111 130,108 150,102"/>
+          <path d="M 85,14 C 105,8 135,6 162,10 C 185,14 200,22 212,34"/>
+          <path d="M 42,145 C 65,138 92,135 118,138 C 140,140 158,136 172,128"/>
+          <path d="M 25,55 C 40,44 58,37 76,35"/>
+          <path d="M 100,170 C 118,165 140,163 158,166"/>
+        </g>
+
+        {/* Region fills — hemisphere */}
+        <g clipPath="url(#bxp-hemisphere)">
+          {levels.filter((r) => !r.isCerebellum).map((r) => (
+            <ellipse
+              key={r.id}
+              cx={r.ellipse.cx} cy={r.ellipse.cy} rx={r.ellipse.rx} ry={r.ellipse.ry}
+              fill={regionFill(r.level)}
+              filter={r.level >= 5 ? "url(#bxp-glow-sm)" : undefined}
+            />
+          ))}
+        </g>
+
+        {/* Cerebellum region */}
+        <g clipPath="url(#bxp-cerebellum)">
+          {(() => {
+            const r = levels.find((x) => x.isCerebellum)!;
+            return (
+              <ellipse
+                cx={r.ellipse.cx} cy={r.ellipse.cy} rx={r.ellipse.rx} ry={r.ellipse.ry}
+                fill={regionFill(r.level)}
+                filter={r.level >= 5 ? "url(#bxp-glow-sm)" : undefined}
+              />
+            );
+          })()}
+        </g>
+
+        {/* Outlines on top */}
+        <path d={BRAIN_HEMISPHERE} fill="none" stroke={strokeColor} strokeWidth="2"/>
+        <path d={CEREBELLUM_PATH}  fill="none" stroke={strokeColor} strokeWidth="2"/>
+
+        {/* Level badges */}
+        {levels.map((r) => (
+          <g key={`b-${r.id}`}>
+            <text x={r.badge.x} y={r.badge.y - 6} textAnchor="middle" fontSize="10" style={{ userSelect: "none" }}>
+              {r.emoji}
+            </text>
+            <circle
+              cx={r.badge.x} cy={r.badge.y + 7} r="9"
+              fill={r.level > 0 ? "#E8922A" : (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)")}
+              filter={r.level >= 7 ? "url(#bxp-glow)" : undefined}
+            />
+            <text
+              x={r.badge.x} y={r.badge.y + 11}
+              textAnchor="middle" fontSize="8" fontWeight="bold"
+              fill={r.level > 0 ? "white" : (isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.2)")}
+              style={{ userSelect: "none" }}
+            >
+              {r.level > 0 ? String(r.level) : "—"}
+            </text>
+          </g>
+        ))}
+      </svg>
+
+      {/* Legend */}
+      <div className="flex flex-wrap justify-center gap-2 mt-3">
+        {levels.map((r) => (
+          <div
+            key={`leg-${r.id}`}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+            style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }}
+          >
+            <span style={{ fontSize: 11 }}>{r.emoji}</span>
+            <span style={{ fontSize: 10, color: textSub }}>{r.label}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: r.level > 0 ? "#E8922A" : (isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.18)") }}>
+              {r.level > 0 ? `Niv. ${r.level}` : "—"}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function ProgressionPage() {
   const router = useRouter();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -48,6 +266,7 @@ export default function ProgressionPage() {
   const [expanded,     setExpanded]     = useState<string | null>(null);
   const [flashcards,   setFlashcards]   = useState<Flashcard[]>([]);
   const [flipped,      setFlipped]      = useState<Record<string, boolean>>({});
+  const [examens,      setExamens]      = useState<ExamenLocal[]>([]);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -67,6 +286,9 @@ export default function ProgressionPage() {
 
     const fc = localStorage.getItem("poulpe_flashcards");
     if (fc) { try { setFlashcards(JSON.parse(fc)); } catch {} }
+
+    const ex = localStorage.getItem("poulpe_examens");
+    if (ex) { try { setExamens(JSON.parse(ex)); } catch {} }
 
     const f = localStorage.getItem("poulpe_failles");
     if (f) {
@@ -169,6 +391,9 @@ export default function ProgressionPage() {
               Les points identifiés dans tes copies, matière par matière.
             </p>
           </div>
+
+          {/* Cerveau XP */}
+          <BrainXP examens={examens} flashcards={flashcards} isDark={isDark} />
 
           {/* Fiches de révision */}
           {flashcards.length > 0 && (
