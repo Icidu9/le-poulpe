@@ -231,10 +231,11 @@ export default function AccueilPage() {
       const last = lastExamDate[mat];
       if (!last) return null;
       const days = Math.floor((Date.now() - last.getTime()) / 86400000);
-      if (days === 1)  return { label: "J+1 · À revoir maintenant", priority: 1, color: "red" };
-      if (days <= 4)   return { label: "J+3 · Consolider", priority: 2, color: "orange" };
-      if (days <= 10)  return { label: "J+7 · Vérifier", priority: 5, color: "orange" };
-      if (days <= 20)  return { label: "J+15 · Long terme", priority: 8, color: "yellow" };
+      if (days === 0)  return { label: "Tu as vu ça aujourd'hui · Commence ce soir", priority: 1, color: "red" };
+      if (days === 1)  return { label: "Tu as vu ça hier · Premier rappel aujourd'hui", priority: 1, color: "red" };
+      if (days <= 4)   return { label: "Ça fait 3 jours · Consolide avant d'oublier", priority: 2, color: "orange" };
+      if (days <= 10)  return { label: "Ça fait une semaine · Vérifie que c'est ancré", priority: 5, color: "orange" };
+      if (days <= 20)  return { label: "Révision longue durée · Garde-le en mémoire", priority: 8, color: "yellow" };
       return null;
     }
 
@@ -454,6 +455,13 @@ export default function AccueilPage() {
                   onClick={() => {
                     localStorage.setItem("poulpe_matiere_active", first.matiere);
                     localStorage.removeItem("poulpe_chapitre_actif");
+                    if (first.concept) {
+                      localStorage.setItem("poulpe_focus_context", JSON.stringify({
+                        concept: first.concept,
+                        description: first.description || "",
+                        matiere: first.matiere,
+                      }));
+                    }
                     router.push("/");
                   }}
                   className="w-full text-left rounded-3xl px-6 py-5 mb-3 transition-all hover:scale-[1.01] active:scale-[0.99]"

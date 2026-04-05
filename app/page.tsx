@@ -198,6 +198,7 @@ export default function Home() {
   const [chapitreActif, setChapitreActif] = useState<{ matiere: string; chapitre: string; description: string; niveau: string } | null>(null);
   const [restoredSession, setRestoredSession] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [focusContext, setFocusContext] = useState<{ concept: string; description: string; matiere: string } | null>(null);
 
   const [messages, setMessages]           = useState<Message[]>([]);
   const [input, setInput]                 = useState("");
@@ -353,33 +354,28 @@ export default function Home() {
 
     const nom = p || "";
 
+    // Contexte focus depuis l'accueil (Programme du jour → Commencer)
+    let focusData: { concept: string; description: string; matiere: string } | null = null;
+    const focusRaw = localStorage.getItem("poulpe_focus_context");
+    if (focusRaw) {
+      try { focusData = JSON.parse(focusRaw); } catch {}
+      localStorage.removeItem("poulpe_focus_context");
+    }
+    if (focusData) setFocusContext(focusData);
+
     if (restoredMsgs.length >= 2) {
       // Restaure la conversation précédente
       setRestoredSession(true);
       setMessages(restoredMsgs);
     } else {
-      // Récupère la faille prioritaire pour la matière active (si disponible)
-      let failleHint = "";
-      if (matActive) {
-        const fRaw = localStorage.getItem("poulpe_failles");
-        if (fRaw) {
-          try {
-            const fParsed = JSON.parse(fRaw);
-            // Cherche une faille pour la matière active (correspondance partielle)
-            const matchKey = Object.keys(fParsed).find((k) =>
-              k.toLowerCase().includes(matActive.toLowerCase()) || matActive.toLowerCase().includes(k.toLowerCase())
-            );
-            const topFaille = matchKey && fParsed[matchKey]?.failles?.[0];
-            if (topFaille) {
-              failleHint = `\nOn avait repéré un point à travailler : **${topFaille.concept}**. Si ça revient ce soir, dis-le moi !`;
-            }
-          } catch {}
-        }
-      }
-
-      // Nouvelle session — message d'accueil contextuel selon chapitre / matière / EDT
+      // Nouvelle session — message d'accueil contextuel selon focus / chapitre / matière / EDT
       let firstMsg: string;
-      if (chapActif) {
+      if (focusData) {
+        // Mode focus : le Poulpe annonce qu'il commence directement la leçon
+        firstMsg = nom
+          ? `Salut ${nom} ! Aujourd'hui on attaque **${focusData.concept}** en ${focusData.matiere}. Je t'explique ça maintenant, c'est parti ! 🎯`
+          : `Aujourd'hui on attaque **${focusData.concept}** en ${focusData.matiere}. C'est parti ! 🎯`;
+      } else if (chapActif) {
         const mode = (chapActif as any).mode || "chat";
         if (mode === "quiz") {
           firstMsg = nom
@@ -396,8 +392,8 @@ export default function Home() {
         }
       } else if (matActive) {
         firstMsg = nom
-          ? `Salut ${nom} ! On travaille sur **${matActive}**, t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷${failleHint}`
-          : `Salut ! On travaille sur **${matActive}**, t'as quoi comme exercice ?${failleHint}`;
+          ? `Salut ${nom} ! On travaille sur **${matActive}**, t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷`
+          : `Salut ! On travaille sur **${matActive}**, t'as quoi comme exercice ?`;
       } else if (coursJour.length > 0) {
         const liste = coursJour.join(", ");
         firstMsg = nom
@@ -468,6 +464,58 @@ export default function Home() {
       .catch(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapitreActif]);
+
+  // Auto-démarre la leçon quand l'enfant arrive depuis le Programme du jour
+  useEffect(() => {
+    if (!focusContext) return;
+    if (messages.length > 1) return; // Seulement sur session fraîche
+
+    let faillesToSend: Record<string, unknown> = {};
+    let edtToSend: Record<string, string[]> = {};
+    let profileToSend: Record<string, unknown> | null = null;
+    try { faillesToSend = JSON.parse(localStorage.getItem("poulpe_failles") || "{}"); } catch {}
+    try { edtToSend = JSON.parse(localStorage.getItem("poulpe_emploi_du_temps") || "{}"); } catch {}
+    try { profileToSend = JSON.parse(localStorage.getItem("poulpe_profile") || "null"); } catch {}
+    const email = localStorage.getItem("poulpe_parent_email") || localStorage.getItem("poulpe_beta_email") || "";
+
+    const prompt = `[MODE FOCUS] Commence directement une mini-leçon sur : "${focusContext.concept}" en ${focusContext.matiere}.${focusContext.description ? ` Contexte : ${focusContext.description}.` : ""} Explique ce point clairement et simplement, avec un exemple concret adapté au niveau de l'élève. Ensuite propose un exercice simple pour vérifier la compréhension. Ne demande pas ce qu'il a comme exercice ce soir — commence directement la leçon.`;
+
+    setLoading(true);
+    setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: prompt }],
+        failles: faillesToSend,
+        sessionId,
+        childName: prenom,
+        emploiDuTemps: edtToSend,
+        profile: profileToSend,
+        memory: childMemory,
+        parentEmail: email,
+        matiereActive: focusContext.matiere,
+      }),
+    })
+      .then(async (response) => {
+        if (!response.ok || !response.body) { setLoading(false); return; }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        setLoading(false);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const text = decoder.decode(value);
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            return [...prev.slice(0, -1), { ...last, content: last.content + text }];
+          });
+        }
+      })
+      .catch(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusContext]);
 
   useEffect(() => {
     if (!userScrolledUp.current) {
