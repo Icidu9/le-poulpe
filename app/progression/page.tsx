@@ -130,20 +130,15 @@ function ConceptCard({
       <div className="flex items-center gap-3 mb-3">
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
-          style={{ background: `${color}15`, border: `1px solid ${color}25` }}
+          style={{ background: `${color}15`, border: `1px solid ${color}22` }}
         >
           {getEmoji(matiere)}
         </div>
         <div className="flex-1 min-w-0">
-          <span className="text-xs font-semibold" style={{ color }}>{matiere}</span>
-          {remaining > 0 && (
-            <p className="text-[10px]" style={{ color: txSub }}>
-              + {remaining} point{remaining > 1 ? "s" : ""} après celui-ci
-            </p>
-          )}
+          <span className="text-xs font-semibold" style={{ color: "#E8922A" }}>{matiere}</span>
         </div>
         {concept.count > 1 && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${color}12`, color }}>
+          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(232,146,42,0.12)", color: "#E8922A" }}>
             ×{concept.count}
           </span>
         )}
@@ -317,20 +312,34 @@ export default function ProgressionPage() {
             </div>
           </div>
 
-          {/* ── MÉTRIQUES EFFORT ─────────────────────────────────────────── */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { icon: "💬", value: sessionCount, label: "sessions" },
-              { icon: "📚", value: matieresSuivies, label: `matière${matieresSuivies > 1 ? "s" : ""}` },
-              { icon: "✅", value: Object.values(done).reduce((a, b) => a + b.length, 0), label: "points faits" },
-            ].map(({ icon, value, label }) => (
-              <div key={label} className="rounded-2xl px-3 py-4 text-center" style={{ background: card, border: `1px solid ${brd}` }}>
-                <div className="text-xl mb-1">{icon}</div>
-                <div className="text-2xl font-bold leading-none" style={{ color: tx }}>{value}</div>
-                <div className="text-[10px] mt-1.5 leading-tight" style={{ color: txSub }}>{label}</div>
+          {/* ── MÉTRIQUES EFFORT — Apple-style, une seule bande épurée ── */}
+          {(() => {
+            const doneCount = Object.values(done).reduce((a, b) => a + b.length, 0);
+            const stats = [
+              { value: sessionCount, label: "sessions" },
+              { value: matieresSuivies, label: `matière${matieresSuivies > 1 ? "s" : ""}` },
+              { value: doneCount, label: "points faits", green: doneCount > 0 },
+            ];
+            return (
+              <div className="rounded-2xl flex overflow-hidden" style={{ background: card, border: `1px solid ${brd}` }}>
+                {stats.map(({ value, label, green }, i) => (
+                  <div
+                    key={label}
+                    className="flex-1 py-4 text-center"
+                    style={{ borderRight: i < stats.length - 1 ? `1px solid ${brd}` : "none" }}
+                  >
+                    <div
+                      className="text-2xl font-bold leading-none"
+                      style={{ color: green ? "#10B981" : tx }}
+                    >
+                      {value}
+                    </div>
+                    <div className="text-[10px] mt-1.5 leading-tight" style={{ color: txSub }}>{label}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
 
           {/* ── POINT FORT ───────────────────────────────────────────────── */}
           {matieresFort && (
