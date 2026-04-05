@@ -264,7 +264,7 @@ export default function ProgressionPage() {
   const matiereTerminees = matieresFailles.filter(m => getActiveConcept(m) === null);
   const allDone = hasFailles && matiereActives.length === 0;
 
-  const streakEmoji = streak >= 14 ? "🔥" : streak >= 7 ? "⚡" : streak >= 3 ? "✨" : "📅";
+  const streakEmoji = streak >= 14 ? "🔥" : streak >= 7 ? "⚡" : streak >= 3 ? "✨" : "";
   const streakMsg   = streak >= 14 ? "Tu es en feu !" : streak >= 7 ? "Belle régularité !" : streak >= 3 ? "Continue comme ça !" : "Chaque jour compte.";
 
   return (
