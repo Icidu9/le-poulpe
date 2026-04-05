@@ -311,33 +311,43 @@ export default function AccueilPage() {
 
       {/* ── Main ── */}
       <div className="flex-1 overflow-y-auto" style={{ position: "relative", zIndex: 10, opacity: navigating ? 0 : 1, transition: "opacity 180ms ease" }}>
-        <div className="max-w-lg mx-auto px-6 py-9 space-y-9">
+        <div className="max-w-lg mx-auto px-6 py-7 space-y-7">
 
-          {/* ── Greeting ── */}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-widest mb-3" style={{ color: textSub }}>
-                {dateCap}
-              </p>
-              <h1 className="text-[2.2rem] font-bold tracking-tight leading-none" style={{ color: textMain }}>
-                {greeting},
-              </h1>
-              <h1 className="text-[2.2rem] font-bold tracking-tight leading-tight" style={{ color: textMain }}>
-                {prenom}
-              </h1>
-              {streak > 0 && (
-                <div className="flex items-center gap-1.5 mt-3">
-                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: streakColor }} />
-                  <span className="text-xs font-medium" style={{ color: streakColor }}>
-                    {streak} jour{streak > 1 ? "s" : ""} de suite
-                  </span>
-                </div>
-              )}
+          {/* ── Hero greeting card ── */}
+          <div style={{ position: "relative" }}>
+            <div className="rounded-3xl p-6 relative overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #E8922A 0%, #C05C2A 50%, #0D1B2A 100%)" }}>
+              {/* Halo */}
+              <div style={{ position: "absolute", top: -30, right: -30, width: 170, height: 170,
+                background: "radial-gradient(circle, rgba(255,200,80,0.2) 0%, transparent 70%)",
+                pointerEvents: "none" }} />
+              {/* Cercle décoratif */}
+              <div style={{ position: "absolute", bottom: -40, right: 50, width: 130, height: 130,
+                borderRadius: "50%", border: "1px solid rgba(255,255,255,0.08)", pointerEvents: "none" }} />
+              {/* Poulpe */}
+              <div style={{ position: "absolute", right: 20, top: "50%", transform: "translateY(-50%)" }}>
+                <Poulpe size={54} />
+              </div>
+              {/* Contenu */}
+              <div style={{ maxWidth: "68%" }}>
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-3"
+                  style={{ color: "rgba(255,255,255,0.5)" }}>{dateCap}</p>
+                <h1 className="text-2xl font-bold text-white leading-snug">
+                  {greeting},<br />{prenom}
+                </h1>
+                <p className="text-sm mt-2 font-medium" style={{ color: "rgba(255,255,255,0.65)" }}>
+                  {streak > 1
+                    ? `${streak} jours de suite — continue !`
+                    : streak === 1 ? "C'est parti, bonne session !"
+                    : "Bonne session aujourd'hui."}
+                </p>
+              </div>
             </div>
+            {/* Theme toggle flottant */}
             <button
               onClick={toggleTheme}
-              className="w-9 h-9 rounded-2xl flex items-center justify-center text-base mt-1 flex-shrink-0 transition-all hover:scale-105"
-              style={glass}
+              className="absolute top-3 right-3 w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all hover:scale-105"
+              style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}
             >
               {isDark ? "🌙" : "☀️"}
             </button>
