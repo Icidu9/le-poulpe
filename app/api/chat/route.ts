@@ -361,24 +361,6 @@ export async function POST(req: Request) {
               controller.enqueue(encoder.encode(chunk.delta.text));
             }
           }
-        } else if (useClaude) {
-          // ── Claude Sonnet — mode focus/révision sans image ────────────────────
-          const claudeTextRes = await getClient().messages.create({
-            model: "claude-sonnet-4-6",
-            max_tokens: 1024,
-            system: systemPrompt,
-            messages: toAnthropicMessages(messages),
-            stream: true,
-          });
-          for await (const chunk of claudeTextRes) {
-            if (
-              chunk.type === "content_block_delta" &&
-              chunk.delta.type === "text_delta"
-            ) {
-              fullResponse += chunk.delta.text;
-              controller.enqueue(encoder.encode(chunk.delta.text));
-            }
-          }
         } else {
           // ── Mistral (EU) — conversations texte ───────────────────────────────
           // Mistral Large pour le tutoring général et quiz/exercices
@@ -414,7 +396,12 @@ export async function POST(req: Request) {
         }
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err);
-        controller.enqueue(encoder.encode(`[ERREUR API: ${errMsg}]`));
+        // Message friendly pour l'enfant — pas d'erreur technique visible
+        const friendlyMsg = errMsg.includes("credit") || errMsg.includes("balance")
+          ? "Oups, je suis indisponible pour l'instant 🐙 Réessaie dans quelques minutes !"
+          : "Je n'arrive pas à répondre en ce moment. Vérifie ta connexion et réessaie !";
+        controller.enqueue(encoder.encode(friendlyMsg));
+        console.error("[API CHAT ERROR]", errMsg); // Log côté serveur seulement
       }
 
       controller.close();
