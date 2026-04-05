@@ -57,3 +57,20 @@ export async function POST(req: Request) {
   if (error) return Response.json({ ok: false, error: error.message }, { status: 500 });
   return Response.json({ ok: true });
 }
+
+// Supprime toutes les données d'un enfant (RGPD Art.17 — droit à l'effacement)
+export async function DELETE(req: Request) {
+  const { email } = (await req.json()) as { email: string };
+  if (!email) return Response.json({ ok: false }, { status: 400 });
+
+  const supabase = getSupabase();
+  const emailLower = email.toLowerCase();
+
+  await Promise.all([
+    supabase.from("child_profiles").delete().eq("parent_email", emailLower),
+    supabase.from("child_memory").delete().eq("parent_email", emailLower),
+    supabase.from("messages").delete().eq("child_name", emailLower),
+  ]);
+
+  return Response.json({ ok: true });
+}

@@ -154,6 +154,18 @@ export default function Sidebar() {
         })}
       </nav>
 
+      {/* Espace parent */}
+      <div className="px-3 pb-1">
+        <button
+          onClick={() => router.push("/parent")}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
+          style={{ background: "rgba(42,122,111,0.15)", color: "#3D9E91" }}
+        >
+          <span style={{ fontSize: 14 }}>👨‍👩‍👧</span>
+          <span className="font-medium text-xs">Espace parent</span>
+        </button>
+      </div>
+
       {/* Examens */}
       <div className="px-3 pb-2">
         <button
