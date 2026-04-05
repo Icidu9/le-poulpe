@@ -370,8 +370,8 @@ export default function Home() {
       localStorage.removeItem("poulpe_cours_mode");
     }
 
-    if (restoredMsgs.length >= 2) {
-      // Restaure la conversation précédente
+    if (restoredMsgs.length >= 2 && !focusData && !coursMode) {
+      // Restaure la conversation précédente — sauf si on vient avec un focus/cours spécifique
       setRestoredSession(true);
       setMessages(restoredMsgs);
     } else {
