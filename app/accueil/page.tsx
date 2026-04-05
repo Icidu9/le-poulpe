@@ -117,6 +117,8 @@ export default function AccueilPage() {
   const [hasSession,   setHasSession]   = useState(false);
   const [workedSubjects, setWorkedSubjects] = useState<string[]>([]);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [focusFaille, setFocusFaille] = useState<{ concept: string; description: string; matiere: string } | null>(null);
+  const [todayRevisions, setTodayRevisions] = useState<{ matiere: string; label: string; jLabel: string }[]>([]);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -189,6 +191,78 @@ export default function AccueilPage() {
       const chat = localStorage.getItem(`poulpe_chat_${activeMat}`);
       if (chat) { try { const p = JSON.parse(chat); setHasSession(Array.isArray(p) && p.length >= 2); } catch {} }
     }
+
+    // Focus faille prioritaire
+    const fRaw = localStorage.getItem("poulpe_failles");
+    if (fRaw) {
+      try {
+        const failles = JSON.parse(fRaw) as Record<string, { failles: { concept: string; criticite: string; description: string }[] }>;
+        let found: { concept: string; description: string; matiere: string } | null = null;
+        for (const mat of Object.keys(failles)) {
+          const h = failles[mat]?.failles?.find((f) => f.criticite === "haute");
+          if (h) { found = { concept: h.concept, description: h.description, matiere: mat }; break; }
+        }
+        if (!found) {
+          for (const mat of Object.keys(failles)) {
+            const m = failles[mat]?.failles?.[0];
+            if (m) { found = { concept: m.concept, description: m.description, matiere: mat }; break; }
+          }
+        }
+        setFocusFaille(found);
+      } catch {}
+    }
+
+    // Révisions du jour — EDT + méthode J
+    const edtRaw = localStorage.getItem("poulpe_emploi_du_temps");
+    const examensRaw = localStorage.getItem("poulpe_examens");
+    const JOURS_MAP: Record<number, string> = { 0: "Dimanche", 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi" };
+    const todayKey = JOURS_MAP[new Date().getDay()] || "";
+    const todayEdt: string[] = edtRaw ? (() => { try { return JSON.parse(edtRaw)[todayKey] || []; } catch { return []; } })() : [];
+
+    // Parse examens to get last date per subject
+    const lastExamDate: Record<string, Date> = {};
+    if (examensRaw) {
+      try {
+        const examens = JSON.parse(examensRaw) as { matiere: string; date: string }[];
+        for (const e of examens) {
+          const parts = e.date?.split("/");
+          if (parts?.length === 3) {
+            const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+            if (!lastExamDate[e.matiere] || d > lastExamDate[e.matiere]) lastExamDate[e.matiere] = d;
+          }
+        }
+      } catch {}
+    }
+
+    function jLabel(mat: string): string {
+      const last = lastExamDate[mat];
+      if (!last) return "Commencer";
+      const days = Math.floor((Date.now() - last.getTime()) / 86400000);
+      if (days === 0) return "J — Apprendre";
+      if (days === 1) return "J+1 — Revoir";
+      if (days <= 4) return "J+3 — Consolider";
+      if (days <= 10) return "J+7 — Vérifier";
+      return "J+15 — Long terme";
+    }
+
+    // Build today revisions: EDT subjects first, then faille subjects
+    const revs: { matiere: string; label: string; jLabel: string }[] = [];
+    for (const mat of todayEdt) {
+      revs.push({ matiere: mat, label: "Cours d'aujourd'hui", jLabel: jLabel(mat) });
+    }
+    // Add faille subjects not already in EDT
+    if (fRaw) {
+      try {
+        const failles = JSON.parse(fRaw) as Record<string, { failles: { concept: string; criticite: string }[] }>;
+        for (const mat of Object.keys(failles)) {
+          if (!revs.find((r) => r.matiere.toLowerCase().includes(mat.toLowerCase()) || mat.toLowerCase().includes(r.matiere.toLowerCase()))) {
+            const hasFaille = failles[mat]?.failles?.length > 0;
+            if (hasFaille) revs.push({ matiere: mat, label: "Point à travailler", jLabel: jLabel(mat) });
+          }
+        }
+      } catch {}
+    }
+    setTodayRevisions(revs.slice(0, 4));
   }, [router]);
 
   const toggleTheme = () => {
@@ -346,68 +420,84 @@ export default function AccueilPage() {
             ))}
           </div>
 
-          {/* ── Matières à travailler ───────────────────────────────── */}
-          {matieresDiff.length > 0 && (
+          {/* ── Focus du moment ─────────────────────────────────────── */}
+          {focusFaille && (
+            <button
+              onClick={() => {
+                localStorage.setItem("poulpe_matiere_active", focusFaille.matiere);
+                router.push("/");
+              }}
+              className="w-full text-left rounded-3xl px-6 py-5 transition-all hover:scale-[1.01] active:scale-[0.99]"
+              style={{
+                background: isDark ? "rgba(6,26,38,0.75)" : "#FFFFFF",
+                border: "1.5px solid rgba(232,146,42,0.45)",
+                boxShadow: isDark ? "0 0 30px rgba(232,146,42,0.12), inset 0 0 40px rgba(232,146,42,0.04)" : "0 4px 20px rgba(232,146,42,0.15)",
+              }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-base">🎯</span>
+                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>Focus du moment</span>
+              </div>
+              <p className="font-bold text-base leading-snug mb-2" style={{ color: textMain }}>{focusFaille.concept}</p>
+              <p className="text-xs leading-relaxed mb-3" style={{ color: textSub }}>{focusFaille.description}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium" style={{ color: "#E8922A" }}>{getMatEmoji(focusFaille.matiere)} {focusFaille.matiere}</span>
+                <span
+                  className="text-xs font-bold px-4 py-2 rounded-xl text-white"
+                  style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
+                >
+                  On travaille ça →
+                </span>
+              </div>
+            </button>
+          )}
+
+          {/* ── Révisions du jour ───────────────────────────────────── */}
+          {todayRevisions.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold" style={{ color: textMain }}>Matières à travailler</h2>
-                <button
-                  className="text-xs font-semibold"
-                  style={{ color: "#E8922A" }}
-                  onClick={() => router.push("/matieres")}
-                >
-                  Tout voir →
+                <h2 className="text-sm font-bold" style={{ color: textMain }}>Révisions du jour</h2>
+                <button className="text-xs font-semibold" style={{ color: "#E8922A" }} onClick={() => router.push("/planning")}>
+                  Mon planning →
                 </button>
               </div>
               <div className="space-y-2">
-                {matieresDiff.slice(0, 4).map((mat) => {
-                  const style = getMatStyle(mat);
-                  const emoji = getMatEmoji(mat);
-                  const chatExists = !!localStorage.getItem(`poulpe_chat_${mat}`);
+                {todayRevisions.map((rev) => {
+                  const matStyle = getMatStyle(rev.matiere);
+                  const emoji = getMatEmoji(rev.matiere);
                   return (
                     <button
-                      key={mat}
+                      key={rev.matiere}
                       onClick={() => {
-                        localStorage.setItem("poulpe_matiere_active", mat);
+                        localStorage.setItem("poulpe_matiere_active", rev.matiere);
                         localStorage.removeItem("poulpe_chapitre_actif");
                         router.push("/");
                       }}
-                      className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
                       style={glass}
                     >
                       <span
                         className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                        style={{ background: style.gradient }}
+                        style={{ background: matStyle.gradient }}
                       >
                         {emoji}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm" style={{ color: textMain }}>{mat}</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: textSub }}>
-                          {chatExists ? "Session en cours · Reprendre →" : "Commencer une session →"}
-                        </p>
+                        <p className="font-semibold text-sm" style={{ color: textMain }}>{rev.matiere}</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: textSub }}>{rev.label}</p>
                       </div>
-                      <div
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ background: chatExists ? "#10B981" : textSub }}
-                      />
+                      <span
+                        className="text-[10px] font-bold px-2 py-1 rounded-lg flex-shrink-0"
+                        style={{ background: isDark ? "rgba(232,146,42,0.15)" : "#FFF3E0", color: "#C05C2A" }}
+                      >
+                        {rev.jLabel}
+                      </span>
                     </button>
                   );
                 })}
               </div>
             </div>
           )}
-
-          {/* ── Accès rapide ─────────────────────────────────────────── */}
-          <div>
-            <h2 className="text-sm font-bold mb-3" style={{ color: textMain }}>Accès rapide</h2>
-            <div className="grid grid-cols-2 gap-2.5">
-              <QuickCard emoji="📚" label="Programme" sub="Cours & chapitres" onClick={() => router.push("/matieres")} accent="#3B82F6" glass={{ ...glass, color: textMain }} />
-              <QuickCard emoji="🃏" label="Flashcards" sub={flashCount > 0 ? `${flashCount} cartes` : "Révise tes fiches"} onClick={() => router.push("/flashcards")} accent="#8B5CF6" glass={{ ...glass, color: textMain }} />
-              <QuickCard emoji="📷" label="Mes copies" sub="Analyser & corriger" onClick={() => router.push("/examens")} accent="#F97316" glass={{ ...glass, color: textMain }} />
-              <QuickCard emoji="📈" label="Progression" sub="Points forts & lacunes" onClick={() => router.push("/progression")} accent="#10B981" glass={{ ...glass, color: textMain }} />
-            </div>
-          </div>
 
           {/* ── Point fort ──────────────────────────────────────────── */}
           {matieresFort && (
