@@ -1105,11 +1105,11 @@ export default function Home() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => router.push("/progression")}
+                    onClick={() => router.push("/flashcards")}
                     className="px-4 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90"
                     style={{ background: "#EBF5EE", color: "#2D7A4F", border: "1px solid #B8DFC5" }}
                   >
-                    ✓ Fiches créées, voir mes fiches →
+                    ✓ Fiches créées, voir mes flashcards →
                   </button>
                 )}
                 <div className="flex gap-2">
