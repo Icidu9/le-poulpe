@@ -656,6 +656,9 @@ export default function Home() {
 
     setMicError(false);
     setTranscribeErrorMsg("");
+    // Feedback immédiat avant même que le micro soit actif
+    setIsRecording(true);
+    setMicReady(false);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -708,11 +711,9 @@ export default function Home() {
 
       recorder.start();
       isRecordingRef.current = true;
-      setIsRecording(true);
-      setMicReady(false);
-      // 400ms pour que le micro soit chaud avant de signaler "parle maintenant"
-      setTimeout(() => setMicReady(true), 400);
+      setMicReady(true); // MediaRecorder capture dès le start, pas besoin d'attendre
     } catch {
+      setIsRecording(false);
       setMicError(true);
       setTimeout(() => setMicError(false), 5000);
     }
