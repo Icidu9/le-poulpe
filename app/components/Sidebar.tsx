@@ -154,19 +154,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Espace parent */}
-      <div className="px-3 pb-1">
-        <button
-          onClick={() => router.push("/parent")}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
-          style={{ background: "rgba(42,122,111,0.15)", color: "#3D9E91" }}
-        >
-          <span style={{ fontSize: 14 }}>👨‍👩‍👧</span>
-          <span className="font-medium text-xs">Espace parent</span>
-        </button>
-      </div>
-
-      {/* Examens */}
+      {/* Mes copies — mis en avant */}
       <div className="px-3 pb-2">
         <button
           onClick={() => router.push("/examens")}
@@ -189,7 +177,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Profil */}
+      {/* Profil + lien espace parent discret */}
       <div className="px-4 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex items-center gap-2.5">
           <div
@@ -203,6 +191,14 @@ export default function Sidebar() {
             <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{classe} · beta</div>
           </div>
         </div>
+        {/* Espace parent — lien discret en bas */}
+        <button
+          onClick={() => router.push("/parent")}
+          className="w-full text-left mt-3"
+          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.25)", padding: 0 }}
+        >
+          👨‍👩‍👧 Espace parent
+        </button>
       </div>
     </aside>
   );
