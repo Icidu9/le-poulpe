@@ -59,22 +59,19 @@ function getOrUpdateStreak(): number {
   return 1;
 }
 
-// ── Poulpe SVG ────────────────────────────────────────────────────────────────
-function Poulpe({ size = 56 }: { size?: number }) {
+// ── Poulpe SVG (solide blanc, comme Ma progression) ──────────────────────────
+function Poulpe({ size = 54 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.25" />
-      <ellipse cx="24" cy="20" rx="11" ry="12" fill="white" fillOpacity="0.35" />
-      <circle cx="19" cy="18" r="2.5" fill="white" />
-      <circle cx="29" cy="18" r="2.5" fill="white" />
-      <circle cx="19.8" cy="18.5" r="1.2" fill="#0F172A" />
-      <circle cx="29.8" cy="18.5" r="1.2" fill="#0F172A" />
-      <path d="M21 22.5 Q24 25 27 22.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-      <path d="M14 30 Q11 36 13 40" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.6"/>
-      <path d="M18 32 Q16 39 18 43" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.6"/>
-      <path d="M24 33 Q24 40 24 44" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.6"/>
-      <path d="M30 32 Q32 39 30 43" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.6"/>
-      <path d="M34 30 Q37 36 35 40" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.6"/>
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0 }}>
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.92" />
+      <circle cx="19" cy="18" r="2.5" fill="white" /><circle cx="29" cy="18" r="2.5" fill="white" />
+      <circle cx="19.8" cy="18.5" r="1.2" fill="#7C2A00" /><circle cx="29.8" cy="18.5" r="1.2" fill="#7C2A00" />
+      <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#7C2A00" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.6"/>
+      <path d="M14 30 Q11 36 13 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M18 32 Q16 39 18 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M24 33 Q24 40 24 44" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M30 32 Q32 39 30 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M34 30 Q37 36 35 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
     </svg>
   );
 }
@@ -332,14 +329,13 @@ export default function AccueilPage() {
               <div style={{ maxWidth: "68%" }}>
                 <p className="text-[10px] font-semibold uppercase tracking-widest mb-3"
                   style={{ color: "rgba(255,255,255,0.5)" }}>{dateCap}</p>
-                <h1 className="text-2xl font-bold text-white leading-snug">
-                  {greeting},<br />{prenom}
+                <h1 className="text-xl font-bold text-white leading-snug">
+                  {greeting}, {prenom}
                 </h1>
                 <p className="text-sm mt-2 font-medium" style={{ color: "rgba(255,255,255,0.65)" }}>
                   {streak > 1
-                    ? `${streak} jours de suite — continue !`
-                    : streak === 1 ? "C'est parti, bonne session !"
-                    : "Bonne session aujourd'hui."}
+                    ? `${streak} jours de travail de suite`
+                    : "Chaque jour compte."}
                 </p>
               </div>
             </div>
