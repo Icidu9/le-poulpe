@@ -1,5 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 
+// Vercel: max function duration (60s sur Pro, 10s sur Hobby — garde quand même)
+export const maxDuration = 60;
+
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 type ValidMime = "image/jpeg" | "image/png" | "image/gif" | "image/webp";

@@ -162,7 +162,11 @@ export default function Examens() {
         body: JSON.stringify({ images, matiere, note }),
       });
 
-      if (!res.ok) throw new Error("Erreur serveur");
+      if (!res.ok) {
+        let detail = "";
+        try { const j = await res.json(); detail = j.error || ""; } catch {}
+        throw new Error(`Erreur serveur ${res.status}${detail ? ": " + detail : ""}`);
+      }
       const { analysis, error: apiError } = await res.json();
       if (apiError) throw new Error(apiError);
 
@@ -188,8 +192,9 @@ export default function Examens() {
       setNote("");
       if (fileInputRef.current) fileInputRef.current.value = "";
 
-    } catch {
-      setError("L'analyse a échoué. Vérifie ta connexion internet et réessaie.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`L'analyse a échoué : ${msg}. Réessaie dans quelques secondes.`);
     } finally {
       setAnalysing(false);
     }
