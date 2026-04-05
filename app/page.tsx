@@ -354,7 +354,7 @@ export default function Home() {
 
     const nom = p || "";
 
-    // Contexte focus depuis l'accueil (Programme du jour → Commencer)
+    // Contexte focus (À réviser → Réviser) ou cours mode (Cours du jour → Commencer)
     let focusData: { concept: string; description: string; matiere: string } | null = null;
     const focusRaw = localStorage.getItem("poulpe_focus_context");
     if (focusRaw) {
@@ -363,18 +363,30 @@ export default function Home() {
     }
     if (focusData) setFocusContext(focusData);
 
+    let coursMode: { matiere: string } | null = null;
+    const coursModeRaw = localStorage.getItem("poulpe_cours_mode");
+    if (coursModeRaw) {
+      try { coursMode = JSON.parse(coursModeRaw); } catch {}
+      localStorage.removeItem("poulpe_cours_mode");
+    }
+
     if (restoredMsgs.length >= 2) {
       // Restaure la conversation précédente
       setRestoredSession(true);
       setMessages(restoredMsgs);
     } else {
-      // Nouvelle session — message d'accueil contextuel selon focus / chapitre / matière / EDT
+      // Nouvelle session — message d'accueil contextuel selon mode / chapitre / matière / EDT
       let firstMsg: string;
       if (focusData) {
-        // Mode focus : le Poulpe annonce qu'il commence directement la leçon
+        // Mode révision : le Poulpe commence la leçon directement
         firstMsg = nom
           ? `Salut ${nom} ! Aujourd'hui on attaque **${focusData.concept}** en ${focusData.matiere}. Je t'explique ça maintenant, c'est parti ! 🎯`
           : `Aujourd'hui on attaque **${focusData.concept}** en ${focusData.matiere}. C'est parti ! 🎯`;
+      } else if (coursMode) {
+        // Mode cours : le Poulpe demande la photo du cours du jour
+        firstMsg = nom
+          ? `Salut ${nom} ! Tu as eu **${coursMode.matiere}** aujourd'hui. Envoie-moi une photo de ton cours ou de ce que vous avez fait en classe — on va le retravailler ensemble 📷`
+          : `Tu as eu **${coursMode.matiere}** aujourd'hui. Envoie-moi une photo de ton cours et on le retravaille ensemble 📷`;
       } else if (chapActif) {
         const mode = (chapActif as any).mode || "chat";
         if (mode === "quiz") {

@@ -79,55 +79,46 @@ function Poulpe({ size = 56 }: { size?: number }) {
   );
 }
 
-// ── Quick Action Card ─────────────────────────────────────────────────────────
-function QuickCard({ emoji, label, sub, onClick, accent, glass }: {
-  emoji: string; label: string; sub: string; onClick: () => void; accent?: string; glass: React.CSSProperties;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-3 p-4 rounded-2xl text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
-      style={glass}
-    >
-      <span
-        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-        style={{ background: accent ? `${accent}20` : "rgba(255,255,255,0.1)" }}
-      >
-        {emoji}
-      </span>
-      <div className="min-w-0">
-        <p className="font-semibold text-sm" style={{ color: "inherit" }}>{label}</p>
-        <p className="text-[11px] mt-0.5 truncate opacity-60">{sub}</p>
-      </div>
-    </button>
-  );
-}
-
 // ── Types ─────────────────────────────────────────────────────────────────────
-type ProgrammeItem = {
+type RevisionItem = {
   matiere: string;
-  concept?: string;
-  description?: string;
+  concept: string;
+  description: string;
   urgenceLabel: string;
   urgenceColor: "red" | "orange" | "yellow";
   priority: number;
 };
 
+// ── Daily tracking helpers ────────────────────────────────────────────────────
+function getDailyKey(): string {
+  return `poulpe_daily_${new Date().toISOString().slice(0, 10)}`;
+}
+function getCoursVus(): string[] {
+  try { return JSON.parse(localStorage.getItem(getDailyKey()) || "{}").coursVus || []; } catch { return []; }
+}
+function markCoursVu(matiere: string) {
+  try {
+    const key = getDailyKey();
+    const data = JSON.parse(localStorage.getItem(key) || "{}");
+    const vus = data.coursVus || [];
+    if (!vus.includes(matiere)) {
+      localStorage.setItem(key, JSON.stringify({ ...data, coursVus: [...vus, matiere] }));
+    }
+  } catch {}
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function AccueilPage() {
   const router = useRouter();
   const [prenom,       setPrenom]       = useState("toi");
-  const [classe,       setClasse]       = useState("collège");
-  const [matieresDiff, setMatieresDiff] = useState<string[]>([]);
   const [matieresFort, setMatieresFort] = useState("");
   const [streak,       setStreak]       = useState(0);
   const [sessionCount, setSessionCount] = useState(0);
   const [flashCount,   setFlashCount]   = useState(0);
-  const [lastMatiere,  setLastMatiere]  = useState("");
-  const [hasSession,   setHasSession]   = useState(false);
-  const [workedSubjects, setWorkedSubjects] = useState<string[]>([]);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-  const [programme, setProgramme] = useState<ProgrammeItem[]>([]);
+  const [theme,        setTheme]        = useState<"dark" | "light">("dark");
+  const [coursJour,    setCoursJour]    = useState<string[]>([]);
+  const [coursVus,     setCoursVus]     = useState<string[]>([]);
+  const [revisions,    setRevisions]    = useState<RevisionItem[]>([]);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -142,7 +133,6 @@ export default function AccueilPage() {
       }
     }
 
-    // Read theme
     const savedTheme = localStorage.getItem("poulpe_theme") as "dark" | "light" | null;
     if (savedTheme) setTheme(savedTheme);
 
@@ -153,24 +143,20 @@ export default function AccueilPage() {
     if (profileRaw) {
       try {
         const profile = JSON.parse(profileRaw);
-        if (profile.parent?.pMatieresDiff) setMatieresDiff(profile.parent.pMatieresDiff.filter((m: string) => m !== "__autre__"));
         if (profile.parent?.pMatieresFort) setMatieresFort(profile.parent.pMatieresFort);
-        if (profile.parent?.pClasse) setClasse(profile.parent.pClasse);
       } catch {}
     }
 
     setStreak(getOrUpdateStreak());
 
-    let count = 0, flashTotal = 0, lastMat = "";
+    // Compte sessions et flashcards pour XP
+    let count = 0, flashTotal = 0;
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i) || "";
       if (key.startsWith("poulpe_chat_")) {
         try {
           const msgs = JSON.parse(localStorage.getItem(key) || "[]");
-          if (Array.isArray(msgs) && msgs.length >= 2) {
-            count++;
-            if (!lastMat) lastMat = key.replace("poulpe_chat_", "");
-          }
+          if (Array.isArray(msgs) && msgs.length >= 2) count++;
         } catch {}
       }
       if (key.startsWith("poulpe_flashcards_")) {
@@ -183,30 +169,24 @@ export default function AccueilPage() {
     setSessionCount(count);
     setFlashCount(flashTotal);
 
-    // Collect worked subjects (all subjects with any chat session)
-    const worked: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i) || "";
-      if (key.startsWith("poulpe_chat_") && key !== "poulpe_chat_general") {
-        const sub = key.replace("poulpe_chat_", "");
-        if (sub) worked.push(sub);
-      }
-    }
-    setWorkedSubjects(worked);
-
-    const activeMat = localStorage.getItem("poulpe_matiere_active") || lastMat;
-    setLastMatiere(activeMat);
-    if (activeMat) {
-      const chat = localStorage.getItem(`poulpe_chat_${activeMat}`);
-      if (chat) { try { const p = JSON.parse(chat); setHasSession(Array.isArray(p) && p.length >= 2); } catch {} }
-    }
-
-    // ── Programme du jour : algorithme de priorisation ────────────────────
-    const fRaw = localStorage.getItem("poulpe_failles");
+    // ── Cours d'aujourd'hui depuis l'EDT ──────────────────────────────────
+    const JOURS_MAP: Record<number, string> = {
+      0: "Dimanche", 1: "Lundi", 2: "Mardi", 3: "Mercredi",
+      4: "Jeudi", 5: "Vendredi", 6: "Samedi",
+    };
+    const todayKey = JOURS_MAP[new Date().getDay()] || "";
     const edtRaw = localStorage.getItem("poulpe_emploi_du_temps");
-    const examensRaw = localStorage.getItem("poulpe_examens");
+    const todayEdt: string[] = edtRaw
+      ? (() => { try { return JSON.parse(edtRaw)[todayKey] || []; } catch { return []; } })()
+      : [];
+    setCoursJour(todayEdt);
+    setCoursVus(getCoursVus());
 
-    // Dernière date de copie par matière (pour méthode J)
+    // ── Révisions : méthode J + criticité, max 2, failles uniquement ─────
+    const examensRaw = localStorage.getItem("poulpe_examens");
+    const fRaw = localStorage.getItem("poulpe_failles");
+
+    // Dernière date de copie par matière
     const lastExamDate: Record<string, Date> = {};
     if (examensRaw) {
       try {
@@ -221,12 +201,6 @@ export default function AccueilPage() {
       } catch {}
     }
 
-    // EDT du jour
-    const JOURS_MAP: Record<number, string> = { 0: "Dimanche", 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi" };
-    const todayKey = JOURS_MAP[new Date().getDay()] || "";
-    const todayEdt: string[] = edtRaw ? (() => { try { return JSON.parse(edtRaw)[todayKey] || []; } catch { return []; } })() : [];
-
-    // Calcule la fenêtre J pour une matière
     function getJInfo(mat: string): { label: string; priority: number; color: "red" | "orange" | "yellow" } | null {
       const last = lastExamDate[mat];
       if (!last) return null;
@@ -234,50 +208,34 @@ export default function AccueilPage() {
       if (days === 0)  return { label: "Tu as vu ça aujourd'hui · Commence ce soir", priority: 1, color: "red" };
       if (days === 1)  return { label: "Tu as vu ça hier · Premier rappel aujourd'hui", priority: 1, color: "red" };
       if (days <= 4)   return { label: "Ça fait 3 jours · Consolide avant d'oublier", priority: 2, color: "orange" };
-      if (days <= 10)  return { label: "Ça fait une semaine · Vérifie que c'est ancré", priority: 5, color: "orange" };
-      if (days <= 20)  return { label: "Révision longue durée · Garde-le en mémoire", priority: 8, color: "yellow" };
+      if (days <= 10)  return { label: "Ça fait une semaine · Vérifie que c'est ancré", priority: 4, color: "orange" };
+      if (days <= 20)  return { label: "Révision longue durée · Garde-le en mémoire", priority: 7, color: "yellow" };
       return null;
     }
 
-    const candidates: ProgrammeItem[] = [];
-    const addedMatieres = new Set<string>();
-
-    // 1. Failles — priorisées par J puis criticité
+    const candidates: RevisionItem[] = [];
     if (fRaw) {
       try {
         const failles = JSON.parse(fRaw) as Record<string, { failles: { concept: string; criticite: string; description: string }[] }>;
         for (const mat of Object.keys(failles)) {
           const mFailles = failles[mat]?.failles || [];
           if (mFailles.length === 0) continue;
-          const topHaute = mFailles.find(f => f.criticite === "haute");
-          const top = topHaute || mFailles[0];
+          const top = mFailles.find(f => f.criticite === "haute") || mFailles[0];
           const jInfo = getJInfo(mat);
           if (jInfo) {
-            candidates.push({ matiere: mat, concept: top.concept, description: top.description, urgenceLabel: jInfo.label, urgenceColor: jInfo.color, priority: jInfo.priority });
-          } else if (top.criticite === "haute") {
-            candidates.push({ matiere: mat, concept: top.concept, description: top.description, urgenceLabel: "Priorité haute", urgenceColor: "orange", priority: 3 });
-          } else if (top.criticite === "moyenne") {
-            candidates.push({ matiere: mat, concept: top.concept, description: top.description, urgenceLabel: "À travailler", urgenceColor: "yellow", priority: 6 });
+            candidates.push({ matiere: mat, concept: top.concept, description: top.description || "", urgenceLabel: jInfo.label, urgenceColor: jInfo.color, priority: jInfo.priority });
           } else {
-            candidates.push({ matiere: mat, concept: top.concept, description: top.description, urgenceLabel: "À travailler", urgenceColor: "yellow", priority: 9 });
+            const prio = top.criticite === "haute" ? 3 : top.criticite === "moyenne" ? 5 : 8;
+            const color: "orange" | "yellow" = top.criticite === "haute" ? "orange" : "yellow";
+            const label = top.criticite === "haute" ? "Point prioritaire à travailler" : "À travailler";
+            candidates.push({ matiere: mat, concept: top.concept, description: top.description || "", urgenceLabel: label, urgenceColor: color, priority: prio });
           }
-          addedMatieres.add(mat.toLowerCase());
         }
       } catch {}
     }
 
-    // 2. EDT du jour — matières pas encore dans la liste
-    for (const mat of todayEdt) {
-      const norm = mat.toLowerCase();
-      const alreadyIn = [...addedMatieres].some(m => m.includes(norm.split(" ")[0]) || norm.includes(m.split(" ")[0]));
-      if (!alreadyIn) {
-        const jInfo = getJInfo(mat);
-        candidates.push({ matiere: mat, urgenceLabel: jInfo ? jInfo.label : "Cours aujourd'hui", urgenceColor: jInfo ? jInfo.color : "yellow", priority: jInfo ? jInfo.priority : 8 });
-      }
-    }
-
     candidates.sort((a, b) => a.priority - b.priority);
-    setProgramme(candidates.slice(0, 3));
+    setRevisions(candidates.slice(0, 2));
   }, [router]);
 
   const toggleTheme = () => {
@@ -291,17 +249,14 @@ export default function AccueilPage() {
   const dateStr = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   const dateCap = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
-  // XP gamification
+  // XP
   const xp = sessionCount * 50 + flashCount * 5 + streak * 20;
   const level = Math.floor(xp / 300) + 1;
   const xpInLevel = xp % 300;
-  const xpToNext = 300;
-  const xpPct = Math.min(100, Math.round((xpInLevel / xpToNext) * 100));
-  const intensityScale = Math.min(1, Math.max(0.2, level * 0.2));
-
+  const xpPct = Math.min(100, Math.round((xpInLevel / 300) * 100));
   const streakEmoji = streak >= 14 ? "🔥" : streak >= 7 ? "⚡" : streak >= 3 ? "✨" : "📅";
 
-  // ── Theme tokens ──────────────────────────────────────────────────────────
+  // Theme tokens
   const isDark = theme === "dark";
   const bgColor = isDark ? "#020B1E" : "#EBF4F8";
   const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
@@ -311,19 +266,23 @@ export default function AccueilPage() {
     : { background: "rgba(255,255,255,0.62)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.5)" };
   const streakColor = streak >= 7 ? "#F97316" : streak >= 3 ? "#8B5CF6" : textSub;
 
-  return (
-    <div className="flex h-screen overflow-hidden" style={{ fontFamily: '"Inter", system-ui, sans-serif', position: "relative", background: bgColor }}>
+  const urgBg = (c: string) => c === "red" ? "rgba(239,68,68,0.15)" : c === "orange" ? "rgba(232,146,42,0.15)" : "rgba(234,179,8,0.12)";
+  const urgText = (c: string) => c === "red" ? "#DC2626" : c === "orange" ? "#C05C2A" : "#A16207";
+  const urgBorder = (c: string) => c === "red" ? "rgba(239,68,68,0.4)" : c === "orange" ? "rgba(232,146,42,0.4)" : "rgba(234,179,8,0.3)";
 
-      {/* ── Sidebar ───────────────────────────────────────────────── */}
+  return (
+    <div className="flex h-screen overflow-hidden" style={{ fontFamily: '"Inter", system-ui, sans-serif', background: bgColor }}>
+
+      {/* ── Sidebar ── */}
       <div style={{ position: "relative", zIndex: 50, flexShrink: 0, height: "100%" }}>
         <Sidebar />
       </div>
 
-      {/* ── Main content ──────────────────────────────────────────── */}
+      {/* ── Main ── */}
       <div className="flex-1 overflow-y-auto" style={{ position: "relative", zIndex: 10 }}>
-        <div className="max-w-lg mx-auto px-6 py-7 space-y-6">
+        <div className="max-w-lg mx-auto px-6 py-7 space-y-5">
 
-          {/* ── Header ─────────────────────────────────────────────── */}
+          {/* ── Header ── */}
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-medium" style={{ color: textSub }}>{dateCap}</p>
@@ -332,219 +291,199 @@ export default function AccueilPage() {
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              {/* Streak badge */}
               <div
-                className="flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl flex-shrink-0"
-                style={{
-                  ...glass,
-                  border: streak >= 3 ? "1.5px solid rgba(249,115,22,0.3)" : glass.border,
-                }}
+                className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl flex-shrink-0"
+                style={{ ...glass, border: streak >= 3 ? "1.5px solid rgba(249,115,22,0.3)" : (glass.border as string) }}
               >
-                <span className="text-xl">{streakEmoji}</span>
-                <p className="text-base font-bold leading-none" style={{ color: streakColor }}>{streak}</p>
+                <span className="text-lg">{streakEmoji}</span>
+                <p className="text-sm font-bold leading-none" style={{ color: streakColor }}>{streak}</p>
                 <p className="text-[9px] font-medium" style={{ color: textSub }}>jours</p>
               </div>
-              {/* Theme toggle */}
               <button
                 onClick={toggleTheme}
-                className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg transition-all hover:scale-110 active:scale-95 flex-shrink-0"
+                className="w-9 h-9 rounded-2xl flex items-center justify-center text-base transition-all hover:scale-110 active:scale-95 flex-shrink-0"
                 style={glass}
-                title={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
               >
                 {isDark ? "🌙" : "☀️"}
               </button>
             </div>
           </div>
 
-          {/* ── Level / XP bar ─────────────────────────────────────── */}
+          {/* ── XP bar ── */}
           <button
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all hover:scale-[1.01] active:scale-[0.99] text-left"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all hover:scale-[1.01] text-left"
             style={glass}
             onClick={() => router.push("/cerveau")}
-            title="Voir ton cerveau"
           >
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0"
+              className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0"
               style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)", color: "white" }}
             >
               {level}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-1">
                 <p className="text-xs font-semibold" style={{ color: textMain }}>Niveau {level}</p>
-                <p className="text-[10px] font-medium" style={{ color: textSub }}>{xp} XP</p>
+                <p className="text-[10px]" style={{ color: textSub }}>{xp} XP</p>
               </div>
-              <div className="h-2 rounded-full overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}>
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #E8922A, #F5A552)" }}
-                />
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}>
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #E8922A, #F5A552)" }} />
               </div>
             </div>
-            <div className="flex flex-col items-center flex-shrink-0">
-              <p className="text-[10px]" style={{ color: textSub }}>+{xpToNext - xpInLevel} XP</p>
-              <p className="text-[9px] mt-0.5" style={{ color: "rgba(232,146,42,0.8)" }}>🧠 cerveau</p>
-            </div>
+            <p className="text-[10px] flex-shrink-0" style={{ color: "rgba(232,146,42,0.8)" }}>🧠</p>
           </button>
 
-          {/* ── Hero CTA ────────────────────────────────────────────── */}
-          <button
-            onClick={() => {
-              if (lastMatiere) localStorage.setItem("poulpe_matiere_active", lastMatiere);
-              else localStorage.removeItem("poulpe_matiere_active");
-              localStorage.removeItem("poulpe_chapitre_actif");
-              router.push("/");
-            }}
-            className="w-full rounded-3xl px-6 py-5 text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
-            style={{
-              background: "linear-gradient(135deg, #E8922A 0%, #C05C2A 100%)",
-              boxShadow: "0 8px 32px rgba(232,146,42,0.35)",
-            }}
-          >
-            <div className="flex items-center gap-4">
-              <Poulpe size={52} />
-              <div className="flex-1">
-                <p className="font-bold text-white text-base leading-snug">
-                  {hasSession && lastMatiere
-                    ? `Reprendre ${lastMatiere}`
-                    : "Réviser avec le Poulpe"}
-                </p>
-                <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.75)" }}>
-                  {hasSession ? "Continue là où tu t'es arrêté(e) →" : "Pose tes questions, envoie tes devoirs →"}
-                </p>
-              </div>
+          {/* ══════════════════════════════════════════════════════════════
+              SECTION 1 — COURS D'AUJOURD'HUI
+          ══════════════════════════════════════════════════════════════ */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-bold" style={{ color: textMain }}>📚 Cours d'aujourd'hui</h2>
+              <button className="text-xs font-semibold" style={{ color: "#E8922A" }} onClick={() => router.push("/planning")}>
+                Mon planning →
+              </button>
             </div>
-          </button>
 
-          {/* ── Stats ───────────────────────────────────────────────── */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: "Sessions", value: sessionCount, icon: "💬", color: "#3B82F6" },
-              { label: "Flashcards", value: flashCount,   icon: "🃏", color: "#8B5CF6" },
-              { label: "Jours",      value: streak,        icon: "🔥", color: "#F97316" },
-            ].map((s) => (
+            {coursJour.length === 0 ? (
               <div
-                key={s.label}
-                className="rounded-2xl p-4 text-center"
+                className="flex items-center gap-3 px-4 py-4 rounded-2xl"
                 style={glass}
               >
-                <p className="text-2xl">{s.icon}</p>
-                <p className="text-2xl font-bold mt-1.5 tracking-tight" style={{ color: textMain }}>{s.value}</p>
-                <p className="text-[11px] mt-0.5 font-medium" style={{ color: textSub }}>{s.label}</p>
+                <span className="text-2xl">🎉</span>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: textMain }}>Pas de cours aujourd'hui</p>
+                  <p className="text-xs mt-0.5" style={{ color: textSub }}>Profite pour avancer sur tes révisions</p>
+                </div>
               </div>
-            ))}
+            ) : (
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}
+              >
+                {coursJour.map((mat, i) => {
+                  const fait = coursVus.some(v => v.toLowerCase() === mat.toLowerCase());
+                  const matStyle = getMatStyle(mat);
+                  const emoji = getMatEmoji(mat);
+                  const isLast = i === coursJour.length - 1;
+                  return (
+                    <button
+                      key={mat}
+                      onClick={() => {
+                        if (fait) return;
+                        markCoursVu(mat);
+                        setCoursVus(prev => [...prev, mat]);
+                        localStorage.setItem("poulpe_matiere_active", mat);
+                        localStorage.removeItem("poulpe_chapitre_actif");
+                        localStorage.removeItem("poulpe_focus_context");
+                        localStorage.setItem("poulpe_cours_mode", JSON.stringify({ matiere: mat }));
+                        router.push("/");
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all"
+                      style={{
+                        background: fait
+                          ? (isDark ? "rgba(16,185,129,0.06)" : "rgba(16,185,129,0.04)")
+                          : (isDark ? "rgba(6,26,38,0.6)" : "rgba(255,255,255,0.8)"),
+                        borderBottom: isLast ? "none" : `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}`,
+                        cursor: fait ? "default" : "pointer",
+                        opacity: fait ? 0.65 : 1,
+                      }}
+                    >
+                      <span
+                        className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+                        style={{ background: fait ? "rgba(16,185,129,0.2)" : matStyle.gradient }}
+                      >
+                        {fait ? "✓" : emoji}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm" style={{ color: fait ? "#10B981" : textMain }}>{mat}</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: fait ? "#10B981" : textSub }}>
+                          {fait ? "Fait aujourd'hui" : "Cours du jour · Revoir avec le Poulpe"}
+                        </p>
+                      </div>
+                      {!fait && (
+                        <span
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 text-white"
+                          style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
+                        >
+                          Commencer →
+                        </span>
+                      )}
+                      {fait && (
+                        <span className="text-lg flex-shrink-0">✅</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* ── Programme du jour ───────────────────────────────────── */}
-          {programme.length > 0 && (() => {
-            const first = programme[0];
-            const rest = programme.slice(1);
-            const urgBg = (c: string) => c === "red" ? "rgba(239,68,68,0.15)" : c === "orange" ? "rgba(232,146,42,0.15)" : "rgba(234,179,8,0.12)";
-            const urgText = (c: string) => c === "red" ? "#DC2626" : c === "orange" ? "#C05C2A" : "#A16207";
-            return (
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-bold" style={{ color: textMain }}>📅 Programme du jour</h2>
-                  <button className="text-xs font-semibold" style={{ color: "#E8922A" }} onClick={() => router.push("/planning")}>
-                    Mon planning →
-                  </button>
-                </div>
-
-                {/* Priorité #1 — grande carte */}
-                <button
-                  onClick={() => {
-                    localStorage.setItem("poulpe_matiere_active", first.matiere);
-                    localStorage.removeItem("poulpe_chapitre_actif");
-                    if (first.concept) {
-                      localStorage.setItem("poulpe_focus_context", JSON.stringify({
-                        concept: first.concept,
-                        description: first.description || "",
-                        matiere: first.matiere,
-                      }));
-                    }
-                    router.push("/");
-                  }}
-                  className="w-full text-left rounded-3xl px-6 py-5 mb-3 transition-all hover:scale-[1.01] active:scale-[0.99]"
-                  style={{
-                    background: isDark ? "rgba(6,26,38,0.75)" : "#FFFFFF",
-                    border: `1.5px solid ${first.urgenceColor === "red" ? "rgba(239,68,68,0.5)" : "rgba(232,146,42,0.45)"}`,
-                    boxShadow: first.urgenceColor === "red"
-                      ? (isDark ? "0 0 30px rgba(239,68,68,0.12)" : "0 4px 20px rgba(239,68,68,0.12)")
-                      : (isDark ? "0 0 30px rgba(232,146,42,0.12)" : "0 4px 20px rgba(232,146,42,0.12)"),
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span
-                      className="text-[10px] font-bold px-2.5 py-1 rounded-lg"
-                      style={{ background: urgBg(first.urgenceColor), color: urgText(first.urgenceColor) }}
-                    >
-                      {first.urgenceLabel}
-                    </span>
-                    <span className="text-xs font-medium" style={{ color: textSub }}>{getMatEmoji(first.matiere)} {first.matiere}</span>
-                  </div>
-                  {first.concept && (
-                    <p className="font-bold text-base leading-snug mb-1.5" style={{ color: textMain }}>{first.concept}</p>
-                  )}
-                  {first.description && (
-                    <p className="text-xs leading-relaxed mb-3" style={{ color: textSub }}>{first.description}</p>
-                  )}
-                  <div className="flex justify-end">
-                    <span
-                      className="text-xs font-bold px-4 py-2 rounded-xl text-white"
-                      style={{ background: first.urgenceColor === "red" ? "linear-gradient(135deg, #EF4444, #DC2626)" : "linear-gradient(135deg, #E8922A, #C05C2A)" }}
-                    >
-                      Commencer →
-                    </span>
-                  </div>
-                </button>
-
-                {/* Ensuite — items 2 et 3 */}
-                {rest.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide px-1 mb-1" style={{ color: textSub }}>Ensuite</p>
-                    {rest.map((item) => {
-                      const matStyle = getMatStyle(item.matiere);
-                      return (
-                        <button
-                          key={item.matiere + (item.concept || "")}
-                          onClick={() => {
-                            localStorage.setItem("poulpe_matiere_active", item.matiere);
-                            localStorage.removeItem("poulpe_chapitre_actif");
-                            router.push("/");
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
-                          style={glass}
-                        >
-                          <span
-                            className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                            style={{ background: matStyle.gradient }}
-                          >
-                            {getMatEmoji(item.matiere)}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm" style={{ color: textMain }}>
-                              {item.concept ? item.concept : item.matiere}
-                            </p>
-                            {item.concept && (
-                              <p className="text-[11px] mt-0.5 truncate" style={{ color: textSub }}>{item.matiere}</p>
-                            )}
-                          </div>
-                          <span
-                            className="text-[10px] font-bold px-2 py-1 rounded-lg flex-shrink-0"
-                            style={{ background: urgBg(item.urgenceColor), color: urgText(item.urgenceColor) }}
-                          >
-                            {item.urgenceLabel}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+          {/* ══════════════════════════════════════════════════════════════
+              SECTION 2 — À RÉVISER MAINTENANT
+          ══════════════════════════════════════════════════════════════ */}
+          {revisions.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold" style={{ color: textMain }}>🔁 À réviser maintenant</h2>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: urgBg("orange"), color: urgText("orange") }}>
+                  {revisions.length} point{revisions.length > 1 ? "s" : ""}
+                </span>
               </div>
-            );
-          })()}
 
-          {/* ── Point fort ──────────────────────────────────────────── */}
+              <div className="space-y-3">
+                {revisions.map((rev) => (
+                  <button
+                    key={rev.matiere + rev.concept}
+                    onClick={() => {
+                      localStorage.setItem("poulpe_matiere_active", rev.matiere);
+                      localStorage.removeItem("poulpe_chapitre_actif");
+                      localStorage.removeItem("poulpe_cours_mode");
+                      localStorage.setItem("poulpe_focus_context", JSON.stringify({
+                        concept: rev.concept,
+                        description: rev.description,
+                        matiere: rev.matiere,
+                      }));
+                      router.push("/");
+                    }}
+                    className="w-full text-left rounded-2xl px-5 py-4 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                    style={{
+                      background: isDark ? "rgba(6,26,38,0.7)" : "#FFFFFF",
+                      border: `1.5px solid ${urgBorder(rev.urgenceColor)}`,
+                      boxShadow: rev.urgenceColor === "red"
+                        ? (isDark ? "0 0 20px rgba(239,68,68,0.1)" : "0 2px 16px rgba(239,68,68,0.08)")
+                        : (isDark ? "0 0 20px rgba(232,146,42,0.08)" : "0 2px 16px rgba(232,146,42,0.06)"),
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <span
+                        className="text-[10px] font-bold px-2 py-1 rounded-md leading-none flex-shrink-0"
+                        style={{ background: urgBg(rev.urgenceColor), color: urgText(rev.urgenceColor) }}
+                      >
+                        {rev.urgenceLabel}
+                      </span>
+                      <span className="text-xs font-medium flex-shrink-0" style={{ color: textSub }}>
+                        {getMatEmoji(rev.matiere)} {rev.matiere}
+                      </span>
+                    </div>
+                    <p className="font-bold text-sm leading-snug mb-1" style={{ color: textMain }}>{rev.concept}</p>
+                    {rev.description && (
+                      <p className="text-xs leading-relaxed mb-3 line-clamp-2" style={{ color: textSub }}>{rev.description}</p>
+                    )}
+                    <div className="flex justify-end">
+                      <span
+                        className="text-xs font-bold px-3 py-1.5 rounded-lg text-white"
+                        style={{ background: rev.urgenceColor === "red" ? "linear-gradient(135deg, #EF4444, #DC2626)" : "linear-gradient(135deg, #E8922A, #C05C2A)" }}
+                      >
+                        Réviser →
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Point fort ── */}
           {matieresFort && (
             <div
               className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
@@ -561,8 +500,11 @@ export default function AccueilPage() {
       </div>
 
       <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
       `}</style>
     </div>
