@@ -97,15 +97,11 @@ export default function Sidebar() {
         if (profile.parent?.pClasse) setClasse(profile.parent.pClasse);
       } catch {}
     }
-    const f = localStorage.getItem("poulpe_failles");
-    if (f) {
+    const e = localStorage.getItem("poulpe_examens");
+    if (e) {
       try {
-        const parsed = JSON.parse(f);
-        const total = Object.values(parsed).reduce(
-          (s: number, m: unknown) => s + ((m as { failles?: unknown[] }).failles?.length || 0),
-          0
-        );
-        setNbFailles(total as number);
+        const parsed = JSON.parse(e);
+        setNbFailles(Array.isArray(parsed) ? parsed.length : 0);
       } catch {}
     }
   }, []);

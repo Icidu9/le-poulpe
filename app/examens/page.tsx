@@ -213,7 +213,6 @@ export default function Examens() {
   }[c] || { bg: isDark ? "rgba(232,146,42,0.12)" : "#FDF0E0", text: isDark ? "#FBBF24" : "#C05C2A", border: isDark ? "rgba(232,146,42,0.25)" : "#EED4AA" });
 
   const totalFailles = Object.values(faillesMap).reduce((s, m) => s + m.failles.length, 0);
-  const hauteFailles = Object.values(faillesMap).flatMap(m => m.failles).filter(f => f.criticite === "haute").length;
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: bgColor, fontFamily: '"Inter", system-ui, sans-serif' }}>
@@ -235,10 +234,8 @@ export default function Examens() {
                 Mes copies
               </h1>
               <p className="text-sm mt-1" style={{ color: textSub }}>
-                {totalFailles > 0
-                  ? hauteFailles > 0
-                    ? `${hauteFailles} faille${hauteFailles > 1 ? "s" : ""} critique${hauteFailles > 1 ? "s" : ""} identifiée${hauteFailles > 1 ? "s" : ""}`
-                    : `${totalFailles} failles identifiées`
+                {examens.length > 0
+                  ? `${examens.length} copie${examens.length > 1 ? "s" : ""} analysée${examens.length > 1 ? "s" : ""}`
                   : "Dépose tes copies pour que le Poulpe les analyse"}
               </p>
             </div>
@@ -267,13 +264,7 @@ export default function Examens() {
                   : { color: textSub }
                 }
               >
-                {tab === "upload" ? "📤 Ajouter" : tab === "historique" ? "📋 Historique" : "🎯 Failles"}
-                {tab === "failles" && hauteFailles > 0 && (
-                  <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full font-bold"
-                    style={{ background: "#EF4444", color: "white" }}>
-                    {hauteFailles}
-                  </span>
-                )}
+                {tab === "upload" ? "📤 Ajouter" : tab === "historique" ? "📋 Historique" : "📈 Progrès"}
               </button>
             ))}
           </div>
@@ -451,7 +442,7 @@ export default function Examens() {
                   <div>
                     <p className="text-sm font-semibold" style={{ color: "#C05C2A" }}>Le Poulpe analyse la copie...</p>
                     <p className="text-xs mt-0.5" style={{ color: textSub }}>
-                      {previews.length > 1 ? `${previews.length} pages · ` : ""}Identification des failles et patterns cognitifs
+                      {previews.length > 1 ? `${previews.length} pages · ` : ""}Analyse des points à travailler et des réussites
                     </p>
                   </div>
                   <div className="ml-auto flex gap-1">
@@ -503,7 +494,7 @@ export default function Examens() {
               {Object.keys(faillesMap).length === 0 ? (
                 <div className="text-center py-16 space-y-3">
                   <img src="/icon-192.png" alt="" style={{ width: 56, height: 56, borderRadius: 12, margin: "0 auto" }} />
-                  <p className="text-sm" style={{ color: textSub }}>Les failles apparaissent après l'analyse des copies.</p>
+                  <p className="text-sm" style={{ color: textSub }}>Tes points de progrès apparaîtront après l'analyse de tes copies.</p>
                   <button
                     onClick={() => setActiveTab("upload")}
                     className="text-sm font-medium px-4 py-2 rounded-xl text-white"
@@ -522,7 +513,7 @@ export default function Examens() {
                       color: isDark ? "rgba(255,255,255,0.75)" : "#7C4A00",
                     }}
                   >
-                    <strong>🎯 Carte des failles</strong> Ces lacunes ont été identifiées dans les copies. Le Poulpe les travaille en priorité avant les devoirs du moment.
+                    <strong>📈 Tes points de progrès</strong> Ce sont les points que le Poulpe travaille avec toi en priorité. Chaque point travaillé, c'est un pas de plus.
                   </div>
                   {Object.entries(faillesMap).map(([mat, data]) => (
                     <div
@@ -536,35 +527,35 @@ export default function Examens() {
                           className="text-[10px] px-2 py-0.5 rounded-full"
                           style={{ background: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9", color: textSub }}
                         >
-                          màj {data.lastUpdated}
+                          {data.failles.length} point{data.failles.length > 1 ? "s" : ""} à travailler
                         </span>
                       </div>
                       <div className="space-y-2">
-                        {data.failles.map((f, i) => {
-                          const col = criticiteStyle(f.criticite);
-                          return (
-                            <div
-                              key={i}
-                              className="rounded-xl p-3 space-y-1"
-                              style={{ background: col.bg, border: `1px solid ${col.border}` }}
-                            >
-                              <div className="flex items-center gap-2 justify-between">
-                                <span className="text-xs font-semibold" style={{ color: col.text }}>
-                                  {f.criticite === "haute" ? "🔴" : f.criticite === "moyenne" ? "🟠" : "🟡"} {f.concept}
+                        {data.failles.map((f, i) => (
+                          <div
+                            key={i}
+                            className="rounded-xl p-3 space-y-1"
+                            style={{
+                              background: isDark ? "rgba(232,146,42,0.08)" : "#FDF6EE",
+                              border: `1px solid ${isDark ? "rgba(232,146,42,0.2)" : "#EED4AA"}`,
+                            }}
+                          >
+                            <div className="flex items-center gap-2 justify-between">
+                              <span className="text-xs font-semibold" style={{ color: isDark ? "#FBBF24" : "#C05C2A" }}>
+                                📌 {f.concept}
+                              </span>
+                              {(f.count || 1) > 1 && (
+                                <span
+                                  className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                                  style={{ background: isDark ? "rgba(232,146,42,0.15)" : "#EED4AA", color: isDark ? "#FBBF24" : "#C05C2A" }}
+                                >
+                                  repéré {f.count}×
                                 </span>
-                                {(f.count || 1) > 1 && (
-                                  <span
-                                    className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-                                    style={{ background: col.border, color: col.text }}
-                                  >
-                                    ×{f.count}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs leading-relaxed" style={{ color: textMain }}>{f.description}</p>
+                              )}
                             </div>
-                          );
-                        })}
+                            <p className="text-xs leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.7)" : "#5A7A8A" }}>{f.description}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -613,22 +604,19 @@ function AnalysisCard({ analysis, matiere, isDark, glass, textMain, textSub, cri
 
       {analysis.failles.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: textSub }}>Failles identifiées</p>
-          {analysis.failles.map((f, i) => {
-            const col = criticiteStyle(f.criticite);
-            return (
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: textSub }}>Points à travailler</p>
+          {analysis.failles.map((f, i) => (
               <div
                 key={i}
                 className="rounded-xl p-3"
-                style={{ background: col.bg, border: `1px solid ${col.border}` }}
+                style={{ background: isDark ? "rgba(232,146,42,0.08)" : "#FDF6EE", border: `1px solid ${isDark ? "rgba(232,146,42,0.2)" : "#EED4AA"}` }}
               >
-                <p className="text-xs font-semibold mb-0.5" style={{ color: col.text }}>
-                  {f.criticite === "haute" ? "🔴" : f.criticite === "moyenne" ? "🟠" : "🟡"} {f.concept}
+                <p className="text-xs font-semibold mb-0.5" style={{ color: isDark ? "#FBBF24" : "#C05C2A" }}>
+                  📌 {f.concept}
                 </p>
                 <p className="text-xs" style={{ color: textMain }}>{f.description}</p>
               </div>
-            );
-          })}
+          ))}
         </div>
       )}
 
@@ -694,12 +682,12 @@ function ExamenCard({ examen, isDark, glass, textMain, textSub, criticiteStyle, 
               <span className="text-xs font-medium" style={{ color: "#C05C2A" }}>{examen.note}</span>
             )}
             <span className="text-xs" style={{ color: textSub }}>{examen.date}</span>
-            {hauteCount > 0 && (
+            {examen.analysis.points_forts.length > 0 && (
               <span
                 className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-                style={{ background: isDark ? "rgba(239,68,68,0.15)" : "#FDEAEA", color: isDark ? "#F87171" : "#D94040" }}
+                style={{ background: isDark ? "rgba(16,185,129,0.12)" : "#F0F5F0", color: isDark ? "#34D399" : "#5A8A6A" }}
               >
-                {hauteCount} critique{hauteCount > 1 ? "s" : ""}
+                ✓ {examen.analysis.points_forts.length} point{examen.analysis.points_forts.length > 1 ? "s" : ""} fort{examen.analysis.points_forts.length > 1 ? "s" : ""}
               </span>
             )}
           </div>
