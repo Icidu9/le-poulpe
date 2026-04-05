@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 
 type Faille = { concept: string; criticite: string; description: string; count: number };
 type FaillesData = { failles: Faille[] };
-type FailleWithMat = Faille & { matiere: string };
 
 // ── Design helpers ────────────────────────────────────────────────────────────
 const MAT_EMOJI: Record<string, string> = {
@@ -15,14 +14,12 @@ const MAT_EMOJI: Record<string, string> = {
   "Anglais": "🇬🇧", "Espagnol": "🇪🇸", "Allemand": "🇩🇪", "Latin": "🏛️",
   "Philosophie": "🧠", "SES": "📊", "NSI": "💾",
 };
-
 const MAT_COLOR: Record<string, string> = {
   "Français": "#EF4444", "Mathématiques": "#2563EB", "Histoire": "#16A34A",
   "Sciences de la Vie": "#0D9488", "SVT": "#0D9488", "Physique": "#7C3AED", "Chimie": "#7C3AED",
   "Anglais": "#0284C7", "Espagnol": "#C2410C", "Allemand": "#4338CA", "Latin": "#A16207",
   "Philosophie": "#7E22CE", "SES": "#B45309", "NSI": "#1D4ED8",
 };
-
 function getEmoji(mat: string) {
   for (const [k, v] of Object.entries(MAT_EMOJI))
     if (mat.toLowerCase().includes(k.toLowerCase())) return v;
@@ -52,8 +49,17 @@ function getOrUpdateStreak(): number {
   return 1;
 }
 
-// ── Poulpe SVG (version claire pour fond coloré) ──────────────────────────────
-function PoulpeHero({ size = 56 }: { size?: number }) {
+// ── localStorage helpers pour concepts faits ──────────────────────────────────
+function loadDone(): Record<string, string[]> {
+  if (typeof window === "undefined") return {};
+  try { return JSON.parse(localStorage.getItem("poulpe_done_concepts") || "{}"); } catch { return {}; }
+}
+function saveDone(done: Record<string, string[]>) {
+  localStorage.setItem("poulpe_done_concepts", JSON.stringify(done));
+}
+
+// ── Poulpe SVG ────────────────────────────────────────────────────────────────
+function PoulpeHero({ size = 54 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0 }}>
       <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.92" />
@@ -71,53 +77,104 @@ function PoulpeHero({ size = 56 }: { size?: number }) {
   );
 }
 
-// ── Carte défi ────────────────────────────────────────────────────────────────
-function DefiCard({ f, isDark, card, brd, tx, txSub, primary, onReviser }: {
-  f: FailleWithMat; isDark: boolean; card: string; brd: string;
-  tx: string; txSub: string; primary?: boolean;
-  onReviser: () => void;
+// ── Carte concept par matière ─────────────────────────────────────────────────
+function ConceptCard({
+  matiere, concept, remaining, celebrating,
+  isDark, card, brd, tx, txSub,
+  onDone, onReviser,
+}: {
+  matiere: string; concept: Faille; remaining: number; celebrating: boolean;
+  isDark: boolean; card: string; brd: string; tx: string; txSub: string;
+  onDone: () => void; onReviser: () => void;
 }) {
-  const color = getMatColor(f.matiere);
+  const color = getMatColor(matiere);
+
+  // État célébration
+  if (celebrating) {
+    return (
+      <div
+        className="rounded-2xl p-5 flex flex-col items-center gap-3 text-center"
+        style={{
+          background: isDark ? "rgba(16,185,129,0.10)" : "#F0FDF4",
+          border: "1.5px solid rgba(16,185,129,0.35)",
+          transition: "all 300ms",
+        }}
+      >
+        <div
+          className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+          style={{ background: "rgba(16,185,129,0.15)" }}
+        >
+          ✅
+        </div>
+        <div>
+          <p className="text-sm font-bold" style={{ color: "#10B981" }}>Bravo !</p>
+          <p className="text-xs mt-0.5" style={{ color: isDark ? "rgba(52,211,153,0.65)" : "#4A7A5A" }}>
+            {concept.concept}
+          </p>
+        </div>
+        {remaining > 0 && (
+          <p className="text-[10px]" style={{ color: txSub }}>
+            Prochain point en cours de chargement…
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       className="rounded-2xl p-4"
-      style={{
-        background: card,
-        border: `1px solid ${primary ? `${color}30` : brd}`,
-        boxShadow: primary && isDark ? `0 0 0 1px ${color}18` : "none",
-      }}
+      style={{ background: card, border: `1px solid ${color}28` }}
     >
-      <div className="flex items-start gap-3">
+      {/* Header matière */}
+      <div className="flex items-center gap-3 mb-3">
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
           style={{ background: `${color}15`, border: `1px solid ${color}25` }}
         >
-          {getEmoji(f.matiere)}
+          {getEmoji(matiere)}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-              style={{ background: `${color}15`, color }}
-            >
-              {f.matiere}
-            </span>
-            {f.count > 1 && (
-              <span className="text-[10px]" style={{ color: txSub }}>
-                vu {f.count}× dans tes copies
-              </span>
-            )}
-          </div>
-          <p className="text-sm font-medium leading-snug" style={{ color: tx }}>{f.concept}</p>
+          <span className="text-xs font-semibold" style={{ color }}>{matiere}</span>
+          {remaining > 0 && (
+            <p className="text-[10px]" style={{ color: txSub }}>
+              + {remaining} point{remaining > 1 ? "s" : ""} après celui-ci
+            </p>
+          )}
         </div>
+        {concept.count > 1 && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${color}12`, color }}>
+            ×{concept.count}
+          </span>
+        )}
       </div>
-      <button
-        onClick={onReviser}
-        className="mt-3 w-full py-2.5 rounded-xl text-xs font-semibold text-white transition-opacity active:opacity-80"
-        style={{ background: primary ? "#E8922A" : (isDark ? "rgba(232,146,42,0.12)" : "#FFF3E0"), color: primary ? "white" : "#E8922A", border: primary ? "none" : "1px solid rgba(232,146,42,0.25)" }}
-      >
-        Travailler ce point avec Le Poulpe →
-      </button>
+
+      {/* Concept */}
+      <p className="text-sm font-semibold leading-snug mb-4" style={{ color: tx }}>
+        {concept.concept}
+      </p>
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <button
+          onClick={onReviser}
+          className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white"
+          style={{ background: "#E8922A" }}
+        >
+          Travailler ce point →
+        </button>
+        <button
+          onClick={onDone}
+          className="px-4 py-2.5 rounded-xl text-xs font-semibold"
+          style={{
+            background: isDark ? "rgba(16,185,129,0.10)" : "#F0FDF4",
+            color: "#10B981",
+            border: "1px solid rgba(16,185,129,0.25)",
+          }}
+        >
+          Fait ✓
+        </button>
+      </div>
     </div>
   );
 }
@@ -132,51 +189,54 @@ export default function ProgressionPage() {
   const [prenom, setPrenom] = useState("");
   const [streak, setStreak] = useState(0);
   const [sessionCount, setSessionCount] = useState(0);
-  const [showAll, setShowAll] = useState(false);
+  const [done, setDone] = useState<Record<string, string[]>>({});
+  const [celebrating, setCelebrating] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const done = localStorage.getItem("poulpe_onboarding_done");
-    if (!done) {
+    const onb = localStorage.getItem("poulpe_onboarding_done");
+    if (!onb) {
       const email = document.cookie.split("; ").find(r => r.startsWith("poulpe_email="))?.split("=")[1];
       if (email) {
         localStorage.setItem("poulpe_onboarding_done", "true");
         localStorage.setItem("poulpe_parent_email", decodeURIComponent(email));
-      } else {
-        router.replace("/onboarding");
-        return;
-      }
+      } else { router.replace("/onboarding"); return; }
     }
-
-    const t = localStorage.getItem("poulpe_theme") as "dark" | "light" | null;
+    const t = localStorage.getItem("poulpe_theme") as "dark"|"light"|null;
     if (t) setTheme(t);
-
     const p = localStorage.getItem("poulpe_prenom") || "";
     if (p) setPrenom(p);
-
     const f = localStorage.getItem("poulpe_failles");
     if (f) try { setFailles(JSON.parse(f)); } catch {}
-
     const pr = localStorage.getItem("poulpe_profile");
     if (pr) try {
       const profile = JSON.parse(pr);
       if (profile.parent?.pMatieresDiff) setMatieresDiff(profile.parent.pMatieresDiff.filter((m: string) => m !== "__autre__"));
       if (profile.parent?.pMatieresFort) setMatieresFort(profile.parent.pMatieresFort);
     } catch {}
-
     setStreak(getOrUpdateStreak());
-
+    setDone(loadDone());
     let count = 0;
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i) || "";
       if (key.startsWith("poulpe_chat_")) {
-        try {
-          const msgs = JSON.parse(localStorage.getItem(key) || "[]");
-          if (Array.isArray(msgs) && msgs.length >= 2) count++;
-        } catch {}
+        try { const m = JSON.parse(localStorage.getItem(key) || "[]"); if (Array.isArray(m) && m.length >= 2) count++; } catch {}
       }
     }
     setSessionCount(count);
   }, [router]);
+
+  // ── Marquer un concept comme fait ──────────────────────────────────────────
+  const markDone = useCallback((matiere: string, concept: string) => {
+    setCelebrating(prev => ({ ...prev, [matiere]: true }));
+    setDone(prev => {
+      const updated = { ...prev, [matiere]: [...(prev[matiere] || []), concept] };
+      saveDone(updated);
+      return updated;
+    });
+    setTimeout(() => {
+      setCelebrating(prev => ({ ...prev, [matiere]: false }));
+    }, 1800);
+  }, []);
 
   // ── Tokens ──────────────────────────────────────────────────────────────────
   const isDark = theme === "dark";
@@ -186,37 +246,34 @@ export default function ProgressionPage() {
   const txSub  = isDark ? "rgba(255,255,255,0.40)" : "#5A7A8A";
   const brd    = isDark ? "rgba(255,255,255,0.07)" : "#E8EFF2";
 
-  // ── Données ─────────────────────────────────────────────────────────────────
+  // ── Données par matière ─────────────────────────────────────────────────────
   const matieresFailles = Object.keys(failles).filter(m => failles[m]?.failles?.length > 0);
   const hasFailles = matieresFailles.length > 0;
-  const totalConcepts = matieresFailles.reduce((acc, m) => acc + failles[m].failles.length, 0);
-
-  const allFailles: FailleWithMat[] = [];
-  for (const mat of matieresFailles)
-    for (const f of failles[mat].failles)
-      allFailles.push({ ...f, matiere: mat });
-
-  const critOrder: Record<string, number> = { haute: 0, moyenne: 1, faible: 2 };
-  allFailles.sort((a, b) =>
-    (critOrder[a.criticite] ?? 1) - (critOrder[b.criticite] ?? 1)
-  );
-
-  const topDefis  = allFailles.slice(0, 3);
-  const restDefis = allFailles.slice(3);
-
   const matieresSuivies = matieresFailles.length || matieresDiff.length;
-  const streakEmoji = streak >= 14 ? "🔥" : streak >= 7 ? "⚡" : streak >= 3 ? "✨" : "📅";
 
-  const goReviser = (mat: string) => {
-    localStorage.setItem("poulpe_matiere_active", mat);
-    router.push("/");
-  };
+  // Pour chaque matière : concept actif = premier non-fait, trié par criticité
+  const critOrder: Record<string, number> = { haute: 0, moyenne: 1, faible: 2 };
+
+  function getActiveConcept(mat: string): { concept: Faille; remaining: number } | null {
+    const all = [...(failles[mat]?.failles || [])].sort(
+      (a, b) => (critOrder[a.criticite] ?? 1) - (critOrder[b.criticite] ?? 1)
+    );
+    const doneMat = done[mat] || [];
+    const pending = all.filter(f => !doneMat.includes(f.concept));
+    if (pending.length === 0) return null;
+    return { concept: pending[0], remaining: pending.length - 1 };
+  }
+
+  // Matières qui ont encore des concepts à travailler
+  const matiereActives = matieresFailles.filter(m => getActiveConcept(m) !== null);
+  const matiereTerminees = matieresFailles.filter(m => getActiveConcept(m) === null);
+  const allDone = hasFailles && matiereActives.length === 0;
+
+  const streakEmoji = streak >= 14 ? "🔥" : streak >= 7 ? "⚡" : streak >= 3 ? "✨" : "📅";
+  const streakMsg   = streak >= 14 ? "Tu es en feu !" : streak >= 7 ? "Belle régularité !" : streak >= 3 ? "Continue comme ça !" : "Chaque jour compte.";
 
   return (
-    <div
-      className="flex h-screen overflow-hidden"
-      style={{ background: bg, fontFamily: '"Inter", system-ui, sans-serif' }}
-    >
+    <div className="flex h-screen overflow-hidden" style={{ background: bg, fontFamily: '"Inter", system-ui, sans-serif' }}>
       <Sidebar />
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-lg mx-auto px-5 pt-8 pb-12 space-y-5">
@@ -232,92 +289,42 @@ export default function ProgressionPage() {
             Ma progression
           </h1>
 
-          {/* ── HERO CARD ──────────────────────────────────────────────────── */}
+          {/* ── HERO — streak au centre, jamais le nombre de problèmes ──── */}
           <div
             className="rounded-3xl p-6 relative overflow-hidden"
             style={{ background: "linear-gradient(135deg, #E8922A 0%, #BF5420 50%, #0D1B2A 100%)" }}
           >
-            {/* Halo lumineux */}
-            <div style={{
-              position: "absolute", top: -30, right: -30, width: 160, height: 160,
-              background: "radial-gradient(circle, rgba(255,190,80,0.22) 0%, transparent 70%)",
-              pointerEvents: "none",
-            }} />
-            {/* Cercles décoratifs */}
-            <div style={{
-              position: "absolute", bottom: -40, right: 30, width: 130, height: 130,
-              borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)",
-              pointerEvents: "none",
-            }} />
-            <div style={{
-              position: "absolute", bottom: -20, right: 10, width: 80, height: 80,
-              borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)",
-              pointerEvents: "none",
-            }} />
+            <div style={{ position: "absolute", top: -30, right: -30, width: 160, height: 160, background: "radial-gradient(circle, rgba(255,190,80,0.22) 0%, transparent 70%)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", bottom: -40, right: 30, width: 130, height: 130, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)", pointerEvents: "none" }} />
 
             <div className="flex items-start justify-between relative z-10">
-              <div className="space-y-1 flex-1 mr-4">
-                <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
-                  {prenom ? `Profil de ${prenom}` : "Ton profil"}
+              <div className="flex-1 mr-4">
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  {prenom ? `${prenom} ·` : ""} Ma progression
                 </p>
-
-                {hasFailles ? (
-                  <>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold text-white leading-none">{totalConcepts}</span>
-                      <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.65)" }}>
-                        point{totalConcepts > 1 ? "s" : ""} suivi{totalConcepts > 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
-                      Le Poulpe connait tes angles à affiner.
-                    </p>
-                    {matieresFailles.length > 1 && (
-                      <div className="flex gap-1.5 mt-3 flex-wrap">
-                        {matieresFailles.map(m => (
-                          <span
-                            key={m}
-                            className="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                            style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)" }}
-                          >
-                            {getEmoji(m)} {m.split(" ")[0]}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <p className="text-xl font-bold text-white leading-tight">Dépose ta première copie</p>
-                    <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>
-                      Le Poulpe construit ton profil d'apprentissage.
-                    </p>
-                    <button
-                      onClick={() => router.push("/examens")}
-                      className="mt-4 px-5 py-2.5 rounded-xl text-xs font-semibold"
-                      style={{ background: "rgba(255,255,255,0.15)", color: "white", border: "1px solid rgba(255,255,255,0.25)" }}
-                    >
-                      Analyser une copie →
-                    </button>
-                  </>
-                )}
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-bold text-white leading-none">{streak}</span>
+                  <span className="text-base">{streakEmoji}</span>
+                </div>
+                <p className="text-sm mt-1 font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  jour{streak > 1 ? "s" : ""} de travail de suite
+                </p>
+                <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  {streakMsg}
+                </p>
               </div>
               <PoulpeHero size={54} />
             </div>
           </div>
 
-          {/* ── MÉTRIQUES EFFORT (jamais de score, toujours du comportement) ── */}
+          {/* ── MÉTRIQUES EFFORT ─────────────────────────────────────────── */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { icon: streakEmoji, value: streak,         label: "jours de suite" },
-              { icon: "💬",        value: sessionCount,   label: "sessions" },
-              { icon: "📚",        value: matieresSuivies, label: `matière${matieresSuivies > 1 ? "s" : ""}` },
+              { icon: "💬", value: sessionCount, label: "sessions" },
+              { icon: "📚", value: matieresSuivies, label: `matière${matieresSuivies > 1 ? "s" : ""}` },
+              { icon: "✅", value: Object.values(done).reduce((a, b) => a + b.length, 0), label: "points faits" },
             ].map(({ icon, value, label }) => (
-              <div
-                key={label}
-                className="rounded-2xl px-3 py-4 text-center"
-                style={{ background: card, border: `1px solid ${brd}` }}
-              >
+              <div key={label} className="rounded-2xl px-3 py-4 text-center" style={{ background: card, border: `1px solid ${brd}` }}>
                 <div className="text-xl mb-1">{icon}</div>
                 <div className="text-2xl font-bold leading-none" style={{ color: tx }}>{value}</div>
                 <div className="text-[10px] mt-1.5 leading-tight" style={{ color: txSub }}>{label}</div>
@@ -325,98 +332,101 @@ export default function ProgressionPage() {
             ))}
           </div>
 
-          {/* ── POINT FORT (toujours en premier, avant les défis) ─────────── */}
+          {/* ── POINT FORT ───────────────────────────────────────────────── */}
           {matieresFort && (
-            <div
-              className="flex items-center gap-4 px-5 py-4 rounded-2xl"
-              style={{
-                background: isDark ? "rgba(16,185,129,0.07)" : "#F0FDF4",
-                border: isDark ? "1px solid rgba(16,185,129,0.14)" : "1px solid #BBF7D0",
-              }}
-            >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                style={{ background: isDark ? "rgba(16,185,129,0.13)" : "#D1FAE5" }}
-              >
+            <div className="flex items-center gap-4 px-5 py-4 rounded-2xl"
+              style={{ background: isDark ? "rgba(16,185,129,0.07)" : "#F0FDF4", border: isDark ? "1px solid rgba(16,185,129,0.14)" : "1px solid #BBF7D0" }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                style={{ background: isDark ? "rgba(16,185,129,0.13)" : "#D1FAE5" }}>
                 {getEmoji(matieresFort)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#10B981" }}>
-                  Point fort
-                </p>
-                <p className="text-sm font-semibold mt-0.5 truncate" style={{ color: tx }}>
-                  {matieresFort}
-                </p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#10B981" }}>Point fort</p>
+                <p className="text-sm font-semibold mt-0.5 truncate" style={{ color: tx }}>{matieresFort}</p>
               </div>
               <span className="text-lg">⭐</span>
             </div>
           )}
 
-          {/* ── PROCHAINS DÉFIS ───────────────────────────────────────────── */}
-          {hasFailles && topDefis.length > 0 && (
+          {/* ── ÉTAT VIDE — pas encore de copie ──────────────────────────── */}
+          {!hasFailles && (
+            <div className="rounded-3xl p-8 text-center space-y-4" style={{ background: card, border: `1px solid ${brd}` }}>
+              <div className="text-4xl">📄</div>
+              <p className="text-sm font-semibold" style={{ color: tx }}>Dépose ta première copie</p>
+              <p className="text-xs leading-relaxed max-w-xs mx-auto" style={{ color: txSub }}>
+                Le Poulpe analyse tes copies corrigées et identifie tes points d'amélioration — un par un.
+              </p>
+              <button onClick={() => router.push("/examens")}
+                className="px-6 py-3 rounded-xl text-sm font-semibold text-white"
+                style={{ background: "#E8922A" }}>
+                Analyser une copie →
+              </button>
+            </div>
+          )}
+
+          {/* ── TOUT TERMINÉ ─────────────────────────────────────────────── */}
+          {allDone && (
+            <div className="rounded-3xl p-8 text-center space-y-3" style={{ background: isDark ? "rgba(16,185,129,0.07)" : "#F0FDF4", border: "1px solid rgba(16,185,129,0.25)" }}>
+              <div className="text-4xl">🎉</div>
+              <p className="text-base font-bold" style={{ color: "#10B981" }}>Tous les points travaillés !</p>
+              <p className="text-xs" style={{ color: txSub }}>Dépose une nouvelle copie pour continuer à progresser.</p>
+              <button onClick={() => router.push("/examens")}
+                className="px-5 py-2.5 rounded-xl text-xs font-semibold"
+                style={{ background: "rgba(16,185,129,0.15)", color: "#10B981", border: "1px solid rgba(16,185,129,0.3)" }}>
+                Analyser une nouvelle copie →
+              </button>
+            </div>
+          )}
+
+          {/* ── UN CONCEPT PAR MATIÈRE ───────────────────────────────────── */}
+          {hasFailles && !allDone && (
             <div className="space-y-3">
-              <p
-                className="text-[10px] font-semibold uppercase tracking-widest px-1"
-                style={{ color: txSub }}
-              >
-                Tes prochains défis
+              <p className="text-[10px] font-semibold uppercase tracking-widest px-1" style={{ color: txSub }}>
+                Un point à la fois
               </p>
 
-              {topDefis.map((f, i) => (
-                <DefiCard
-                  key={i}
-                  f={f}
-                  isDark={isDark}
-                  card={card}
-                  brd={brd}
-                  tx={tx}
-                  txSub={txSub}
-                  primary={i === 0}
-                  onReviser={() => goReviser(f.matiere)}
-                />
-              ))}
+              {matiereActives.map(mat => {
+                const active = getActiveConcept(mat);
+                if (!active) return null;
+                return (
+                  <ConceptCard
+                    key={mat}
+                    matiere={mat}
+                    concept={active.concept}
+                    remaining={active.remaining}
+                    celebrating={!!celebrating[mat]}
+                    isDark={isDark}
+                    card={card}
+                    brd={brd}
+                    tx={tx}
+                    txSub={txSub}
+                    onDone={() => markDone(mat, active.concept.concept)}
+                    onReviser={() => { localStorage.setItem("poulpe_matiere_active", mat); router.push("/"); }}
+                  />
+                );
+              })}
 
-              {/* Progressive disclosure — le reste masqué par défaut */}
-              {restDefis.length > 0 && (
-                <>
-                  <button
-                    onClick={() => setShowAll(v => !v)}
-                    className="w-full py-3 rounded-2xl text-xs font-medium transition-opacity active:opacity-70"
-                    style={{
-                      color: txSub,
-                      background: isDark ? "rgba(255,255,255,0.03)" : "#F4F9FA",
-                      border: `1px solid ${brd}`,
-                    }}
-                  >
-                    {showAll ? "Masquer les autres points" : `Voir les ${restDefis.length} autres points →`}
-                  </button>
-
-                  {showAll && restDefis.map((f, i) => (
-                    <DefiCard
-                      key={i}
-                      f={f}
-                      isDark={isDark}
-                      card={card}
-                      brd={brd}
-                      tx={tx}
-                      txSub={txSub}
-                      primary={false}
-                      onReviser={() => goReviser(f.matiere)}
-                    />
+              {/* Matières entièrement terminées */}
+              {matiereTerminees.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  {matiereTerminees.map(mat => (
+                    <div key={mat} className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+                      style={{ background: isDark ? "rgba(16,185,129,0.06)" : "#F0FDF4", border: "1px solid rgba(16,185,129,0.15)" }}>
+                      <span className="text-base">{getEmoji(mat)}</span>
+                      <span className="flex-1 text-sm font-medium" style={{ color: tx }}>{mat}</span>
+                      <span className="text-xs font-semibold" style={{ color: "#10B981" }}>✓ Terminé</span>
+                    </div>
                   ))}
-                </>
+                </div>
               )}
             </div>
           )}
 
-          {/* ── MESSAGE BAS DE PAGE (discret, bienveillant) ──────────────── */}
+          {/* ── MESSAGE BAS DE PAGE ───────────────────────────────────────── */}
           {hasFailles && (
-            <p
-              className="text-center text-[11px] leading-relaxed pt-1 pb-2"
-              style={{ color: isDark ? "rgba(255,255,255,0.22)" : "#9BB5BF" }}
-            >
-              Ces points ne sont pas des défauts.
-              <br />
+            <p className="text-center text-[11px] leading-relaxed pt-1 pb-2"
+              style={{ color: isDark ? "rgba(255,255,255,0.20)" : "#9BB5BF" }}>
+              Ces points ne sont pas des défauts.<br />
               Ce sont des angles précis à affiner, un par un.
             </p>
           )}
