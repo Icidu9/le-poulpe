@@ -638,115 +638,57 @@ export default function Home() {
     e.target.value = "";
   }
 
-  // ── Vocal (Groq Whisper + fallback Web Speech) ────────────────────────────
-  // Priorité 1 : Groq Whisper (haute qualité, multilangue)
-  // Fallback   : Web Speech API native si Groq indisponible
+  // ── Vocal — Web Speech API (100% local, RGPD-compliant) ──────────────────
+  // L'audio est traité par le navigateur (Chrome/Safari), jamais envoyé à Le Poulpe.
 
   const speechRecognitionRef = useRef<any>(null);
-  const recordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  async function toggleVoice() {
-    // Utilise le ref (synchrone) plutôt que le state React (async) — évite le stale closure
-    if (isRecordingRef.current) {
-      if (recordingTimerRef.current) { clearTimeout(recordingTimerRef.current); recordingTimerRef.current = null; }
-      mediaRecorderRef.current?.stop();
-      speechRecognitionRef.current?.stop();
+  function toggleVoice() {
+    // Si enregistrement en cours → arrêter
+    if (speechRecognitionRef.current) {
+      speechRecognitionRef.current.stop();
       return;
     }
 
-    // ── Groq Whisper via MediaRecorder ───────────────────────────────────────
-    let stream = micStreamRef.current;
-    if (!stream || stream.getTracks().some((t) => t.readyState === "ended")) {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        micStreamRef.current = stream;
-      } catch {
-        setMicError(true);
-        setTimeout(() => setMicError(false), 4000);
-        return;
-      }
-    }
-
-    audioChunksRef.current = [];
-    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-      ? "audio/webm;codecs=opus"
-      : MediaRecorder.isTypeSupported("audio/webm")
-      ? "audio/webm"
-      : "audio/mp4";
-    const recorder = new MediaRecorder(stream, { mimeType });
-    mediaRecorderRef.current = recorder;
-
-    // Pas de timeslice : on récupère un seul blob complet à l'arrêt
-    // (nécessaire pour MP4/Safari — les chunks MP4 fragmentés ne sont pas valides)
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) audioChunksRef.current.push(e.data);
-    };
-
-    recorder.onstop = async () => {
-      isRecordingRef.current = false;
-      setIsRecording(false);
-      setIsTranscribing(true);
-
-      const ext = mimeType.includes("mp4") ? "mp4" : "webm";
-      const blob = new Blob(audioChunksRef.current, { type: mimeType });
-
-      if (blob.size < 2000) {
-        // Blob vide ou quasi-vide — on n'envoie pas
-        setIsTranscribing(false);
-        return;
-      }
-
-      const form = new FormData();
-      form.append("audio", blob, `audio.${ext}`);
-
-      try {
-        const res = await fetch("/api/transcribe", { method: "POST", body: form });
-        const text = await res.text();
-        if (res.ok && text.trim()) {
-          setIsTranscribing(false);
-          sendMessage(text.trim());
-          return;
-        }
-        // Affiche l'erreur exacte pour diagnostic
-        setTranscribeErrorMsg(text || `HTTP ${res.status}`);
-        setTimeout(() => setTranscribeErrorMsg(""), 8000);
-      } catch (e: any) {
-        setTranscribeErrorMsg(e?.message || "Erreur réseau");
-        setTimeout(() => setTranscribeErrorMsg(""), 8000);
-      }
-      setIsTranscribing(false);
-    };
-
-    isRecordingRef.current = true;
-    setIsRecording(true);
-    recorder.start(); // pas de timeslice → 1 seul blob complet
-    // Arrêt automatique après 60s max — évite l'enregistrement infini
-    recordingTimerRef.current = setTimeout(() => {
-      if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
-    }, 60000);
-  }
-
-  function fallbackWebSpeech() {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
     if (!SpeechRecognition) {
-      setTranscribeError(true);
-      setTimeout(() => setTranscribeError(false), 5000);
+      setMicError(true);
+      setTimeout(() => setMicError(false), 5000);
       return;
     }
+
     const recognition = new SpeechRecognition();
     speechRecognitionRef.current = recognition;
     recognition.lang = "fr-FR";
     recognition.continuous = false;
     recognition.interimResults = false;
+
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
+      const transcript = event.results[0]?.[0]?.transcript || "";
       if (transcript.trim()) sendMessage(transcript.trim());
     };
-    recognition.onerror = () => {
-      setTranscribeError(true);
-      setTimeout(() => setTranscribeError(false), 5000);
+
+    recognition.onend = () => {
+      speechRecognitionRef.current = null;
+      isRecordingRef.current = false;
+      setIsRecording(false);
     };
+
+    recognition.onerror = (event: any) => {
+      speechRecognitionRef.current = null;
+      isRecordingRef.current = false;
+      setIsRecording(false);
+      // "no-speech" = l'enfant n'a rien dit, pas une vraie erreur
+      if (event.error !== "no-speech") {
+        setMicError(true);
+        setTimeout(() => setMicError(false), 4000);
+      }
+    };
+
+    isRecordingRef.current = true;
+    setIsRecording(true);
     recognition.start();
   }
 
