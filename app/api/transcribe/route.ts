@@ -46,17 +46,13 @@ export async function POST(req: Request) {
       "x-gladia-key": apiKey,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      audio_url,
-      language: "fr",
-      disfluencies: false,
-    }),
+    body: JSON.stringify({ audio_url }),
   });
 
   if (!transcribeRes.ok) {
     const err = await transcribeRes.text();
     console.error("Gladia transcribe error:", transcribeRes.status, err);
-    return Response.json({ error: "Erreur lancement transcription" }, { status: 500 });
+    return Response.json({ error: `Gladia: ${transcribeRes.status} — ${err}` }, { status: 500 });
   }
 
   const transcribeData = await transcribeRes.json();
