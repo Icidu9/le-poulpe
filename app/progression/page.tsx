@@ -122,10 +122,10 @@ function ConceptCard({ matiere, concept, entry, isDark, card, tx, txSub, brd, on
         style={{
           background: isReview
             ? "linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)"
-            : "linear-gradient(135deg, #FF8000 0%, #E06000 100%)",
+            : "linear-gradient(135deg, #FFAA00 0%, #FF7000 100%)",
           boxShadow: isDark
-            ? `0 4px 16px ${isReview ? "rgba(139,92,246,0.3)" : "rgba(255,128,0,0.3)"}`
-            : `0 2px 8px ${isReview ? "rgba(139,92,246,0.2)" : "rgba(255,128,0,0.2)"}`,
+            ? `0 4px 16px ${isReview ? "rgba(139,92,246,0.3)" : "rgba(255,160,0,0.35)"}`
+            : `0 2px 8px ${isReview ? "rgba(139,92,246,0.2)" : "rgba(255,160,0,0.25)"}`,
         }}
       >
         {isReview ? "Révision rapide →" : "C'est parti →"}
