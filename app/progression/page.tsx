@@ -120,19 +120,6 @@ export default function ProgressionPage() {
     0
   );
 
-  type FocusFaille = { concept: string; description: string; matiere: string };
-  const focusFaille: FocusFaille | null = (() => {
-    for (const mat of Object.keys(failles)) {
-      const haute = failles[mat]?.failles?.find((f) => f.criticite === "haute");
-      if (haute) return { concept: haute.concept, description: haute.description, matiere: mat };
-    }
-    for (const mat of Object.keys(failles)) {
-      const moy = failles[mat]?.failles?.[0];
-      if (moy) return { concept: moy.concept, description: moy.description, matiere: mat };
-    }
-    return null;
-  })();
-
   return (
     <div
       className="flex h-screen overflow-hidden"
@@ -158,37 +145,6 @@ export default function ProgressionPage() {
               Les points identifiés dans tes copies, matière par matière.
             </p>
           </div>
-
-          {/* Focus du moment */}
-          {focusFaille && (
-            <div
-              className="rounded-2xl p-5 space-y-3"
-              style={{
-                background: isDark ? "rgba(232,146,42,0.08)" : "linear-gradient(135deg, #FDF0E0 0%, #FAF7F2 100%)",
-                border: `1.5px solid ${primaryBorder}`,
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🎯</span>
-                <span className="text-xs font-bold uppercase tracking-wide" style={{ color: "#C05C2A" }}>Focus du moment</span>
-              </div>
-              <div>
-                <div className="font-bold text-base" style={{ color: textMain }}>{focusFaille.concept}</div>
-                <div className="text-xs mt-1 leading-relaxed" style={{ color: textSub }}>{focusFaille.description}</div>
-                <div className="text-[10px] mt-1.5 font-medium" style={{ color: "#E8922A" }}>📚 {focusFaille.matiere}</div>
-              </div>
-              <button
-                onClick={() => {
-                  localStorage.setItem("poulpe_matiere_active", focusFaille.matiere);
-                  router.push("/");
-                }}
-                className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                style={{ background: "#E8922A" }}
-              >
-                On travaille ça maintenant →
-              </button>
-            </div>
-          )}
 
           {/* Stats globales */}
           {hasFailles && (
