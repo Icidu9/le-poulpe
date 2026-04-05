@@ -282,7 +282,7 @@ export default function ProgressionPage() {
           </div>
 
           {/* Métriques */}
-          <div className="rounded-2xl flex overflow-hidden" style={{ background: card, border: `1px solid ${brd}` }}>
+          <div className="rounded-2xl flex" style={{ background: card, border: `1px solid ${brd}` }}>
             {/* Matières */}
             <div className="flex-1 py-4 text-center" style={{ borderRight: `1px solid ${brd}` }}>
               <div className="text-2xl font-bold leading-none" style={{ color: tx }}>{matieresSuivies}</div>
