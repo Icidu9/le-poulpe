@@ -387,6 +387,12 @@ export default function Onboarding() {
   const [microEmailParent, setMicroEmailParent]   = useState("");
   const [microMatieres, setMicroMatieres]         = useState<string[]>([]);
   const [microMatieresAutre, setMicroMatieresAutre] = useState("");
+  const [microConsentRGPD, setMicroConsentRGPD]   = useState(false);
+
+  // Les classes qui impliquent un mineur de moins de 15 ans (Art. 45 CNIL)
+  const classesMineur15 = ["6ème", "5ème", "4ème", "3ème"];
+  const needsParentalConsent = classesMineur15.includes(microClasse);
+  const microTotalSteps = needsParentalConsent ? 3 : 2;
 
   function saveMicroAndFinish() {
     const profile = {
@@ -422,6 +428,11 @@ export default function Onboarding() {
         eConcentration: [], eMomentJournee: [], eMomentAutre: "",
       },
     };
+    // Consentement parental RGPD (Art. 45 CNIL — mineurs < 15 ans)
+    if (needsParentalConsent) {
+      (profile.parent as Record<string, unknown>).consentParentalRGPD = true;
+      (profile.parent as Record<string, unknown>).consentParentalRGPDDate = new Date().toISOString();
+    }
     localStorage.setItem("poulpe_onboarding_done", "true");
     localStorage.setItem("poulpe_profile", JSON.stringify(profile));
     localStorage.setItem("poulpe_prenom", microPrenom);
@@ -556,10 +567,10 @@ export default function Onboarding() {
             <div className="text-center">
               <Poulpe size={48} />
               <h1 className="text-xl font-bold mt-3" style={{ color: C.charcoal }}>
-                {microStep === 0 ? "Quelques infos rapides 👋" : "Les matières à travailler 📚"}
+                {microStep === 0 ? "Quelques infos rapides 👋" : microStep === 1 ? "Les matières à travailler 📚" : "Consentement parental 🔒"}
               </h1>
               <div className="flex justify-center gap-1.5 mt-3">
-                {[0, 1].map((i) => (
+                {Array.from({ length: microTotalSteps }).map((_, i) => (
                   <div key={i} className="h-1.5 rounded-full transition-all duration-300"
                     style={{ width: i === microStep ? "20px" : "6px", background: i === microStep ? C.amber : C.parchDark }} />
                 ))}
@@ -621,22 +632,55 @@ export default function Onboarding() {
               </Card>
             )}
 
+            {/* ── ÉTAPE RGPD — consentement parental (mineurs < 15 ans) ── */}
+            {microStep === 2 && needsParentalConsent && (
+              <Card>
+                <div className="space-y-4">
+                  <div className="rounded-xl px-4 py-3" style={{ background: "rgba(232,146,42,0.08)", border: "1px solid rgba(232,146,42,0.2)" }}>
+                    <p className="text-xs font-semibold" style={{ color: C.amber }}>Protection des données · Art. 45 CNIL</p>
+                    <p className="text-xs mt-1 leading-relaxed" style={{ color: C.warmGray }}>
+                      Votre enfant a moins de 15 ans. La loi française exige votre consentement explicite en tant que parent ou tuteur légal avant de créer ce compte.
+                    </p>
+                  </div>
+                  <div className="space-y-3 text-xs leading-relaxed" style={{ color: C.warmGray }}>
+                    <p><strong style={{ color: C.charcoal }}>Ce que nous collectons :</strong> le prénom de votre enfant, sa classe, ses matières, et les échanges pédagogiques avec le tuteur IA.</p>
+                    <p><strong style={{ color: C.charcoal }}>Ce que nous ne faisons pas :</strong> nous ne vendons pas les données, ne les partageons pas avec des tiers, et ne les utilisons qu'à des fins pédagogiques.</p>
+                    <p><strong style={{ color: C.charcoal }}>Vos droits :</strong> accès, rectification, suppression à tout moment via l'espace parent.</p>
+                  </div>
+                  <button
+                    onClick={() => setMicroConsentRGPD(v => !v)}
+                    className="flex items-start gap-3 w-full text-left"
+                  >
+                    <div className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-md flex items-center justify-center transition-all"
+                      style={{ background: microConsentRGPD ? C.amber : "transparent", border: `2px solid ${microConsentRGPD ? C.amber : C.parchDark}` }}>
+                      {microConsentRGPD && <span style={{ color: "white", fontSize: 11, fontWeight: 900 }}>✓</span>}
+                    </div>
+                    <p className="text-xs leading-relaxed" style={{ color: C.charcoal }}>
+                      En tant que parent ou tuteur légal de <strong>{microPrenom || "mon enfant"}</strong>, je consens à la création de son compte et au traitement de ses données personnelles par Le Poulpe conformément à la politique de confidentialité.
+                    </p>
+                  </button>
+                </div>
+              </Card>
+            )}
+
             <div className="flex gap-3">
-              <button onClick={() => microStep === 0 ? setPhase("welcome") : setMicroStep(0)}
+              <button onClick={() => microStep === 0 ? setPhase("welcome") : setMicroStep(s => s - 1)}
                 className="flex-1 py-3 rounded-2xl text-sm font-medium"
                 style={{ background: C.parchment, color: C.warmGray, border: `1px solid ${C.parchDark}` }}>
                 ← Retour
               </button>
-              {microStep === 0 ? (
-                <button onClick={() => setMicroStep(1)}
-                  disabled={!microPrenom.trim() || !microClasse}
+              {microStep < microTotalSteps - 1 ? (
+                <button
+                  onClick={() => setMicroStep(s => s + 1)}
+                  disabled={microStep === 0 ? (!microPrenom.trim() || !microClasse) : microMatieres.length === 0}
                   className="flex-1 py-3 rounded-2xl text-sm font-semibold text-white disabled:opacity-35"
                   style={{ background: C.amber }}>
                   Suivant →
                 </button>
               ) : (
-                <button onClick={saveMicroAndFinish}
-                  disabled={microMatieres.length === 0}
+                <button
+                  onClick={saveMicroAndFinish}
+                  disabled={needsParentalConsent ? !microConsentRGPD : microMatieres.length === 0}
                   className="flex-1 py-3 rounded-2xl text-sm font-semibold text-white disabled:opacity-35"
                   style={{ background: C.sage }}>
                   🐙 C'est parti !
