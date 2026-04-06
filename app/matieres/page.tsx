@@ -29,8 +29,8 @@ const MAT_STYLES: Record<string, MatStyle> = {
 
 const MAT_EMOJIS: Record<string, string> = {
   "Français": "✍️", "Mathématiques": "📐",
-  "Histoire-Géographie": "🗺️", "Histoire": "🗺️",
-  "Sciences de la Vie et de la Terre": "🔬", "SVT": "🔬",
+  "Histoire-Géographie": "🌍", "Histoire": "🌍",
+  "Sciences de la Vie et de la Terre": "🌱", "SVT": "🌱",
   "Physique-Chimie": "🧪", "Physique": "🧪",
   "Anglais": "💂", "Espagnol": "🌞", "Allemand": "🥨", "Latin": "📜",
   "Philosophie": "🪬", "SES": "📈", "NSI": "⌨️",

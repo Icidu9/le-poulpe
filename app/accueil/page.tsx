@@ -22,8 +22,8 @@ const MAT_COLORS: Record<string, { gradient: string; light: string; text: string
 
 const MAT_EMOJIS: Record<string, string> = {
   "Français": "✍️", "Mathématiques": "📐",
-  "Histoire-Géographie": "🗺️", "Histoire": "🗺️",
-  "Sciences de la Vie et de la Terre": "🔬", "SVT": "🔬", "Sciences": "🔬",
+  "Histoire-Géographie": "🌍", "Histoire": "🌍",
+  "Sciences de la Vie et de la Terre": "🌱", "SVT": "🌱", "Sciences": "🌱",
   "Physique-Chimie": "🧪", "Physique": "🧪",
   "Anglais": "💂", "Espagnol": "🌞", "Allemand": "🥨", "Latin": "📜",
 };
