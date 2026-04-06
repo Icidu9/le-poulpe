@@ -122,6 +122,7 @@ function Poulpe({ size = 32 }: { size?: number }) {
       <circle cx="29" cy="18" r="2.5" fill="white" />
       <circle cx="19.8" cy="18.5" r="1.2" fill="#0A2030" />
       <circle cx="29.8" cy="18.5" r="1.2" fill="#0A2030" />
+      <path d="M21 22.5 Q24 25 27 22.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
       <path d="M14 30 Q11 36 13 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
       <path d="M18 32 Q16 39 18 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
       <path d="M24 33 Q24 40 24 44" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
@@ -1101,7 +1102,7 @@ export default function Home() {
             userScrolledUp.current = !atBottom;
           }}
         >
-          <div className="max-w-[680px] mx-auto space-y-4">
+          <div className="max-w-lg mx-auto space-y-4">
             {/* Bannière session restaurée */}
             {restoredSession && (
               <div className="flex items-center gap-3 py-1">
@@ -1227,7 +1228,7 @@ export default function Home() {
 
         {/* Saisie */}
         <div className="px-6 py-4 border-t flex-shrink-0" style={{ background: isDark ? "rgba(6,26,38,0.75)" : C.parchment, borderColor: isDark ? "rgba(255,255,255,0.08)" : C.parchmentDark }}>
-          <div className="max-w-[680px] mx-auto">
+          <div className="max-w-lg mx-auto">
 
             {/* Carte fin de session */}
             {isSessionClosed && (

@@ -265,7 +265,7 @@ export default function AccueilPage() {
 
   // Theme tokens
   const isDark = theme === "dark";
-  const bgColor = isDark ? "#020B1E" : "#EBF4F8";
+  const bgColor = isDark ? "#030D18" : "#EBF4F8";
   const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
   const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
   const glass: React.CSSProperties = isDark
