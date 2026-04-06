@@ -322,14 +322,6 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
                 ● En cours
               </span>
             )}
-            {hasFlash && (
-              <span
-                className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                style={{ background: isDark ? "rgba(109,40,217,0.2)" : "#F5F3FF", color: "#8B5CF6" }}
-              >
-                🃏
-              </span>
-            )}
             {badge === "difficile" && !hasSession && (
               <span
                 className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"

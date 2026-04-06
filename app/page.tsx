@@ -1025,6 +1025,12 @@ export default function Home() {
                 {isTourTarget && (
                   <span className="ml-auto text-[10px] font-bold" style={{ color: "#E8922A" }}>←</span>
                 )}
+                {isActive && !isTourTarget && (
+                  <span
+                    className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ background: "#E8922A", boxShadow: "0 0 6px rgba(232,146,42,0.6)" }}
+                  />
+                )}
               </button>
             );
           })}
