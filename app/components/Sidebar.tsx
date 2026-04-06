@@ -204,7 +204,7 @@ export default function Sidebar() {
             }}
             style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.2)", padding: 0 }}
           >
-            ↩ Changer de compte
+            ↩ Se déconnecter
           </button>
         </div>
       </div>
