@@ -278,7 +278,24 @@ export default function Examens() {
           {/* ── ONGLET UPLOAD ────────────────────────────────────────────── */}
           {activeTab === "upload" && (
             <>
-              {examens.length === 0 && (
+              {examens.length >= 4 && (
+                <div
+                  className="rounded-2xl p-5 text-center space-y-2"
+                  style={{
+                    background: isDark ? "rgba(232,146,42,0.08)" : "#FDF0E0",
+                    border: "1px solid rgba(232,146,42,0.25)",
+                  }}
+                >
+                  <div className="text-2xl">📚</div>
+                  <p className="text-sm font-semibold" style={{ color: isDark ? "#FBBF24" : "#C05C2A" }}>
+                    Limite atteinte (4/4 copies)
+                  </p>
+                  <p className="text-xs" style={{ color: textSub }}>
+                    Tu as atteint le maximum de copies pour cette version bêta.
+                  </p>
+                </div>
+              )}
+              {examens.length < 4 && examens.length === 0 && (
                 <div
                   className="rounded-2xl p-4 text-sm leading-relaxed"
                   style={{
@@ -292,6 +309,7 @@ export default function Examens() {
               )}
 
               {/* Formulaire */}
+              {examens.length < 4 && (
               <div
                 className="rounded-2xl p-5 space-y-4"
                 style={glass}
@@ -434,6 +452,7 @@ export default function Examens() {
                   {analysing ? "Analyse en cours..." : "🔍 Analyser avec le Poulpe"}
                 </button>
               </div>
+              )}
 
               {/* Loader */}
               {analysing && (

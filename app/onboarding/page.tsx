@@ -435,7 +435,7 @@ export default function Onboarding() {
         body: JSON.stringify({ email: emailToSave, prenom: microPrenom, profile }),
       }).catch(() => {});
     }
-    router.push("/");
+    router.push("/accueil");
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
@@ -492,7 +492,7 @@ export default function Onboarding() {
         body: JSON.stringify({ email, prenom: ePrenom, profile }),
       }).catch(() => {});
     }
-    router.push("/");
+    router.push("/accueil");
   }
 
   const backBtn = (onClick: () => void) => (
