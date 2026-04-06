@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
+import BrainCerveau from "../cerveau/BrainCerveau";
 import {
   type MasteryData, type MasteryEntry,
   loadMasteryData, masteryKey, isDueToday,
@@ -152,6 +153,7 @@ export default function ProgressionPage() {
   const [sessionCount, setSessionCount] = useState(0);
   const [mastery, setMastery] = useState<MasteryData>({});
   const [showMemTip, setShowMemTip] = useState(false);
+  const [workedSubjects, setWorkedSubjects] = useState<string[]>([]);
 
   useEffect(() => {
     const onb = localStorage.getItem("poulpe_onboarding_done");
@@ -176,13 +178,22 @@ export default function ProgressionPage() {
     setStreak(getOrUpdateStreak());
     setMastery(loadMasteryData());
     let count = 0;
+    const worked: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i) || "";
-      if (key.startsWith("poulpe_chat_")) {
-        try { const m = JSON.parse(localStorage.getItem(key) || "[]"); if (Array.isArray(m) && m.length >= 2) count++; } catch {}
+      if (key.startsWith("poulpe_chat_") && key !== "poulpe_chat_general") {
+        try {
+          const m = JSON.parse(localStorage.getItem(key) || "[]");
+          if (Array.isArray(m) && m.length >= 2) {
+            count++;
+            const sub = key.replace("poulpe_chat_", "");
+            if (sub) worked.push(sub);
+          }
+        } catch {}
       }
     }
     setSessionCount(count);
+    setWorkedSubjects(worked);
   }, [router]);
 
   // ── Naviguer vers le chat avec le contexte de révision ────────────────────
@@ -245,6 +256,10 @@ export default function ProgressionPage() {
 
   const streakEmoji = streak >= 14 ? "🔥" : streak >= 7 ? "⚡" : streak >= 3 ? "✨" : "";
   const streakMsg   = streak >= 14 ? "Tu es en feu !" : streak >= 7 ? "Belle régularité !" : streak >= 3 ? "Continue comme ça !" : "Chaque jour compte.";
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
+  const dateStr = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const dateCap = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: bg, fontFamily: '"Inter", system-ui, sans-serif' }}>
@@ -259,27 +274,38 @@ export default function ProgressionPage() {
           </h1>
 
           {/* Hero */}
-          <div className="rounded-3xl p-6 relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, #E8922A 0%, #C05C2A 50%, #0D1B2A 100%)" }}>
-            <div style={{ position: "absolute", top: -30, right: -30, width: 160, height: 160, background: "radial-gradient(circle, rgba(255,200,80,0.22) 0%, transparent 70%)", pointerEvents: "none" }} />
-            <div style={{ position: "absolute", bottom: -40, right: 30, width: 130, height: 130, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)", pointerEvents: "none" }} />
-            <div className="flex items-start justify-between relative z-10">
-              <div className="flex-1 mr-4">
-                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
-                  {prenom ? `${prenom} · ` : ""}Ma progression
+          <button
+            onClick={() => router.push("/cerveau")}
+            className="w-full rounded-3xl text-left transition-all hover:scale-[1.01] active:scale-[0.99] overflow-hidden"
+            style={{
+              background: "linear-gradient(145deg, #0D2035 0%, #061020 100%)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              boxShadow: workedSubjects.length > 0 ? "0 0 40px rgba(16,185,129,0.06)" : "none",
+            }}
+          >
+            <div className="flex items-center gap-2 px-5 pt-5 pb-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2"
+                  style={{ color: "rgba(255,255,255,0.35)" }}>{dateCap}</p>
+                <h1 className="text-xl font-bold text-white leading-snug">
+                  {greeting}, {prenom}
+                </h1>
+                <p className="text-xs mt-1.5 font-medium" style={{ color: workedSubjects.length > 0 ? "#10B981" : "rgba(255,255,255,0.35)" }}>
+                  {workedSubjects.length > 0
+                    ? `${Math.min(workedSubjects.length, 5)} zone${workedSubjects.length > 1 ? "s" : ""} active${workedSubjects.length > 1 ? "s" : ""}`
+                    : streak > 1 ? `${streak} jours de suite` : "Commence pour activer ton cerveau"}
                 </p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-white leading-none">{streak}</span>
-                  {streakEmoji && <span className="text-xl">{streakEmoji}</span>}
-                </div>
-                <p className="text-sm mt-1 font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
-                  jour{streak > 1 ? "s" : ""} de travail de suite
-                </p>
-                <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>{streakMsg}</p>
               </div>
-              <PoulpeHero size={54} />
+              <div className="flex-shrink-0" style={{ width: 110, height: 90 }}>
+                <BrainCerveau activeSubjects={workedSubjects} isDark={true} />
+              </div>
             </div>
-          </div>
+            <div className="px-5 pb-4">
+              <p className="text-[10px] font-medium" style={{ color: "rgba(255,255,255,0.22)" }}>
+                Ton cerveau en action →
+              </p>
+            </div>
+          </button>
 
           {/* Métriques */}
           <div className="rounded-2xl flex" style={{ background: card, border: `1px solid ${brd}` }}>
