@@ -461,10 +461,8 @@ export default function Home() {
       setMessages([{ role: "assistant", content: firstMsg }]);
     }
 
-    // Lance le tour si c'est la première connexion
-    if (localStorage.getItem("poulpe_tour_pending")) {
-      setTourStep(0);
-    }
+    // Tour désactivé — remplacé par le guide sur /accueil
+    localStorage.removeItem("poulpe_tour_pending");
   }, [router]);
 
   // Auto-démarre l'exercice ou le quiz sans attendre que l'enfant tape
