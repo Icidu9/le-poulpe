@@ -326,8 +326,11 @@ export default function AccueilPage() {
               <div style={{ position: "absolute", bottom: -40, right: 30, width: 130, height: 130, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)", pointerEvents: "none" }} />
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1 mr-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
                     {prenom ? `${prenom} · ` : ""}{greeting}
+                  </p>
+                  <p className="text-[10px] font-medium mt-0.5 mb-2" style={{ color: "rgba(255,255,255,0.28)" }}>
+                    {dateCap}
                   </p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-5xl font-bold text-white leading-none">{streak}</span>
@@ -336,7 +339,6 @@ export default function AccueilPage() {
                   <p className="text-sm mt-1 font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
                     jour{streak > 1 ? "s" : ""} de travail de suite
                   </p>
-                  <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>{streakMsg}</p>
                 </div>
                 <div style={{ marginTop: 20 }}><Poulpe size={54} /></div>
               </div>
