@@ -185,9 +185,6 @@ export default function PlanningPage() {
             >
               Mon planning
             </h1>
-            <p className="text-sm mt-1" style={{ color: textSub }}>
-              Saisis tes cours du jour, Le Poulpe s'en souviendra pendant la session.
-            </p>
           </div>
 
           {/* Toggle semaine A / B */}
