@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -129,6 +129,239 @@ function Poulpe({ size = 32 }: { size?: number }) {
       <path d="M30 32 Q32 39 30 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
       <path d="M34 30 Q37 36 35 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
     </svg>
+  );
+}
+
+// ── Exercise Block Parser & Interactive Components ────────────────────────────
+
+type ExBlock =
+  | { type: "text"; content: string }
+  | { type: "qcm"; question: string; options: { letter: string; text: string }[]; correct: string }
+  | { type: "trou"; sentence: string; answers: string[] }
+  | { type: "relier"; pairs: { left: string; right: string }[] };
+
+function parseExerciseContent(content: string): ExBlock[] {
+  const blocks: ExBlock[] = [];
+  const regex = /\[(QCM|TROU|RELIER)\]([\s\S]*?)\[\/\1\]/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      const text = content.slice(lastIndex, match.index).trim();
+      if (text) blocks.push({ type: "text", content: text });
+    }
+    const [, tag, raw] = match;
+    const lines = raw.trim().split("\n").map((l) => l.trim()).filter(Boolean);
+    if (tag === "QCM") {
+      const qLine = lines.find((l) => /^question\s*:/i.test(l));
+      const question = qLine ? qLine.replace(/^question\s*:\s*/i, "") : lines[0] || "";
+      const options = lines.filter((l) => /^[A-D]\)/.test(l)).map((l) => ({ letter: l[0], text: l.slice(2).trim() }));
+      const cLine = lines.find((l) => l.startsWith("CORRECT:"));
+      const correct = cLine ? cLine.replace("CORRECT:", "").trim() : "";
+      blocks.push({ type: "qcm", question, options, correct });
+    } else if (tag === "TROU") {
+      const sentence = lines.find((l) => !l.startsWith("RÉPONSES:")) || "";
+      const aLine = lines.find((l) => l.startsWith("RÉPONSES:"));
+      const answers = aLine ? aLine.replace("RÉPONSES:", "").trim().split("|") : [];
+      blocks.push({ type: "trou", sentence, answers });
+    } else if (tag === "RELIER") {
+      const pairs = lines
+        .filter((l) => l.includes("|"))
+        .map((l) => { const [left, right] = l.split("|"); return { left: left?.trim() ?? "", right: right?.trim() ?? "" }; })
+        .filter((p) => p.left && p.right);
+      blocks.push({ type: "relier", pairs });
+    }
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < content.length) {
+    const text = content.slice(lastIndex).trim();
+    if (text) blocks.push({ type: "text", content: text });
+  }
+  return blocks.length > 0 ? blocks : [{ type: "text", content }];
+}
+
+function QCMBlock({ block, onAnswer, isDark }: {
+  block: Extract<ExBlock, { type: "qcm" }>;
+  onAnswer: (a: string) => void;
+  isDark: boolean;
+}) {
+  const [chosen, setChosen] = useState<string | null>(null);
+  const pick = (letter: string) => {
+    if (chosen) return;
+    setChosen(letter);
+    onAnswer(`Ma réponse : ${letter}) ${block.options.find((o) => o.letter === letter)?.text ?? ""}`);
+  };
+  return (
+    <div className="rounded-xl p-3 mt-1" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(232,146,42,0.07)", border: "1px solid rgba(232,146,42,0.25)" }}>
+      <p className="text-sm font-semibold mb-2.5">{block.question}</p>
+      <div className="flex flex-col gap-1.5">
+        {block.options.map((opt) => (
+          <button key={opt.letter} onClick={() => pick(opt.letter)} disabled={!!chosen}
+            className="text-left text-sm px-3 py-2 rounded-lg transition-all"
+            style={{
+              background: chosen === opt.letter ? "#E8922A" : isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.9)",
+              color: chosen === opt.letter ? "white" : "inherit",
+              border: "1px solid rgba(232,146,42,0.3)",
+              cursor: chosen ? "default" : "pointer",
+              opacity: chosen && chosen !== opt.letter ? 0.4 : 1,
+            }}>
+            <span className="font-bold mr-2">{opt.letter})</span>{opt.text}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TrouBlock({ block, onAnswer, isDark }: {
+  block: Extract<ExBlock, { type: "trou" }>;
+  onAnswer: (a: string) => void;
+  isDark: boolean;
+}) {
+  const blankCount = (block.sentence.match(/_____/g) ?? []).length || 1;
+  const [vals, setVals] = useState<string[]>(Array(blankCount).fill(""));
+  const [submitted, setSubmitted] = useState(false);
+  const parts = block.sentence.split("_____");
+  const submit = () => {
+    if (submitted || vals.some((v) => !v.trim())) return;
+    setSubmitted(true);
+    onAnswer(`J'ai complété : ${vals.join(" / ")}`);
+  };
+  return (
+    <div className="rounded-xl p-3 mt-1" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(232,146,42,0.07)", border: "1px solid rgba(232,146,42,0.25)" }}>
+      <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "#E8922A" }}>Complète la phrase</p>
+      <div className="text-sm leading-relaxed flex flex-wrap items-center gap-y-1">
+        {parts.map((part, i) => (
+          <span key={i} className="flex items-center flex-wrap">
+            <span>{part}</span>
+            {i < parts.length - 1 && (
+              <input type="text" value={vals[i] ?? ""} disabled={submitted}
+                onChange={(e) => { if (submitted) return; const n = [...vals]; n[i] = e.target.value; setVals(n); }}
+                className="mx-1 px-2 py-0.5 rounded text-sm font-medium"
+                style={{ minWidth: 80, width: Math.max(80, (vals[i]?.length || 3) * 9 + 20), border: "2px solid #E8922A", background: isDark ? "rgba(255,255,255,0.1)" : "white", color: "inherit", outline: "none" }}
+                placeholder="..." />
+            )}
+          </span>
+        ))}
+      </div>
+      <button onClick={submit} disabled={submitted || vals.some((v) => !v.trim())}
+        className="mt-3 px-4 py-1.5 rounded-lg text-sm font-semibold"
+        style={{ background: submitted ? "rgba(232,146,42,0.35)" : "#E8922A", color: "white", cursor: (submitted || vals.some((v) => !v.trim())) ? "default" : "pointer", opacity: (submitted || vals.some((v) => !v.trim())) ? 0.55 : 1 }}>
+        {submitted ? "Envoyé ✓" : "Valider"}
+      </button>
+    </div>
+  );
+}
+
+function RelierBlock({ block, onAnswer, isDark }: {
+  block: Extract<ExBlock, { type: "relier" }>;
+  onAnswer: (a: string) => void;
+  isDark: boolean;
+}) {
+  const [rightShuffled] = useState(() => [...block.pairs.map((p) => p.right)].sort(() => Math.random() - 0.5));
+  const [matches, setMatches] = useState<Record<string, string>>({});
+  const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const usedRights = new Set(Object.values(matches));
+  const freeRights = rightShuffled.filter((r) => !usedRights.has(r));
+  const pickLeft = (left: string) => {
+    if (submitted) return;
+    if (matches[left]) {
+      const newM = { ...matches }; delete newM[left]; setMatches(newM); setSelectedLeft(left);
+    } else {
+      setSelectedLeft(left === selectedLeft ? null : left);
+    }
+  };
+  const pickRight = (right: string) => {
+    if (submitted || !selectedLeft) return;
+    setMatches((m) => ({ ...m, [selectedLeft]: right }));
+    setSelectedLeft(null);
+  };
+  const allMatched = Object.keys(matches).length === block.pairs.length;
+  const submit = () => {
+    if (submitted || !allMatched) return;
+    setSubmitted(true);
+    onAnswer(`J'ai relié :\n${block.pairs.map((p) => `${p.left} → ${matches[p.left] ?? "?"}`).join("\n")}`);
+  };
+  return (
+    <div className="rounded-xl p-3 mt-1" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(232,146,42,0.07)", border: "1px solid rgba(232,146,42,0.25)" }}>
+      <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "#E8922A" }}>
+        {selectedLeft ? `"${selectedLeft}" sélectionné — clique sur la définition` : "Relie chaque élément"}
+      </p>
+      <div className="flex gap-2">
+        <div className="flex flex-col gap-1.5 flex-1">
+          {block.pairs.map((p) => (
+            <button key={p.left} onClick={() => pickLeft(p.left)} disabled={submitted}
+              className="text-left text-xs px-2.5 py-1.5 rounded-lg transition-all"
+              style={{
+                border: selectedLeft === p.left ? "2px solid #E8922A" : matches[p.left] ? "1px solid #10B981" : "1px solid rgba(232,146,42,0.3)",
+                background: matches[p.left] ? (isDark ? "rgba(16,185,129,0.1)" : "rgba(16,185,129,0.08)") : isDark ? "rgba(255,255,255,0.06)" : "white",
+                cursor: submitted ? "default" : "pointer",
+              }}>
+              <span className="font-semibold">{p.left}</span>
+              {matches[p.left] && <span className="text-[10px] ml-1.5" style={{ color: "#10B981" }}>→ {matches[p.left]}</span>}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-col gap-1.5 flex-1">
+          {freeRights.map((r) => (
+            <button key={r} onClick={() => pickRight(r)} disabled={submitted || !selectedLeft}
+              className="text-left text-xs px-2.5 py-1.5 rounded-lg"
+              style={{
+                border: "1px solid rgba(232,146,42,0.3)",
+                background: isDark ? "rgba(255,255,255,0.06)" : "white",
+                opacity: !selectedLeft ? 0.5 : 1,
+                cursor: (!selectedLeft || submitted) ? "default" : "pointer",
+              }}>
+              {r}
+            </button>
+          ))}
+        </div>
+      </div>
+      {allMatched && !submitted && (
+        <button onClick={submit} className="mt-3 px-4 py-1.5 rounded-lg text-sm font-semibold"
+          style={{ background: "#E8922A", color: "white", cursor: "pointer" }}>
+          Valider
+        </button>
+      )}
+      {submitted && <p className="mt-2 text-xs font-medium" style={{ color: "#10B981" }}>Réponses envoyées ✓</p>}
+    </div>
+  );
+}
+
+function AssistantMessageContent({ content, onAnswer, isDark, assistantStyle }: {
+  content: string;
+  onAnswer: (a: string) => void;
+  isDark: boolean;
+  assistantStyle: React.CSSProperties;
+}) {
+  const blocks = useMemo(() => parseExerciseContent(content), [content]);
+  return (
+    <>
+      {blocks.map((block, bi) => {
+        if (block.type === "text") {
+          return block.content ? (
+            <div key={bi} className="text-sm leading-relaxed rounded-2xl px-4 py-3 prose prose-sm max-w-none" style={assistantStyle}>
+              <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={{
+                p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                em: ({ children }) => <em>{children}</em>,
+                ul: ({ children }) => <ul className="list-disc pl-4 mb-1.5 space-y-0.5">{children}</ul>,
+                ol: ({ children }) => <ol className="list-decimal pl-4 mb-1.5 space-y-0.5">{children}</ol>,
+                li: ({ children }) => <li>{children}</li>,
+                code: ({ children }) => <code className="px-1 py-0.5 rounded text-xs font-mono" style={{ background: "rgba(0,0,0,0.08)" }}>{children}</code>,
+              }}>
+                {block.content}
+              </ReactMarkdown>
+            </div>
+          ) : null;
+        }
+        if (block.type === "qcm") return <QCMBlock key={bi} block={block} onAnswer={onAnswer} isDark={isDark} />;
+        if (block.type === "trou") return <TrouBlock key={bi} block={block} onAnswer={onAnswer} isDark={isDark} />;
+        if (block.type === "relier") return <RelierBlock key={bi} block={block} onAnswer={onAnswer} isDark={isDark} />;
+        return null;
+      })}
+    </>
   );
 }
 
@@ -1312,31 +1545,44 @@ export default function Home() {
                   )}
                   {/* Texte si présent */}
                   {msg.content && (
-                    <div
-                      className="text-sm leading-relaxed rounded-2xl px-4 py-3 prose prose-sm max-w-none"
-                      style={
-                        msg.role === "user"
-                          ? { background: C.amber, color: "white", borderBottomRightRadius: 4 }
-                          : isDark
-                          ? { background: "rgba(6,26,38,0.85)", color: "rgba(255,255,255,0.92)", border: "1px solid rgba(255,255,255,0.08)", borderBottomLeftRadius: 4, boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }
-                          : { background: C.amberLight, color: C.charcoal, border: `1px solid ${C.amberBorder}`, borderBottomLeftRadius: 4, boxShadow: "0 1px 4px rgba(200,130,60,0.10)" }
-                      }
-                    >
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkBreaks]}
-                        components={{
-                          p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
-                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                          em: ({ children }) => <em>{children}</em>,
-                          ul: ({ children }) => <ul className="list-disc pl-4 mb-1.5 space-y-0.5">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal pl-4 mb-1.5 space-y-0.5">{children}</ol>,
-                          li: ({ children }) => <li>{children}</li>,
-                          code: ({ children }) => <code className="px-1 py-0.5 rounded text-xs font-mono" style={{ background: "rgba(0,0,0,0.08)" }}>{children}</code>,
-                        }}
+                    msg.role === "user" || (i === messages.length - 1 && loading) ? (
+                      <div
+                        className="text-sm leading-relaxed rounded-2xl px-4 py-3 prose prose-sm max-w-none"
+                        style={
+                          msg.role === "user"
+                            ? { background: C.amber, color: "white", borderBottomRightRadius: 4 }
+                            : isDark
+                            ? { background: "rgba(6,26,38,0.85)", color: "rgba(255,255,255,0.92)", border: "1px solid rgba(255,255,255,0.08)", borderBottomLeftRadius: 4, boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }
+                            : { background: C.amberLight, color: C.charcoal, border: `1px solid ${C.amberBorder}`, borderBottomLeftRadius: 4, boxShadow: "0 1px 4px rgba(200,130,60,0.10)" }
+                        }
                       >
-                        {msg.content}
-                      </ReactMarkdown>
-                    </div>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm, remarkBreaks]}
+                          components={{
+                            p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                            em: ({ children }) => <em>{children}</em>,
+                            ul: ({ children }) => <ul className="list-disc pl-4 mb-1.5 space-y-0.5">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal pl-4 mb-1.5 space-y-0.5">{children}</ol>,
+                            li: ({ children }) => <li>{children}</li>,
+                            code: ({ children }) => <code className="px-1 py-0.5 rounded text-xs font-mono" style={{ background: "rgba(0,0,0,0.08)" }}>{children}</code>,
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <AssistantMessageContent
+                        content={msg.content}
+                        onAnswer={(a) => sendMessage(a)}
+                        isDark={isDark}
+                        assistantStyle={
+                          isDark
+                            ? { background: "rgba(6,26,38,0.85)", color: "rgba(255,255,255,0.92)", border: "1px solid rgba(255,255,255,0.08)", borderBottomLeftRadius: 4, boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }
+                            : { background: C.amberLight, color: C.charcoal, border: `1px solid ${C.amberBorder}`, borderBottomLeftRadius: 4, boxShadow: "0 1px 4px rgba(200,130,60,0.10)" }
+                        }
+                      />
+                    )
                   )}
                   {/* Chips de démarrage rapide — premier message seulement, avant toute réponse */}
                   {i === 0 && msg.role === "assistant" && messages.length === 1 && !loading && (
