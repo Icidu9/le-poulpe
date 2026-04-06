@@ -123,6 +123,7 @@ export default function AccueilPage() {
   const [tomorrowAlerts, setTomorrowAlerts] = useState<{ matiere: string; concept: string }[]>([]);
   const [showGuide,      setShowGuide]      = useState(false);
   const [showGuideModal, setShowGuideModal] = useState(false);
+  const [showBrevetInfo, setShowBrevetInfo] = useState(false);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -390,10 +391,11 @@ export default function AccueilPage() {
           {/* ── Bouton ℹ permanent ── */}
           <button
             onClick={() => setShowGuideModal(true)}
-            className="flex items-center gap-1.5 text-[10px] font-semibold px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80"
-            style={{ color: "rgba(232,146,42,0.65)", background: "rgba(232,146,42,0.07)", border: "1px solid rgba(232,146,42,0.15)", alignSelf: "flex-start" }}
+            className="flex items-center justify-center transition-opacity hover:opacity-80"
+            style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(232,146,42,0.12)", border: "1.5px solid rgba(232,146,42,0.3)", color: "#E8922A", fontSize: 12, fontWeight: 700, flexShrink: 0 }}
+            title="Comment ça marche"
           >
-            <span style={{ fontSize: 11 }}>ℹ</span> Comment ça marche
+            i
           </button>
 
           {/* ── Modal guide ── */}
@@ -413,7 +415,7 @@ export default function AccueilPage() {
                     <div style={{ width: 22, height: 22, borderRadius: 7, background: "linear-gradient(135deg, #E8922A, #C05C2A)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <Poulpe size={15} />
                     </div>
-                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>Comment ça marche</p>
+                    <p className="text-sm font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#0A2030" }}>Comment ça marche</p>
                   </div>
                   <button onClick={() => setShowGuideModal(false)} className="text-xs px-2 py-1 rounded-lg" style={{ color: isDark ? "rgba(255,255,255,0.35)" : "#5A7A8A" }}>✕</button>
                 </div>
@@ -423,7 +425,7 @@ export default function AccueilPage() {
                     { icon: "💬", title: "Réviser", desc: "Pose une question, envoie une photo de ton cours ou d'un exercice. Le Poulpe ne te donne pas la réponse, il te guide pour que tu comprennes vraiment. Au fil des conversations, il se souvient de comment tu aimes être expliqué.", highlight: false },
                     { icon: "🗂️", title: "Mes matières", desc: "Parcours le programme officiel par matière. Lance des quiz ou des exercices sur chaque chapitre.", highlight: false },
                     { icon: "🔖", title: "Fiches de révision", desc: "Le Poulpe crée tes fiches automatiquement. Il te les fait réviser selon la méthode des J (J+1, J+4, J+10, J+21…) pour que ça s'inscrive en mémoire à long terme.", highlight: false },
-                    { icon: "📤", title: "Mes copies", desc: "Télécharge 3 ou 4 copies par mois avec une mauvaise note, dans des matières différentes. Petit à petit et vraiment consolidé, c'est bien plus efficace.", highlight: false },
+                    { icon: "📤", title: "Mes copies", desc: "Dépose 3 à 4 contrôles récents dans des matières différentes. Le Poulpe repère les points sur lesquels tu as de la marge et on les travaille en priorité.", highlight: false },
                     { icon: "📊", title: "Ma progression", desc: "Le Poulpe suit les petites lacunes repérées au fil de tes révisions et te les fait retravailler selon la méthode des J pour les ancrer en mémoire à long terme.", highlight: false },
                   ].map(({ icon, title, desc, highlight }) => (
                     <div key={title} className="flex items-start gap-3 py-2.5 px-3 rounded-xl" style={{ background: highlight ? (isDark ? "rgba(232,146,42,0.08)" : "rgba(232,146,42,0.06)") : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"), border: highlight ? "1px solid rgba(232,146,42,0.2)" : "none" }}>
@@ -571,9 +573,22 @@ export default function AccueilPage() {
                 <div className="px-4 py-3.5" style={{ background: isDark ? `${urgency}12` : `${urgency}10` }}>
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: urgency }}>
-                        🎓 Brevet des collèges 2026
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: urgency }}>
+                          🎓 Brevet des collèges 2026
+                        </p>
+                        <button
+                          onClick={() => setShowBrevetInfo(v => !v)}
+                          style={{ width: 16, height: 16, borderRadius: "50%", background: `${urgency}22`, border: `1px solid ${urgency}44`, color: urgency, fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+                        >
+                          i
+                        </button>
+                      </div>
+                      {showBrevetInfo && (
+                        <div className="mt-2 mb-1 rounded-xl px-3 py-2.5 text-xs leading-relaxed" style={{ background: isDark ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.7)", border: `1px solid ${urgency}33`, color: isDark ? "rgba(255,255,255,0.7)" : "#3A5A6A", maxWidth: 280 }}>
+                          Le Poulpe a analysé <strong style={{ color: urgency }}>10 ans d'annales du Brevet</strong> (2015-2024). Il a repéré les types de questions, les raisonnements et les notions qui tombent le plus souvent dans chaque matière. Tes révisions ciblent en priorité ce qui a le plus de chances d'être au programme.
+                        </div>
+                      )}
                       <p className="text-xs mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>
                         26 juin 2026
                       </p>

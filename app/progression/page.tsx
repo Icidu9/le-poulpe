@@ -362,7 +362,7 @@ export default function ProgressionPage() {
               <div className="text-4xl">📄</div>
               <p className="text-sm font-semibold" style={{ color: tx }}>Dépose ta première copie</p>
               <p className="text-xs leading-relaxed max-w-xs mx-auto" style={{ color: txSub }}>
-                Le Poulpe analyse tes copies et identifie tes points d&apos;amélioration — un par un.
+                Le Poulpe analyse tes contrôles et repère les points sur lesquels tu as de la marge, un par un.
               </p>
               <button onClick={() => router.push("/examens")}
                 className="px-6 py-3 rounded-xl text-sm font-bold text-white"

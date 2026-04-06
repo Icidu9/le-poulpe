@@ -328,7 +328,7 @@ export default function Examens() {
                     color: isDark ? "rgba(255,255,255,0.75)" : "#7C4A00",
                   }}
                 >
-                  <strong>📌 Commencez ici.</strong> Déposez les dernières copies et contrôles notés. Le Poulpe les analyse et sait exactement sur quoi travailler dès la première session.
+                  <strong>📌 Commencez ici.</strong> Déposez 3 à 4 contrôles récents dans des matières différentes. Le Poulpe les analyse et sait exactement sur quoi travailler dès la première session.
                 </div>
               )}
 
