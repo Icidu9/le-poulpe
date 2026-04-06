@@ -342,7 +342,7 @@ export default function AccueilPage() {
       </div>
 
       {/* ── Main ── */}
-      <div className="flex-1 overflow-y-auto" style={{ position: "relative", zIndex: 10, opacity: navigating ? 0 : 1, transition: "opacity 180ms ease" }}>
+      <div className="flex-1 overflow-y-auto pb-20 md:pb-0" style={{ position: "relative", zIndex: 10, opacity: navigating ? 0 : 1, transition: "opacity 180ms ease" }}>
         <div className="max-w-lg mx-auto px-6 py-7 space-y-7">
 
           {/* ── Hero — Cerveau card ── */}

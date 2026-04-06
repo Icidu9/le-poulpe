@@ -412,8 +412,8 @@ export default function FlashcardsPage() {
     <div className="flex h-screen overflow-hidden" style={{ background: bgColor, fontFamily: '"Inter", system-ui, sans-serif' }}>
       <Sidebar />
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-lg mx-auto px-6 py-7 space-y-6">
+      <div className="flex-1 overflow-y-auto pb-20 md:pb-0">
+        <div className="max-w-lg mx-auto px-4 md:px-6 py-6 md:py-7 space-y-6">
 
           {/* Header (liste) */}
           {!selectedMat && (

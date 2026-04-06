@@ -108,9 +108,18 @@ export default function Sidebar() {
 
   const initial = prenom.charAt(0).toUpperCase();
 
+  const MOBILE_NAV = [
+    { id: "accueil",     path: "/accueil",    icon: <IconHome />,    label: "Accueil" },
+    { id: "workspace",   path: "/",           icon: <IconChat />,    label: "Réviser" },
+    { id: "flashcards",  path: "/flashcards", icon: <IconCards />,   label: "Fiches" },
+    { id: "progression", path: "/progression",icon: <IconChart />,   label: "Progression" },
+    { id: "examens",     path: "/examens",    icon: <IconUpload />,  label: "Copies" },
+  ];
+
   return (
+    <>
     <aside
-      className="relative z-50 flex flex-col w-56 flex-shrink-0 h-full"
+      className="relative z-50 hidden md:flex md:flex-col w-56 flex-shrink-0 h-full"
       style={{ background: "#061A26", borderRight: "1px solid rgba(255,255,255,0.06)" }}
     >
       {/* Logo */}
@@ -189,5 +198,37 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+
+    {/* ── Mobile bottom nav ── */}
+    <nav
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around"
+      style={{
+        background: "#061A26",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        height: "calc(56px + env(safe-area-inset-bottom))",
+      }}
+    >
+      {MOBILE_NAV.map((item) => {
+        const isActive = pathname === item.path;
+        return (
+          <button
+            key={item.id}
+            onClick={() => router.push(item.path)}
+            className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full"
+            style={{ background: "none", border: "none", cursor: "pointer", color: isActive ? "#E8922A" : "rgba(255,255,255,0.35)" }}
+          >
+            <span style={{ transform: isActive ? "scale(1.15)" : "scale(1)", transition: "transform 0.15s" }}>{item.icon}</span>
+            <span style={{ fontSize: 9, fontWeight: isActive ? 700 : 400, fontFamily: "Inter, sans-serif", letterSpacing: "0.01em" }}>
+              {item.label}
+            </span>
+            {isActive && (
+              <span style={{ position: "absolute", bottom: "calc(env(safe-area-inset-bottom) + 2px)", width: 20, height: 2, borderRadius: 1, background: "#E8922A" }} />
+            )}
+          </button>
+        );
+      })}
+    </nav>
+    </>
   );
 }

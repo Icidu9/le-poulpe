@@ -976,7 +976,7 @@ export default function Home() {
     <div className="flex h-screen overflow-hidden" style={{ background: isDark ? "#030D18" : C.cream, fontFamily: '"Inter", system-ui, sans-serif', color: isDark ? "rgba(255,255,255,0.92)" : C.charcoal }}>
 
       {/* ── SIDEBAR — z-50 pour passer au-dessus du tour overlay ─────────── */}
-      <aside className="relative z-50 flex flex-col w-56 flex-shrink-0 h-full"
+      <aside className="relative z-50 hidden md:flex md:flex-col w-56 flex-shrink-0 h-full"
         style={{ background: C.sidebarBg, borderRight: "1px solid rgba(255,255,255,0.06)" }}>
 
         {/* Logo */}
@@ -1071,6 +1071,25 @@ export default function Home() {
 
       {/* ── CONTENU PRINCIPAL ───────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 min-w-0">
+
+        {/* Mobile nav bar — visible on small screens only */}
+        <div className="md:hidden flex items-center justify-between px-4 py-3 flex-shrink-0"
+          style={{ background: "#061A26", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <button onClick={() => router.push("/accueil")}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontFamily: "Inter, sans-serif" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Accueil
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Poulpe size={22} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: "white", fontFamily: "Inter, sans-serif" }}>Le Poulpe</span>
+          </div>
+          <button onClick={() => router.push("/progression")}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontFamily: "Inter, sans-serif" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Stats
+          </button>
+        </div>
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 border-b flex-shrink-0"

@@ -264,8 +264,8 @@ export default function ProgressionPage() {
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: bg, fontFamily: '"Inter", system-ui, sans-serif' }}>
       <Sidebar />
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-lg mx-auto px-5 pt-8 pb-12 space-y-5">
+      <div className="flex-1 overflow-y-auto pb-20 md:pb-0">
+        <div className="max-w-lg mx-auto px-4 md:px-5 pt-6 md:pt-8 pb-12 space-y-5">
 
           {/* Titre */}
           <h1 className="text-2xl font-bold px-1"

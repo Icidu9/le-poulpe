@@ -151,8 +151,8 @@ export default function PlanningPage() {
     >
       <Sidebar />
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-8 py-8 space-y-6">
+      <div className="flex-1 overflow-y-auto pb-20 md:pb-0">
+        <div className="max-w-2xl mx-auto px-4 md:px-8 py-6 md:py-8 space-y-6">
 
           {/* En-tête */}
           <div>
