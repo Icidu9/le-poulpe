@@ -58,6 +58,19 @@ type FaillesMap = Record<string, { failles: (Faille & { count: number })[]; last
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+const MAX_COPIES_PER_MONTH = 4;
+
+function countThisMonth(examens: Examen[]): number {
+  const now = new Date();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const yyyy = String(now.getFullYear());
+  // date format: "DD/MM/YYYY"
+  return examens.filter(e => {
+    const parts = e.date.split("/");
+    return parts[1] === mm && parts[2] === yyyy;
+  }).length;
+}
+
 function resizeImage(file: File, maxPx: number): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -171,6 +184,10 @@ export default function Examens() {
 
   async function analyser() {
     if (!previews.length || !matiere) return;
+    if (countThisMonth(examens) >= MAX_COPIES_PER_MONTH) {
+      setError("Tu as atteint la limite de 4 contrôles ce mois-ci. Reviens le mois prochain !");
+      return;
+    }
     setAnalysing(true);
     setError("");
     setLastAnalysis(null);
@@ -328,12 +345,23 @@ export default function Examens() {
                     color: isDark ? "rgba(255,255,255,0.75)" : "#7C4A00",
                   }}
                 >
-                  <strong>📌 Commencez ici.</strong> Déposez 3 à 4 contrôles que vous n'avez pas très bien réussis, dans des matières différentes. Le Poulpe analyse vos erreurs et sait exactement sur quoi travailler pour progresser plus vite.
+                  <strong>📌 Commencez ici.</strong> Déposez 3 à 4 contrôles que vous n'avez pas très bien réussis, dans des matières différentes (maximum 4 par mois). Le Poulpe analyse vos erreurs et sait exactement sur quoi travailler pour progresser plus vite.
+                </div>
+              )}
+
+              {/* Message limite atteinte */}
+              {countThisMonth(examens) >= MAX_COPIES_PER_MONTH && (
+                <div className="rounded-2xl px-5 py-4 text-center space-y-2"
+                  style={{ background: isDark ? "rgba(232,146,42,0.08)" : "#FDF0E0", border: "1px solid rgba(232,146,42,0.25)" }}>
+                  <p className="text-sm font-semibold" style={{ color: isDark ? "#E8922A" : "#7C4A00" }}>Limite mensuelle atteinte</p>
+                  <p className="text-xs leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.55)" : "#7C4A00" }}>
+                    Tu as déposé 4 contrôles ce mois-ci. Reviens le mois prochain pour en ajouter de nouveaux.
+                  </p>
                 </div>
               )}
 
               {/* Formulaire */}
-              {examens.length < 4 && (
+              {countThisMonth(examens) < MAX_COPIES_PER_MONTH && (
               <div
                 className="rounded-2xl p-5 space-y-4"
                 style={glass}
