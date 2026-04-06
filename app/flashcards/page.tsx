@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 
@@ -52,8 +52,30 @@ function getEmoji(mat: string) {
   return "📚";
 }
 
-type Flashcard = { question: string; reponse: string; matiere: string; source?: "session" | "programme" };
+type Flashcard = {
+  id?: string; question: string; reponse: string; matiere: string;
+  source?: "session" | "programme";
+  nextReviewDate?: string; // YYYY-MM-DD
+  repetitions?: number;    // successful reviews count
+};
 type CardSet = { matiere: string; cards: Flashcard[]; sessionCards: Flashcard[]; programmeCards: Flashcard[] };
+
+// ── SM-2 helpers ──────────────────────────────────────────────────────────────
+const SM2_INTERVALS = [1, 4, 10, 21, 45, 90]; // days after each successful review
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function futureDateStr(days: number) {
+  const d = new Date(); d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+function isCardDue(card: Flashcard): boolean {
+  return !card.nextReviewDate || card.nextReviewDate <= todayStr();
+}
+function daysUntilReview(card: Flashcard): number {
+  if (!card.nextReviewDate) return 0;
+  const ms = new Date(card.nextReviewDate).setHours(0,0,0,0) - new Date().setHours(0,0,0,0);
+  return Math.max(0, Math.round(ms / 86400000));
+}
 
 // ── Flip Card ─────────────────────────────────────────────────────────────────
 function FlipCard({ card, index, total, onKnow, onRepeat, onPrev, canGoBack, matStyle, isDark }: {
@@ -278,6 +300,7 @@ export default function FlashcardsPage() {
   const [score,        setScore]        = useState(0);
   const [finished,     setFinished]     = useState(false);
   const [toRepeat,     setToRepeat]     = useState<Flashcard[]>([]);
+  const knownIdsRef = useRef<string[]>([]);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -316,16 +339,58 @@ export default function FlashcardsPage() {
     if (!set) return;
     const cards = source === "session" ? set.sessionCards : set.programmeCards;
     if (cards.length === 0) return;
-    setDeck([...cards].sort(() => Math.random() - 0.5));
+    const due = cards.filter(isCardDue).sort(() => Math.random() - 0.5);
+    const notDue = cards.filter(c => !isCardDue(c)).sort(() => Math.random() - 0.5);
+    // Always show at least 5 cards: due first, fill with upcoming if needed
+    const session = due.length >= 5 ? due : [...due, ...notDue.slice(0, Math.max(0, 5 - due.length))];
+    knownIdsRef.current = [];
+    setDeck(session.length > 0 ? session : [...cards].sort(() => Math.random() - 0.5));
     setIndex(0); setScore(0); setFinished(false); setToRepeat([]);
     setSelectedMat(mat);
   }
 
-  function handleKnow()   { setScore((s) => s + 1); advance(); }
+  // Save SM-2 data when session ends
+  useEffect(() => {
+    if (!finished || !selectedMat) return;
+    const key = `poulpe_flashcards_${selectedMat}`;
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+      const allCards: Flashcard[] = JSON.parse(raw);
+      const known = knownIdsRef.current;
+      const repeatKeys = new Set(toRepeat.map(c => c.id || c.question));
+      const updated = allCards.map(card => {
+        const k = card.id || card.question;
+        if (known.includes(k)) {
+          const reps = (card.repetitions || 0) + 1;
+          const interval = SM2_INTERVALS[Math.min(reps - 1, SM2_INTERVALS.length - 1)];
+          return { ...card, repetitions: reps, nextReviewDate: futureDateStr(interval) };
+        } else if (repeatKeys.has(k)) {
+          return { ...card, repetitions: 0, nextReviewDate: futureDateStr(1) };
+        }
+        return card;
+      });
+      localStorage.setItem(key, JSON.stringify(updated));
+      setCardSets(prev => prev.map(s => {
+        if (s.matiere !== selectedMat) return s;
+        const sessionCards = updated.filter(c => !c.source || c.source === "session");
+        const programmeCards = updated.filter(c => c.source === "programme");
+        return { ...s, cards: updated, sessionCards, programmeCards };
+      }));
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finished]);
+
+  function handleKnow()   {
+    setScore((s) => s + 1);
+    knownIdsRef.current = [...knownIdsRef.current, deck[index].id || deck[index].question];
+    advance();
+  }
   function handleRepeat() { setToRepeat((prev) => [...prev, deck[index]]); advance(); }
   function advance()      { if (index + 1 >= deck.length) setFinished(true); else setIndex((i) => i + 1); }
   function handleRestart() {
     const base = toRepeat.length > 0 ? [...toRepeat, ...deck.filter((c) => !toRepeat.includes(c))] : [...deck];
+    knownIdsRef.current = [];
     setDeck(base.sort(() => Math.random() - 0.5));
     setIndex(0); setScore(0); setFinished(false); setToRepeat([]);
   }
@@ -465,6 +530,9 @@ export default function FlashcardsPage() {
                   {setsForTab.map((set) => {
                     const s = getStyle(set.matiere);
                     const cards = tab === "session" ? set.sessionCards : set.programmeCards;
+                    const dueCount = cards.filter(isCardDue).length;
+                    const allMastered = dueCount === 0 && cards.some(c => c.nextReviewDate);
+                    const nextDays = allMastered ? Math.min(...cards.map(daysUntilReview)) : 0;
                     return (
                       <button
                         key={set.matiere}
@@ -472,7 +540,7 @@ export default function FlashcardsPage() {
                         className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
                         style={{
                           background: cardBg,
-                          border: `1px solid ${border}`,
+                          border: `1px solid ${dueCount > 0 ? "rgba(232,146,42,0.3)" : border}`,
                           boxShadow: isDark ? "0 2px 12px rgba(0,0,0,0.2)" : "0 2px 12px rgba(15,23,42,0.06)",
                         }}
                       >
@@ -485,9 +553,12 @@ export default function FlashcardsPage() {
 
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-sm" style={{ color: textMain }}>{set.matiere}</p>
-                          <p className="text-xs mt-0.5" style={{ color: textSub }}>
-                            {cards.length} carte{cards.length > 1 ? "s" : ""} ·{" "}
-                            {tab === "session" ? "Mes notes" : "Programme officiel"}
+                          <p className="text-xs mt-0.5" style={{ color: dueCount > 0 ? "#E8922A" : textSub }}>
+                            {dueCount > 0
+                              ? `${dueCount} carte${dueCount > 1 ? "s" : ""} à réviser aujourd'hui`
+                              : allMastered
+                              ? `Prochaine révision dans ${nextDays} jour${nextDays > 1 ? "s" : ""}`
+                              : `${cards.length} carte${cards.length > 1 ? "s" : ""} · ${tab === "session" ? "Mes notes" : "Programme"}`}
                           </p>
                         </div>
 
@@ -495,11 +566,11 @@ export default function FlashcardsPage() {
                           <span
                             className="px-2.5 py-1 rounded-lg text-xs font-bold"
                             style={{
-                              background: isDark ? `${s.text}20` : s.light,
-                              color: isDark ? s.gradient.includes("#EF4444") ? "#F87171" : s.text : s.text,
+                              background: dueCount > 0 ? "rgba(232,146,42,0.15)" : (isDark ? `${s.text}20` : s.light),
+                              color: dueCount > 0 ? "#E8922A" : s.text,
                             }}
                           >
-                            {cards.length}
+                            {dueCount > 0 ? dueCount : cards.length}
                           </span>
                           <span style={{ color: textLight, fontSize: 16 }}>›</span>
                         </div>
