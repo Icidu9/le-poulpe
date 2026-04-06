@@ -221,7 +221,8 @@ export default function ProgressionPage() {
   const critOrder: Record<string, number> = { haute: 0, moyenne: 1, faible: 2 };
   const matieresFailles = Object.keys(failles).filter(m => failles[m]?.failles?.length > 0);
   const hasFailles = matieresFailles.length > 0;
-  const matieresSuivies = matieresFailles.length || matieresDiff.length;
+  // Ne compter que les matières réellement travaillées (sessions existantes), pas celles de l'onboarding
+  const matieresSuivies = matieresFailles.length || workedSubjects.length;
 
   // Compte les concepts en mémoire longue (level >= 5)
   const longTermCount = Object.values(mastery).filter(e => isInLongTermMemory(e.level)).length;

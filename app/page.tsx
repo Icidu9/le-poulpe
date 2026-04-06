@@ -231,6 +231,7 @@ export default function Home() {
   const [isSessionClosed, setIsSessionClosed] = useState(false);
   const [flashcardsLoading, setFlashcardsLoading] = useState(false);
   const [flashcardsReady, setFlashcardsReady] = useState(false);
+  const [flashcardsError, setFlashcardsError] = useState<string | null>(null);
   const [selectedPhotos, setSelectedPhotos] = useState<{ base64: string; mimeType: string; preview: string; ocrText?: string }[]>([]);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
   const [isRecording,    setIsRecording]    = useState(false);
@@ -751,40 +752,60 @@ export default function Home() {
   async function generateFlashcards() {
     if (flashcardsLoading || flashcardsReady) return;
     setFlashcardsLoading(true);
+    setFlashcardsError(null);
     try {
+      // Ne garder que les messages texte (pas les photos)
+      const textMessages = messages
+        .filter((m) => m.content && m.content !== "(photo)" && m.content.trim().length > 0)
+        .map((m) => ({ role: m.role, content: m.content }));
+
+      if (textMessages.length < 2) {
+        setFlashcardsError("Pas assez de contenu dans la session pour créer des fiches.");
+        setFlashcardsLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/generate-flashcards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: messages.map((m) => ({ role: m.role, content: m.content })),
+          messages: textMessages,
           matiere: matiereActive || undefined,
           childName: prenom,
         }),
       });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      if (data.flashcards?.length) {
-        const newCards = data.flashcards.map((f: { question: string; reponse: string; matiere: string }) => ({
-          ...f,
-          id: `fc_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-          date: new Date().toISOString(),
-          source: "session" as const,
-        }));
-        // Sauvegarde par matière pour que la page Fiches de révision puisse les lire
-        const byMat: Record<string, typeof newCards> = {};
-        for (const card of newCards) {
-          const m = card.matiere || matiereActive || "Général";
-          if (!byMat[m]) byMat[m] = [];
-          byMat[m].push(card);
-        }
-        for (const [mat, cards] of Object.entries(byMat)) {
-          const key = `poulpe_flashcards_${mat}`;
-          const existing = JSON.parse(localStorage.getItem(key) || "[]");
-          localStorage.setItem(key, JSON.stringify([...existing, ...cards]));
-        }
-        setFlashcardsReady(true);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Erreur serveur ${res.status}`);
       }
-    } catch {}
+      const data = await res.json();
+      if (!data.flashcards?.length) {
+        setFlashcardsError("Aucune fiche générée — la session n'avait peut-être pas assez de contenu scolaire.");
+        setFlashcardsLoading(false);
+        return;
+      }
+      const newCards = data.flashcards.map((f: { question: string; reponse: string; matiere: string }) => ({
+        ...f,
+        id: `fc_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        date: new Date().toISOString(),
+        source: "session" as const,
+      }));
+      // Sauvegarde par matière
+      const byMat: Record<string, typeof newCards> = {};
+      for (const card of newCards) {
+        const m = card.matiere || matiereActive || "Général";
+        if (!byMat[m]) byMat[m] = [];
+        byMat[m].push(card);
+      }
+      for (const [mat, cards] of Object.entries(byMat)) {
+        const key = `poulpe_flashcards_${mat}`;
+        const existing = JSON.parse(localStorage.getItem(key) || "[]");
+        localStorage.setItem(key, JSON.stringify([...existing, ...cards]));
+      }
+      setFlashcardsReady(true);
+    } catch (err) {
+      setFlashcardsError(err instanceof Error ? err.message : "Erreur lors de la génération — réessaie.");
+    }
     setFlashcardsLoading(false);
   }
 
@@ -1371,14 +1392,17 @@ export default function Home() {
               <div className="flex items-center gap-2 mb-3 pb-3" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : C.parchmentDark}` }}>
                 <span className="text-[10px] font-medium flex-shrink-0" style={{ color: isDark ? "rgba(255,255,255,0.3)" : C.warmGray }}>Fiches :</span>
                 {!flashcardsReady ? (
-                  <button
-                    onClick={generateFlashcards}
-                    disabled={flashcardsLoading}
-                    className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
-                    style={{ background: C.amberLight, color: C.terracotta, border: `1px solid ${C.amberBorder}` }}
-                  >
-                    {flashcardsLoading ? "Génération..." : "📚 Créer mes fiches de révision"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={generateFlashcards}
+                      disabled={flashcardsLoading}
+                      className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+                      style={{ background: C.amberLight, color: C.terracotta, border: `1px solid ${C.amberBorder}` }}
+                    >
+                      {flashcardsLoading ? "Génération..." : "📚 Créer mes fiches de révision"}
+                    </button>
+                    {flashcardsError && <span className="text-[10px]" style={{ color: "#EF4444" }}>{flashcardsError}</span>}
+                  </div>
                 ) : (
                   <button
                     onClick={() => router.push("/flashcards")}
@@ -1399,14 +1423,17 @@ export default function Home() {
                 </div>
                 {/* Bouton flashcards */}
                 {!flashcardsReady ? (
-                  <button
-                    onClick={generateFlashcards}
-                    disabled={flashcardsLoading}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
-                    style={{ background: C.amberLight, color: C.terracotta, border: `1px solid ${C.amberBorder}` }}
-                  >
-                    {flashcardsLoading ? "Génération des fiches..." : "📚 Créer mes fiches de révision"}
-                  </button>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <button
+                      onClick={generateFlashcards}
+                      disabled={flashcardsLoading}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+                      style={{ background: C.amberLight, color: C.terracotta, border: `1px solid ${C.amberBorder}` }}
+                    >
+                      {flashcardsLoading ? "Génération des fiches..." : "📚 Créer mes fiches de révision"}
+                    </button>
+                    {flashcardsError && <p className="text-[10px] text-center max-w-xs" style={{ color: "#EF4444" }}>{flashcardsError}</p>}
+                  </div>
                 ) : (
                   <button
                     onClick={() => router.push("/flashcards")}
