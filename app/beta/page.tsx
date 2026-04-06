@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-
-const BETA_COOKIE = "poulpe_beta";
 
 function setCookie(name: string, value: string, days: number) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
@@ -28,95 +26,227 @@ function PoulpeSVG() {
   );
 }
 
+type Step = "email" | "otp" | "expired";
+
 export default function BetaPage() {
   const router  = useRouter();
-  const [email,   setEmail]   = useState("");
-  const [code,    setCode]    = useState("");
-  const [error,   setError]   = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [theme,   setTheme]   = useState<"dark" | "light">("dark");
+  const [step,      setStep]      = useState<Step>("email");
+  const [email,     setEmail]     = useState("");
+  const [otp,       setOtp]       = useState(["", "", "", "", "", ""]);
+  const [error,     setError]     = useState("");
+  const [loading,   setLoading]   = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [theme,     setTheme]     = useState<"dark" | "light">("dark");
+  const inputRefs   = useRef<(HTMLInputElement | null)[]>([]);
 
-  const isDark = theme === "dark";
-
-  // ── Tokens
-  const bg      = isDark ? "#030D18" : "#EBF4F8";
-  const card    = isDark ? "rgba(6,26,38,0.80)" : "rgba(255,255,255,0.80)";
-  const border  = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+  const isDark   = theme === "dark";
+  const bg       = isDark ? "#030D18" : "#EBF4F8";
+  const card     = isDark ? "rgba(6,26,38,0.85)" : "rgba(255,255,255,0.85)";
+  const border   = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
   const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
   const textSub  = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
   const inputBg  = isDark ? "rgba(255,255,255,0.05)" : "white";
-  const inputBorder = (err: boolean) =>
-    err ? "#C05C2A" : isDark ? "rgba(255,255,255,0.12)" : "#D4E4EC";
 
-  async function handleSubmit(e: React.FormEvent) {
+  // Compte à rebours pour renvoyer le code
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown(v => v - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
+
+  // Focus premier champ OTP quand on arrive à l'étape otp
+  useEffect(() => {
+    if (step === "otp") {
+      setTimeout(() => inputRefs.current[0]?.focus(), 100);
+    }
+  }, [step]);
+
+  // ── Étape 1 : envoyer l'OTP ───────────────────────────────────────────────
+
+  async function handleSendOTP(e: React.FormEvent) {
     e.preventDefault();
-    if (!code.trim() || loading) return;
+    if (!email.trim() || loading) return;
     setLoading(true);
+    setError("");
     try {
-      const res  = await fetch("/api/validate-beta", {
+      await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: code.trim(), email: email.trim() }),
+        body: JSON.stringify({ email: email.trim() }),
       });
-      const data = await res.json();
-      if (data.valid) {
-        setCookie(BETA_COOKIE, code.trim().toUpperCase(), 30);
-        const emailNorm = email.trim().toLowerCase();
-        if (emailNorm) {
-          localStorage.setItem("poulpe_beta_email", emailNorm);
-          try {
-            const profileRes = await fetch(`/api/profile?email=${encodeURIComponent(emailNorm)}`);
-            const profileData = await profileRes.json();
-            if (profileData.profile) {
-              localStorage.setItem("poulpe_onboarding_done", "true");
-              localStorage.setItem("poulpe_charte_accepted", "true");
-              localStorage.setItem("poulpe_profile", JSON.stringify(profileData.profile));
-              localStorage.setItem("poulpe_parent_email", emailNorm);
-              if (profileData.prenom) localStorage.setItem("poulpe_prenom", profileData.prenom);
-              if (profileData.emploiDuTemps) localStorage.setItem("poulpe_emploi_du_temps", JSON.stringify(profileData.emploiDuTemps));
-              if (profileData.failles) localStorage.setItem("poulpe_failles", JSON.stringify(profileData.failles));
-              router.replace("/accueil");
-              return;
-            }
-          } catch {}
-        }
-        router.replace("/charte");
-      } else {
-        setError(true);
-        setCode("");
-      }
+      // On passe toujours à l'étape 2 (ne pas révéler si l'email est dans la liste)
+      setStep("otp");
+      setResendCooldown(60);
     } catch {
-      setError(true);
+      setError("Une erreur est survenue. Réessayez.");
     }
     setLoading(false);
   }
 
+  // ── Étape 2 : vérifier l'OTP ─────────────────────────────────────────────
+
+  async function handleVerifyOTP() {
+    const code = otp.join("");
+    if (code.length < 6 || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res  = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), otp: code }),
+      });
+      const data = await res.json();
+
+      if (data.expired) {
+        setStep("expired");
+        return;
+      }
+
+      if (data.valid) {
+        const emailNorm = email.trim().toLowerCase();
+        setCookie("poulpe_beta", "verified", 30);
+        localStorage.setItem("poulpe_beta_email", emailNorm);
+
+        // Charge le profil existant si disponible
+        try {
+          const profileRes = await fetch(`/api/profile?email=${encodeURIComponent(emailNorm)}`);
+          const profileData = await profileRes.json();
+          if (profileData.profile) {
+            localStorage.setItem("poulpe_onboarding_done", "true");
+            localStorage.setItem("poulpe_charte_accepted", "true");
+            localStorage.setItem("poulpe_profile", JSON.stringify(profileData.profile));
+            localStorage.setItem("poulpe_parent_email", emailNorm);
+            if (profileData.prenom) localStorage.setItem("poulpe_prenom", profileData.prenom);
+            if (profileData.emploiDuTemps) localStorage.setItem("poulpe_emploi_du_temps", JSON.stringify(profileData.emploiDuTemps));
+            if (profileData.failles) localStorage.setItem("poulpe_failles", JSON.stringify(profileData.failles));
+            router.replace("/accueil");
+            return;
+          }
+        } catch {}
+        router.replace("/charte");
+      } else {
+        setError(data.error || "Code incorrect");
+        setOtp(["", "", "", "", "", ""]);
+        setTimeout(() => inputRefs.current[0]?.focus(), 50);
+      }
+    } catch {
+      setError("Une erreur est survenue. Réessayez.");
+    }
+    setLoading(false);
+  }
+
+  // ── Gestion des inputs OTP (1 chiffre par case) ──────────────────────────
+
+  function handleOtpChange(index: number, value: string) {
+    const digit = value.replace(/\D/g, "").slice(-1);
+    const next = [...otp];
+    next[index] = digit;
+    setOtp(next);
+    setError("");
+    if (digit && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+    // Auto-submit quand les 6 chiffres sont saisis
+    if (digit && index === 5) {
+      const complete = [...next];
+      if (complete.every(d => d !== "")) {
+        setTimeout(() => {
+          setOtp(complete);
+          handleVerifyOTPWithCode(complete.join(""));
+        }, 80);
+      }
+    }
+  }
+
+  function handleOtpKeyDown(index: number, e: React.KeyboardEvent) {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+    if (e.key === "Enter") handleVerifyOTP();
+  }
+
+  function handleOtpPaste(e: React.ClipboardEvent) {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pasted.length === 6) {
+      setOtp(pasted.split(""));
+      setError("");
+      setTimeout(() => handleVerifyOTPWithCode(pasted), 80);
+    }
+    e.preventDefault();
+  }
+
+  async function handleVerifyOTPWithCode(code: string) {
+    if (loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res  = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), otp: code }),
+      });
+      const data = await res.json();
+      if (data.expired) { setStep("expired"); setLoading(false); return; }
+      if (data.valid) {
+        const emailNorm = email.trim().toLowerCase();
+        setCookie("poulpe_beta", "verified", 30);
+        localStorage.setItem("poulpe_beta_email", emailNorm);
+        try {
+          const profileRes = await fetch(`/api/profile?email=${encodeURIComponent(emailNorm)}`);
+          const profileData = await profileRes.json();
+          if (profileData.profile) {
+            localStorage.setItem("poulpe_onboarding_done", "true");
+            localStorage.setItem("poulpe_charte_accepted", "true");
+            localStorage.setItem("poulpe_profile", JSON.stringify(profileData.profile));
+            localStorage.setItem("poulpe_parent_email", emailNorm);
+            if (profileData.prenom) localStorage.setItem("poulpe_prenom", profileData.prenom);
+            if (profileData.emploiDuTemps) localStorage.setItem("poulpe_emploi_du_temps", JSON.stringify(profileData.emploiDuTemps));
+            if (profileData.failles) localStorage.setItem("poulpe_failles", JSON.stringify(profileData.failles));
+            router.replace("/accueil");
+            return;
+          }
+        } catch {}
+        router.replace("/charte");
+      } else {
+        setError(data.error || "Code incorrect");
+        setOtp(["", "", "", "", "", ""]);
+        setTimeout(() => inputRefs.current[0]?.focus(), 50);
+      }
+    } catch {
+      setError("Une erreur est survenue.");
+    }
+    setLoading(false);
+  }
+
+  async function handleResend() {
+    if (resendCooldown > 0 || loading) return;
+    setLoading(true);
+    setError("");
+    setOtp(["", "", "", "", "", ""]);
+    await fetch("/api/auth/send-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim() }),
+    });
+    setResendCooldown(60);
+    setLoading(false);
+    setTimeout(() => inputRefs.current[0]?.focus(), 100);
+  }
+
+  // ── Rendu ─────────────────────────────────────────────────────────────────
+
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-6 relative"
-      style={{ background: bg, fontFamily: '"Inter", system-ui, sans-serif', transition: "background 0.3s" }}
-    >
-      {/* Glow ambiant derrière le logo */}
+    <div className="min-h-screen flex items-center justify-center px-6 relative"
+      style={{ background: bg, fontFamily: '"Inter", system-ui, sans-serif', transition: "background 0.3s" }}>
+
       {isDark && (
-        <div style={{
-          position: "absolute", top: "50%", left: "50%",
-          transform: "translate(-50%, -70%)",
-          width: 320, height: 320, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(232,146,42,0.12) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -70%)", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(232,146,42,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
       )}
 
-      {/* Toggle thème */}
-      <button
-        onClick={() => setTheme(isDark ? "light" : "dark")}
+      <button onClick={() => setTheme(isDark ? "light" : "dark")}
         className="absolute top-5 right-5 w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all hover:scale-105"
-        style={{
-          background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
-          border: `1px solid ${border}`,
-          color: textSub,
-        }}
-      >
+        style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", border: `1px solid ${border}`, color: textSub }}>
         {isDark ? "🌙" : "☀️"}
       </button>
 
@@ -131,71 +261,115 @@ export default function BetaPage() {
           <p className="text-sm mt-1.5" style={{ color: textSub }}>Accès bêta privé</p>
         </div>
 
-        {/* Card */}
-        <div
-          className="rounded-2xl p-6"
-          style={{
-            background: card,
-            border: `1px solid ${border}`,
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-          }}
-        >
-          <p className="text-sm mb-5" style={{ color: textSub }}>
-            Cette application est en accès privé.<br />
-            Renseigne ton email et le code reçu pour continuer.
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); setError(false); }}
-              placeholder="Ton email (parent)"
-              className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-              style={{
-                background: inputBg,
-                border: `1.5px solid ${inputBorder(error)}`,
-                color: textMain,
-              }}
-            />
-            <input
-              type="text"
-              value={code}
-              onChange={(e) => { setCode(e.target.value); setError(false); }}
-              placeholder="Code d'accès"
-              autoComplete="off"
-              className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-              style={{
-                background: inputBg,
-                border: `1.5px solid ${inputBorder(error)}`,
-                color: textMain,
-              }}
-            />
-            {error && (
-              <p className="text-xs" style={{ color: "#E8922A" }}>
-                Code ou email incorrect. Vérifie et réessaie.
+        {/* ── ÉTAPE 1 : Email ── */}
+        {step === "email" && (
+          <div className="rounded-2xl p-6 space-y-4"
+            style={{ background: card, border: `1px solid ${border}`, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+            <div>
+              <p className="text-sm font-semibold mb-1" style={{ color: textMain }}>Connexion</p>
+              <p className="text-xs leading-relaxed" style={{ color: textSub }}>
+                Entrez votre email. Nous vous enverrons un code de connexion personnel à usage unique.
               </p>
-            )}
+            </div>
+            <form onSubmit={handleSendOTP} className="space-y-3">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                placeholder="votre.email@gmail.com"
+                autoFocus
+                className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                style={{ background: inputBg, border: `1.5px solid ${email ? "#E8922A" : (isDark ? "rgba(255,255,255,0.12)" : "#D4E4EC")}`, color: textMain }}
+              />
+              {error && <p className="text-xs" style={{ color: "#E8922A" }}>{error}</p>}
+              <button type="submit" disabled={loading || !email.trim()}
+                className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-all hover:opacity-90 disabled:opacity-50"
+                style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)", boxShadow: isDark ? "0 0 24px rgba(232,146,42,0.35)" : "none" }}>
+                {loading ? "Envoi..." : "Envoyer mon code →"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 2 : OTP ── */}
+        {step === "otp" && (
+          <div className="rounded-2xl p-6 space-y-5"
+            style={{ background: card, border: `1px solid ${border}`, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+            <div>
+              <p className="text-sm font-semibold mb-1" style={{ color: textMain }}>Code envoyé</p>
+              <p className="text-xs leading-relaxed" style={{ color: textSub }}>
+                Un code à 6 chiffres a été envoyé à <strong style={{ color: textMain }}>{email}</strong>. Vérifiez votre boîte mail (et les spams).
+              </p>
+            </div>
+
+            {/* Cases OTP */}
+            <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+              {otp.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={(el) => { inputRefs.current[i] = el; }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(i, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                  className="w-11 h-14 rounded-xl text-center text-xl font-bold outline-none transition-all"
+                  style={{
+                    background: inputBg,
+                    border: `2px solid ${digit ? "#E8922A" : (isDark ? "rgba(255,255,255,0.12)" : "#D4E4EC")}`,
+                    color: textMain,
+                    boxShadow: digit ? "0 0 12px rgba(232,146,42,0.2)" : "none",
+                  }}
+                />
+              ))}
+            </div>
+
+            {error && <p className="text-xs text-center" style={{ color: "#E8922A" }}>{error}</p>}
+
             <button
-              type="submit"
-              disabled={loading || !code.trim()}
+              onClick={handleVerifyOTP}
+              disabled={loading || otp.join("").length < 6}
               className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-all hover:opacity-90 disabled:opacity-50"
-              style={{
-                background: "linear-gradient(135deg, #E8922A, #C05C2A)",
-                boxShadow: isDark ? "0 0 24px rgba(232,146,42,0.35)" : "none",
-              }}
-            >
-              {loading ? "Vérification..." : "Accéder →"}
+              style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)", boxShadow: isDark ? "0 0 24px rgba(232,146,42,0.35)" : "none" }}>
+              {loading ? "Vérification..." : "Connexion →"}
             </button>
-          </form>
-        </div>
+
+            <div className="flex items-center justify-between text-xs" style={{ color: textSub }}>
+              <button onClick={() => { setStep("email"); setOtp(["","","","","",""]); setError(""); }}
+                className="hover:opacity-80 transition-opacity">
+                ← Changer d'email
+              </button>
+              <button onClick={handleResend} disabled={resendCooldown > 0 || loading}
+                className="hover:opacity-80 transition-opacity disabled:opacity-40"
+                style={{ color: resendCooldown > 0 ? textSub : "#E8922A" }}>
+                {resendCooldown > 0 ? `Renvoyer (${resendCooldown}s)` : "Renvoyer le code"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 3 : Bêta expirée ── */}
+        {step === "expired" && (
+          <div className="rounded-2xl p-6 text-center space-y-4"
+            style={{ background: card, border: `1px solid ${border}`, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+            <div className="text-4xl">🎓</div>
+            <p className="font-semibold" style={{ color: textMain }}>Votre période bêta est terminée</p>
+            <p className="text-sm leading-relaxed" style={{ color: textSub }}>
+              Merci d'avoir participé à la bêta du Poulpe. La version gratuite bêta a expiré.
+              Pour continuer, contactez-nous pour accéder à la version complète.
+            </p>
+            <a href="mailto:contact@lepoulpe.fr"
+              className="inline-block py-3 px-6 rounded-xl font-semibold text-white text-sm transition-all hover:opacity-90"
+              style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}>
+              Contactez-nous →
+            </a>
+          </div>
+        )}
 
         <p className="text-center text-xs mt-5" style={{ color: textSub }}>
-          Tu n'as pas de code ?{" "}
-          <a href="mailto:contact@lepoulpe.fr" style={{ color: "#E8922A", textDecoration: "none" }}>
-            Contacte-nous.
-          </a>
+          Pas encore d'accès ?{" "}
+          <a href="mailto:contact@lepoulpe.fr" style={{ color: "#E8922A", textDecoration: "none" }}>Contactez-nous.</a>
         </p>
         <p className="text-center text-xs mt-3">
           <a href="/mentions-legales" style={{ color: textSub, textDecoration: "underline" }}>Mentions légales</a>
