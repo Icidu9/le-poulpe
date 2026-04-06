@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 
 const MAT_STYLES: Record<string, { gradient: string; light: string; text: string; border: string }> = {
-  "Français":             { gradient: "linear-gradient(135deg, #EF4444, #F87171)", light: "#FEF2F2", text: "#DC2626", border: "#FECACA" },
+  "Français":             { gradient: "linear-gradient(135deg, #9D174D, #F472B6)", light: "#FDF2F8", text: "#9D174D", border: "#FBCFE8" },
   "Mathématiques":        { gradient: "linear-gradient(135deg, #2563EB, #60A5FA)", light: "#EFF6FF", text: "#1D4ED8", border: "#BFDBFE" },
   "Histoire-Géographie":  { gradient: "linear-gradient(135deg, #16A34A, #4ADE80)", light: "#F0FDF4", text: "#15803D", border: "#BBF7D0" },
   "Sciences de la Vie et de la Terre": { gradient: "linear-gradient(135deg, #0D9488, #5EEAD4)", light: "#F0FDFA", text: "#0F766E", border: "#99F6E4" },
@@ -171,9 +171,9 @@ function FlipCard({ card, index, total, onKnow, onRepeat, onPrev, canGoBack, mat
             onClick={onRepeat}
             className="flex-1 py-4 rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
             style={{
-              background: isDark ? "rgba(239,68,68,0.15)" : "#FEE2E2",
-              color: "#EF4444",
-              border: `1.5px solid ${isDark ? "rgba(239,68,68,0.3)" : "#FECACA"}`,
+              background: isDark ? "rgba(232,146,42,0.15)" : "#FFF3E0",
+              color: "#E8922A",
+              border: `1.5px solid ${isDark ? "rgba(232,146,42,0.3)" : "#F5C89A"}`,
             }}
           >
             🔁 À revoir
@@ -208,7 +208,7 @@ function ResultScreen({ score, total, onRestart, onBack, isDark }: {
     ? { emoji: "🏆", msg: "Excellent ! Tu maîtrises ce chapitre.", color: "#10B981" }
     : pct >= 60
     ? { emoji: "👍", msg: "Bien joué ! Continue à revoir les cartes marquées.", color: "#F59E0B" }
-    : { emoji: "💪", msg: "Continue à t'entraîner, ça viendra !", color: "#EF4444" };
+    : { emoji: "💪", msg: "Continue à t'entraîner, ça viendra !", color: "#E8922A" };
 
   const cardBg = isDark ? "rgba(6,26,38,0.85)" : "#FFFFFF";
   const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
@@ -242,7 +242,7 @@ function ResultScreen({ score, total, onRestart, onBack, isDark }: {
       <div className="w-full h-3 rounded-full overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" }}>
         <div
           className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${pct}%`, background: pct >= 80 ? "#10B981" : pct >= 60 ? "#F59E0B" : "#EF4444" }}
+          style={{ width: `${pct}%`, background: pct >= 80 ? "#10B981" : pct >= 60 ? "#F59E0B" : "#E8922A" }}
         />
       </div>
 
