@@ -329,12 +329,11 @@ export default function AccueilPage() {
                   <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
                     {prenom ? `${prenom} · ` : ""}{greeting}
                   </p>
-                  <p className="text-[11px] font-medium mt-0.5 mb-3" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  <p className="text-xs font-medium mt-0.5 mb-3" style={{ color: "rgba(255,255,255,0.38)" }}>
                     {dateCap}
                   </p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-5xl font-bold text-white leading-none">{streak}</span>
-                    {streakEmoji && <span className="text-xl">{streakEmoji}</span>}
                   </div>
                   <p className="text-sm mt-1 font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
                     jour{streak > 1 ? "s" : ""} de travail de suite
