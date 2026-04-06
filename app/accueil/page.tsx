@@ -617,7 +617,7 @@ export default function AccueilPage() {
             const brevetDate = new Date("2026-06-26");
             const today = new Date();
             const daysLeft = Math.max(0, Math.ceil((brevetDate.getTime() - today.setHours(0,0,0,0)) / 86400000));
-            const urgency = daysLeft < 30 ? "#E8922A" : daysLeft < 60 ? "#8B5CF6" : "#10B981";
+            const urgency = daysLeft < 30 ? "#E8922A" : daysLeft < 60 ? "#8B5CF6" : "#6366F1";
             return (
               <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${urgency}33` }}>
                 <div className="px-4 py-3.5" style={{ background: isDark ? `${urgency}12` : `${urgency}10` }}>

@@ -78,9 +78,9 @@ function daysUntilReview(card: Flashcard): number {
 }
 
 // ── Flip Card ─────────────────────────────────────────────────────────────────
-function FlipCard({ card, index, total, onKnow, onRepeat, onPrev, canGoBack, matStyle, isDark }: {
+function FlipCard({ card, index, total, onKnow, onAlmost, onRepeat, onPrev, canGoBack, matStyle, isDark }: {
   card: Flashcard; index: number; total: number;
-  onKnow: () => void; onRepeat: () => void; onPrev: () => void;
+  onKnow: () => void; onAlmost: () => void; onRepeat: () => void; onPrev: () => void;
   canGoBack: boolean;
   matStyle: { gradient: string; light: string; text: string; border: string };
   isDark: boolean;
@@ -93,6 +93,8 @@ function FlipCard({ card, index, total, onKnow, onRepeat, onPrev, canGoBack, mat
   const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
   const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
   const border = isDark ? "rgba(255,255,255,0.10)" : "#DCE9ED";
+  const isMastered = !isCardDue(card);
+  const daysLeft = isMastered ? daysUntilReview(card) : 0;
   const progressBg = isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9";
 
   return (
@@ -111,7 +113,10 @@ function FlipCard({ card, index, total, onKnow, onRepeat, onPrev, canGoBack, mat
         <div className="flex-1">
           <div className="flex justify-between mb-1.5">
             <span className="text-[11px] font-semibold" style={{ color: textSub }}>Carte {index + 1} sur {total}</span>
-            <span className="text-[11px] font-semibold" style={{ color: textSub }}>{pct}%</span>
+            {isMastered
+              ? <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(99,102,241,0.12)", color: "#6366F1" }}>Maîtrisée · révision dans {daysLeft}j</span>
+              : <span className="text-[11px] font-semibold" style={{ color: textSub }}>{pct}%</span>
+            }
           </div>
           <div className="h-2 rounded-full overflow-hidden" style={{ background: progressBg }}>
             <div
@@ -188,33 +193,44 @@ function FlipCard({ card, index, total, onKnow, onRepeat, onPrev, canGoBack, mat
 
       {/* Buttons */}
       {flipped ? (
-        <div className="flex gap-3 w-full">
+        <div className="flex gap-2 w-full">
           <button
             onClick={onRepeat}
-            className="flex-1 py-4 rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex-1 py-3.5 rounded-2xl font-bold text-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
             style={{
-              background: isDark ? "rgba(232,146,42,0.15)" : "#FFF3E0",
-              color: "#E8922A",
-              border: `1.5px solid ${isDark ? "rgba(232,146,42,0.3)" : "#F5C89A"}`,
+              background: isDark ? "rgba(239,68,68,0.13)" : "#FEE2E2",
+              color: "#EF4444",
+              border: `1.5px solid ${isDark ? "rgba(239,68,68,0.28)" : "#FECACA"}`,
             }}
           >
-            🔁 À revoir
+            ✗ Je ne sais pas
+          </button>
+          <button
+            onClick={onAlmost}
+            className="flex-1 py-3.5 rounded-2xl font-bold text-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{
+              background: isDark ? "rgba(232,146,42,0.13)" : "#FFF3E0",
+              color: "#E8922A",
+              border: `1.5px solid ${isDark ? "rgba(232,146,42,0.28)" : "#F5C89A"}`,
+            }}
+          >
+            ~ Presque
           </button>
           <button
             onClick={onKnow}
-            className="flex-1 py-4 rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex-1 py-3.5 rounded-2xl font-bold text-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
             style={{
-              background: isDark ? "rgba(16,185,129,0.15)" : "#D1FAE5",
-              color: "#10B981",
-              border: `1.5px solid ${isDark ? "rgba(16,185,129,0.3)" : "#A7F3D0"}`,
+              background: isDark ? "rgba(99,102,241,0.15)" : "#EEF2FF",
+              color: "#6366F1",
+              border: `1.5px solid ${isDark ? "rgba(99,102,241,0.3)" : "#C7D2FE"}`,
             }}
           >
-            ✅ Je sais !
+            ✓ Je sais !
           </button>
         </div>
       ) : (
         <p className="text-xs text-center" style={{ color: isDark ? "rgba(255,255,255,0.25)" : "#8ABAD0" }}>
-          Clique sur la carte · Puis ✅ ou 🔁
+          Retourne la carte · puis évalue-toi honnêtement
         </p>
       )}
     </div>
@@ -300,7 +316,8 @@ export default function FlashcardsPage() {
   const [score,        setScore]        = useState(0);
   const [finished,     setFinished]     = useState(false);
   const [toRepeat,     setToRepeat]     = useState<Flashcard[]>([]);
-  const knownIdsRef = useRef<string[]>([]);
+  const knownIdsRef  = useRef<string[]>([]);
+  const almostIdsRef = useRef<string[]>([]);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -339,12 +356,11 @@ export default function FlashcardsPage() {
     if (!set) return;
     const cards = source === "session" ? set.sessionCards : set.programmeCards;
     if (cards.length === 0) return;
+    // Due cards first, then mastered cards (always show all)
     const due = cards.filter(isCardDue).sort(() => Math.random() - 0.5);
-    const notDue = cards.filter(c => !isCardDue(c)).sort(() => Math.random() - 0.5);
-    // Always show at least 5 cards: due first, fill with upcoming if needed
-    const session = due.length >= 5 ? due : [...due, ...notDue.slice(0, Math.max(0, 5 - due.length))];
+    const notDue = cards.filter(c => !isCardDue(c)).sort((a, b) => daysUntilReview(a) - daysUntilReview(b));
     knownIdsRef.current = [];
-    setDeck(session.length > 0 ? session : [...cards].sort(() => Math.random() - 0.5));
+    setDeck([...due, ...notDue]);
     setIndex(0); setScore(0); setFinished(false); setToRepeat([]);
     setSelectedMat(mat);
   }
@@ -358,6 +374,7 @@ export default function FlashcardsPage() {
       if (!raw) return;
       const allCards: Flashcard[] = JSON.parse(raw);
       const known = knownIdsRef.current;
+      const almost = almostIdsRef.current || [];
       const repeatKeys = new Set(toRepeat.map(c => c.id || c.question));
       const updated = allCards.map(card => {
         const k = card.id || card.question;
@@ -365,6 +382,9 @@ export default function FlashcardsPage() {
           const reps = (card.repetitions || 0) + 1;
           const interval = SM2_INTERVALS[Math.min(reps - 1, SM2_INTERVALS.length - 1)];
           return { ...card, repetitions: reps, nextReviewDate: futureDateStr(interval) };
+        } else if (almost.includes(k)) {
+          // "Presque" : on garde les répétitions, mais on repasse demain
+          return { ...card, nextReviewDate: futureDateStr(1) };
         } else if (repeatKeys.has(k)) {
           return { ...card, repetitions: 0, nextReviewDate: futureDateStr(1) };
         }
@@ -386,11 +406,17 @@ export default function FlashcardsPage() {
     knownIdsRef.current = [...knownIdsRef.current, deck[index].id || deck[index].question];
     advance();
   }
+  function handleAlmost() {
+    // "Presque" — garde les repetitions mais repasse demain (J+1)
+    almostIdsRef.current = [...(almostIdsRef.current || []), deck[index].id || deck[index].question];
+    advance();
+  }
   function handleRepeat() { setToRepeat((prev) => [...prev, deck[index]]); advance(); }
   function advance()      { if (index + 1 >= deck.length) setFinished(true); else setIndex((i) => i + 1); }
   function handleRestart() {
     const base = toRepeat.length > 0 ? [...toRepeat, ...deck.filter((c) => !toRepeat.includes(c))] : [...deck];
     knownIdsRef.current = [];
+    almostIdsRef.current = [];
     setDeck(base.sort(() => Math.random() - 0.5));
     setIndex(0); setScore(0); setFinished(false); setToRepeat([]);
   }
@@ -509,7 +535,7 @@ export default function FlashcardsPage() {
           {selectedMat && !finished && deck[index] && (
             <FlipCard
               card={deck[index]} index={index} total={deck.length}
-              onKnow={handleKnow} onRepeat={handleRepeat}
+              onKnow={handleKnow} onAlmost={handleAlmost} onRepeat={handleRepeat}
               onPrev={() => setIndex((i) => Math.max(0, i - 1))}
               canGoBack={index > 0}
               matStyle={currentMatStyle}
