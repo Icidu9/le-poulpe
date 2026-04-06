@@ -1151,6 +1151,175 @@ Le Brevet 2026 se tient le 26 juin 2026.
 
 ---
 
+## ANNALES FRANÇAIS — NOTIONS HAUTE FRÉQUENCE (2015–2024)
+
+⚠️ **RÈGLE ABSOLUE : Construire chaque simulation à partir des structures et niveaux de langue réels du Brevet.**
+
+**RADAR DE FRÉQUENCE — questions de langue et dictée :**
+
+| Notion | Fréquence | Format |
+|--------|-----------|--------|
+| Accord participe passé (avoir / être / pronominal) | 100% | Dictée + question de langue |
+| Conjugaison passé simple / imparfait (valeurs, emplois) | 95% | Question de langue + dictée |
+| Subordonnées relatives (qui, que, dont, où) | 90% | Nature et fonction |
+| COD / COI / sujet (fonctions syntaxiques) | 85% | Analyse grammaticale |
+| Figures de style (métaphore, comparaison, personnification, hyperbole) | 80% | Questions de lecture |
+| Champ lexical et registre (familier / courant / soutenu) | 90% | Vocabulaire |
+| Connecteurs logiques (argumentation) | 85% | Rédaction argumentative |
+| Modes : subjonctif / conditionnel | 70% | Question de langue |
+
+**STRUCTURE FIXE DE L'ÉPREUVE (ne jamais dévier) :**
+- **Partie 1 — Lecture (40 pts)** : 1 texte (narratif OU argumentatif, 25-40 lignes) + 4-6 questions progressives + 1 question de langue
+- **Dictée (20 pts)** : 80-120 mots + 5-10 questions ciblées sur des points précis
+- **Partie 2 — Rédaction (40 pts)** : au choix récit OU argumentation, min 300 mots
+
+**BANQUE DE QUESTIONS TYPES FRANÇAIS**
+
+*Type 1 — Compréhension narrative (Maupassant, Zola, Dumas, Hugo récurrents) :*
+> "Dans cet extrait, quel est le sentiment dominant du personnage principal ? Relevez trois indices textuels qui justifient votre réponse."
+
+*Type 2 — Vocabulaire (systématique) :*
+> "Expliquez le sens du mot [X] tel qu'il est employé dans le texte. Donnez un synonyme et un antonyme dans ce contexte."
+
+*Type 3 — Figure de style (très fréquent depuis 2018) :*
+> "Identifiez la figure de style dans la phrase suivante et expliquez son effet sur le lecteur : [phrase du texte]"
+
+*Type 4 — Question de langue (présent dans 100% des sujets) :*
+> "Dans la phrase [X], analysez la proposition subordonnée relative. Donnez sa nature et sa fonction dans la phrase."
+
+*Type 5 — Rédaction argumentative (alternance avec le récit) :*
+> "Rédigez un texte argumenté d'au moins 300 mots pour ou contre [thème de société]. Introduction + 2 arguments développés avec exemples + conclusion."
+
+⚠️ **Pièges classiques Français Brevet :**
+- Accord PP avec avoir : accord si COD AVANT le verbe — "les fleurs qu'il a **cueillies**" (cueillies s'accorde avec "les fleurs")
+- Passé simple vs imparfait : actions ponctuelles/successives (PS) vs description/habitude/état (IMP)
+- Nature vs fonction : "rapide" = adjectif qualificatif (nature) / épithète du nom [X] (fonction)
+- Rédaction : les élèves ne comptent pas les mots → rappeler de le faire AVANT de rendre
+
+---
+
+## ANNALES HISTOIRE-GÉOGRAPHIE — NOTIONS HAUTE FRÉQUENCE (2015–2024)
+
+**RADAR HISTOIRE :**
+
+| Thème | Fréquence | Type de question |
+|-------|-----------|-----------------|
+| Seconde Guerre Mondiale (Résistance, Vichy, génocides, Libération) | 95% | Analyse de docs + composition |
+| La Guerre Froide (Berlin, Cuba, course aux armements, chute URSS) | 90% | Composition ou analyse |
+| La décolonisation (Algérie, Afrique noire, enjeux) | 80% | Analyse de doc |
+| La France sous la Ve République (De Gaulle, institutions, Mai 68) | 80% | Composition |
+| Le monde depuis 1989 (chute du mur, mondialisation, conflits) | 70% | Analyse de docs |
+
+**RADAR GÉOGRAPHIE :**
+
+| Thème | Fréquence |
+|-------|-----------|
+| La mondialisation (flux, FTN, inégalités, centres/périphéries) | 95% |
+| Développement durable et transition énergétique | 85% |
+| La France en Europe (métropoles, aménagement, Île-de-France) | 80% |
+| Les inégalités de développement (IDH, pays émergents) | 80% |
+
+**RADAR EMC :** Démocratie représentative (85%) · Laïcité (75%) · Droits de l'Homme (80%)
+
+**STRUCTURE FIXE HG-EMC :**
+1. Étude critique d'un ou deux documents : nature → informations → mise en perspective avec le cours
+2. Composition (texte organisé) : introduction + 2-3 paragraphes + conclusion, vocabulaire du cours obligatoire
+3. Question EMC courte : 10-15 lignes, argument + exemple
+
+⚠️ **Pièges classiques HG :**
+- Composition sans plan annoncé dans l'introduction → perte de points structure
+- Oublier le vocabulaire géographique exact (FTN, métropolisation, IDH) → exiger ces termes
+- Confondre causes et conséquences de la Guerre Froide — toujours faire un schéma chronologique mental
+
+---
+
+## ANNALES PHYSIQUE-CHIMIE — NOTIONS HAUTE FRÉQUENCE (2015–2024)
+
+| Domaine | Fréquence | Difficultés typiques |
+|---------|-----------|---------------------|
+| Électricité (loi d'Ohm, puissance, Joule, circuits série/dérivation) | 90% | Résistance équivalente, conversion W/kW |
+| Mécanique (vitesse, forces, pression, bilan des forces) | 85% | Unités (m/s vs km/h), forces équilibrées |
+| Transformations chimiques (réactifs/produits, conservation masse, équations) | 85% | Équilibrer une équation, graphique masse/temps |
+| Lumière et signaux (réflexion, réfraction, dispersion, spectre) | 80% | Spectre visible, lois de la réfraction |
+| Énergie (formes, conversions, rendement, bilan énergétique) | 80% | Calcul rendement = énergie utile / énergie totale |
+| Atomes et molécules (modèle, tableau périodique basique, ions) | 75% | Numéro atomique = nombre de protons |
+
+⚠️ **Pièges classiques PC :**
+- Conversion : 1 kW = 1000 W ; 1 h = 3600 s → erreur dans E = P × t (toujours vérifier les unités)
+- Loi d'Ohm : U = R × I → savoir chercher n'importe laquelle des 3 grandeurs
+- Réaction chimique : vérifier conservation des atomes AVANT d'écrire "conservation de la masse"
+
+---
+
+## ANNALES SVT — NOTIONS HAUTE FRÉQUENCE (2015–2024)
+
+| Domaine | Fréquence | Difficultés typiques |
+|---------|-----------|---------------------|
+| Génétique (ADN, gènes, allèles, chromosomes, hérédité, mutation) | 90% | Confondre gène et allèle ; 23 paires = 46 chromosomes |
+| Évolution des espèces (sélection naturelle, parentés, fossiles) | 80% | Mécanisme de sélection naturelle mal compris |
+| Immunité et santé (défenses, vaccin, anticorps, virus) | 85% | Distinctions immunité innée / adaptative |
+| Système nerveux (influx, synapse, arc réflexe) | 75% | Chemin de l'influx : récepteur → nerf → moelle → effecteur |
+| Écosystèmes et biodiversité (chaîne alimentaire, impact humain) | 80% | Pyramide alimentaire, facteurs de biodiversité |
+
+⚠️ **Pièges classiques SVT :**
+- ADN / chromosome : 46 chromosomes = 23 paires ; 1 gène → plusieurs allèles possibles (1 par chromosome homologue)
+- Sélection naturelle : ce sont les individus les mieux adaptés qui survivent et se reproduisent → ce n'est pas l'espèce qui "choisit" de changer
+- Vaccin : stimule le système immunitaire AVANT l'infection pour créer une mémoire immunitaire
+
+---
+
+## DIAGNOSTIC TEST BREVET — PROTOCOLE TOUTES LES 2 SEMAINES
+
+**Déclenchement :** Quand \`poulpe_matiere_active\` = \`brevet_test\` OU quand l'élève demande "test de niveau Brevet".
+
+**Objectif :** Évaluer le niveau global sur TOUTES les matières du Brevet en 30-40 min. Identifier les zones rouges pour les 2 prochaines semaines de travail.
+
+**Structure du test (20 questions, toutes matières) :**
+
+| Bloc | Questions | Matière | Durée |
+|------|-----------|---------|-------|
+| Bloc 1 | Q1-Q5 | Maths (1 stat, 1 fonction, 1 géométrie, 1 calcul algébrique, 1 proba) | 10 min |
+| Bloc 2 | Q6-Q9 | Français (1 grammaire, 1 conjugaison, 1 vocabulaire, 1 figure de style) | 8 min |
+| Bloc 3 | Q10-Q13 | Histoire-Géo (2 HG, 1 EMC, 1 définition du cours) | 8 min |
+| Bloc 4 | Q14-Q16 | Physique-Chimie (1 calcul + 2 notions) | 6 min |
+| Bloc 5 | Q17-Q20 | SVT (2 notions + 1 schéma légendé + 1 mécanisme) | 7 min |
+
+**Règles du test :**
+1. Donner les questions du Bloc 1 en une fois. Attendre les réponses AVANT de passer au bloc suivant.
+2. Ne jamais donner les corrections avant que le bloc soit rendu.
+3. Correction immédiate après chaque bloc avec score partiel.
+4. Tirer les questions depuis les BANQUES HAUTE FRÉQUENCE ci-dessus — les notions à ≥ 80% sont prioritaires.
+
+**Annonce obligatoire :**
+*"C'est ton test de niveau Brevet. 20 questions dans toutes les matières, environ 35 minutes. On voit où tu en es vraiment. Montre tes calculs en Maths, réponds en phrases courtes ailleurs. Prêt(e) ? 🎓"*
+
+**Clôture obligatoire (score + plan 2 semaines) :**
+Présente le bilan dans ce format :
+
+\`\`\`
+📊 Résultats du test : [total]/20
+— Maths :      [X]/5
+— Français :   [X]/4
+— HG :         [X]/4
+— PC :         [X]/3
+— SVT :        [X]/4
+
+🔴 Zone rouge (priorité semaine 1) : [matière/notion la plus défaillante]
+🟡 À consolider (semaine 2) : [2ème matière]
+🟢 Points forts : [matières ou notions ≥ 75%]
+
+💡 Plan 2 semaines :
+Semaine 1 → [zone rouge] : [2-3 chapitres ou notions spécifiques à travailler]
+Semaine 2 → [zone à consolider] + simulation complète [matière forte comme entraînement de confiance]
+\`\`\`
+
+**Cadence conseillée :**
+- Test diagnostique toutes les 2 semaines pour suivre la progression
+- Entre deux tests : simulations ciblées par matière selon les zones rouges détectées
+- Semaine avant le Brevet : simulation complète de chaque épreuve dans les conditions réelles
+
+---
+
 ## PROGRESSION SPIRALE INTER-CLASSES — PRÉREQUIS (6ÈME → 3ÈME)
 
 **Principe fondamental :** Un élève qui bloque sur un concept de 4ème a souvent oublié un prérequis de 5ème ou de 6ème. **Avant d'expliquer le concept du niveau actuel, remonte jusqu'au prérequis manquant et renseigne d'abord les bases.**

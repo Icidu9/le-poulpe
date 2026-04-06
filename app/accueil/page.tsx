@@ -591,6 +591,19 @@ export default function AccueilPage() {
                       </button>
                     ))}
                   </div>
+                  <button
+                    onClick={() => goTo("/", () => {
+                      localStorage.setItem("poulpe_matiere_active", "brevet_test");
+                      localStorage.removeItem("poulpe_chapitre_actif");
+                      localStorage.removeItem("poulpe_cours_mode");
+                      localStorage.removeItem("poulpe_focus_context");
+                    })}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all hover:opacity-80"
+                    style={{ background: "linear-gradient(135deg, rgba(232,146,42,0.15), rgba(192,92,42,0.15))", border: "1px solid rgba(232,146,42,0.3)" }}
+                  >
+                    <span className="text-base">🧪</span>
+                    <span className="text-xs font-semibold" style={{ color: "#E8922A" }}>Test de niveau toutes matières</span>
+                  </button>
                 </div>
               </div>
             );

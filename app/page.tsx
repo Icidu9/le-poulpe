@@ -444,6 +444,10 @@ export default function Home() {
         firstMsg = nom
           ? `Salut ${nom} ! On prépare l'**oral EPI du Brevet**. Dis-moi d'abord : c'est quoi ton projet EPI ? (thème, matières concernées, ton rôle dans le groupe) 🎤`
           : `On prépare l'**oral EPI du Brevet**. Dis-moi : c'est quoi ton projet EPI ? (thème, matières concernées, ton rôle) 🎤`;
+      } else if (matActive === "brevet_test") {
+        firstMsg = nom
+          ? `Salut ${nom} ! C'est ton **test de niveau Brevet** — 20 questions dans toutes les matières (Maths, Français, Histoire-Géo, Physique-Chimie, SVT). Environ 35 minutes.\n\nRègle du jeu : je te donne les questions par bloc, tu réponds, je corrige et je te donne ton score. À la fin tu as un **plan de révision sur 2 semaines** basé sur tes vrais résultats. 🎓\n\nPrêt(e) à commencer ?`
+          : `C'est ton **test de niveau Brevet** — 20 questions dans toutes les matières, ~35 minutes. À la fin, un plan de révision personnalisé sur 2 semaines. 🎓\n\nPrêt(e) à commencer ?`;
       } else if (matActive) {
         firstMsg = nom
           ? `Salut ${nom} ! On travaille sur **${matActive}**, t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷`

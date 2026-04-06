@@ -4,6 +4,30 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 
+function Poulpe({ size = 54 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0 }}>
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.92" />
+      <circle cx="19" cy="18" r="2.5" fill="white" /><circle cx="29" cy="18" r="2.5" fill="white" />
+      <circle cx="19.8" cy="18.5" r="1.2" fill="#7C2A00" /><circle cx="29.8" cy="18.5" r="1.2" fill="#7C2A00" />
+      <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#7C2A00" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.6"/>
+      <path d="M14 30 Q11 36 13 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M18 32 Q16 39 18 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M24 33 Q24 40 24 44" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M30 32 Q32 39 30 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M34 30 Q37 36 35 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+    </svg>
+  );
+}
+
+function PoulpeIcon({ size = 56 }: { size?: number }) {
+  return (
+    <div style={{ width: size, height: size, borderRadius: size * 0.28, background: "linear-gradient(135deg, #E8922A, #C05C2A)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 16px rgba(232,146,42,0.35)" }}>
+      <Poulpe size={Math.round(size * 0.72)} />
+    </div>
+  );
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Faille {
@@ -463,7 +487,7 @@ export default function Examens() {
                     border: "1px solid rgba(232,146,42,0.25)",
                   }}
                 >
-                  <span style={{ fontSize: 32, lineHeight: 1 }}>🐙</span>
+                  <PoulpeIcon size={40} />
                   <div>
                     <p className="text-sm font-semibold" style={{ color: "#C05C2A" }}>Le Poulpe analyse la copie...</p>
                     <p className="text-xs mt-0.5" style={{ color: textSub }}>
@@ -493,7 +517,7 @@ export default function Examens() {
             <>
               {examens.length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <div style={{ fontSize: 48, lineHeight: 1, margin: "0 auto" }}>🐙</div>
+                  <div style={{ margin: "0 auto" }}><PoulpeIcon size={64} /></div>
                   <p className="text-sm" style={{ color: textSub }}>Aucune copie déposée pour l'instant.</p>
                   <button
                     onClick={() => setActiveTab("upload")}
@@ -518,7 +542,7 @@ export default function Examens() {
             <>
               {Object.keys(faillesMap).length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <div style={{ fontSize: 48, lineHeight: 1, margin: "0 auto" }}>🐙</div>
+                  <div style={{ margin: "0 auto" }}><PoulpeIcon size={64} /></div>
                   <p className="text-sm" style={{ color: textSub }}>Tes points de progrès apparaîtront après l'analyse de tes copies.</p>
                   <button
                     onClick={() => setActiveTab("upload")}
@@ -612,7 +636,7 @@ function AnalysisCard({ analysis, matiere, isDark, glass, textMain, textSub, cri
       style={{ ...glass, border: "2px solid rgba(232,146,42,0.4)" }}
     >
       <div className="flex items-center gap-2">
-        <span style={{ fontSize: 24, lineHeight: 1 }}>🐙</span>
+        <PoulpeIcon size={36} />
         <div>
           <p className="text-sm font-bold" style={{ color: "#C05C2A" }}>Analyse · {matiere}</p>
           <p className="text-xs" style={{ color: textSub }}>Résultats immédiats</p>
