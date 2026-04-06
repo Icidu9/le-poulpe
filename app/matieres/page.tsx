@@ -58,6 +58,22 @@ const MATIERES_STANDARD: Matiere[] = [
   { nom: "Philosophie" }, { nom: "SES" }, { nom: "NSI" },
 ];
 
+function PoulpeIcon({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0 }}>
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.92" />
+      <circle cx="19" cy="18" r="2.5" fill="white" /><circle cx="29" cy="18" r="2.5" fill="white" />
+      <circle cx="19.8" cy="18.5" r="1.2" fill="#7C2A00" /><circle cx="29.8" cy="18.5" r="1.2" fill="#7C2A00" />
+      <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#7C2A00" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.6"/>
+      <path d="M14 30 Q11 36 13 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M18 32 Q16 39 18 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M24 33 Q24 40 24 44" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M30 32 Q32 39 30 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M34 30 Q37 36 35 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+    </svg>
+  );
+}
+
 function normalize(s: string) {
   return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[-\s]/g, "");
 }
@@ -159,7 +175,7 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
                   boxShadow: "0 4px 20px rgba(232,146,42,0.35)",
                 }}
               >
-                <img src="/icon-192.png" alt="" style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0 }} />
+                <PoulpeIcon size={28} />
                 <div>
                   <p className="font-bold text-white text-sm">
                     {hasSession ? "Reprendre la session" : "Réviser avec Le Poulpe"}
@@ -201,7 +217,7 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
               {[
                 hasSession && { id: "nouvelle", icon: "✨", label: "Nouvelle session", sub: "Repartir de zéro" },
                 { id: "examens", icon: "📷", label: "Analyser une copie", sub: hasFailles ? "Voir les lacunes identifiées" : "Envoie une copie notée" },
-                { id: "flashcards", icon: "🃏", label: "Flashcards", sub: hasFlashcards ? "Révise tes flashcards" : "Crée des flashcards" },
+                { id: "flashcards", icon: "🗂️", label: "Flashcards", sub: hasFlashcards ? "Révise tes flashcards" : "Crée des flashcards" },
                 { id: "progression", icon: "📈", label: "Mes progrès", sub: "Points forts et lacunes" },
               ].filter(Boolean).map((item) => {
                 if (!item) return null;
@@ -278,7 +294,7 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
   return (
     <button
       onClick={onClick}
-      className="flex flex-col text-left rounded-2xl overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98]"
+      className="flex flex-col text-left rounded-2xl overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] relative"
       style={{
         background: cardBg,
         border: `1px solid ${border}`,
@@ -289,14 +305,15 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
       }}
     >
       <div className="p-4 flex-1">
-        <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="mb-3">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
             style={{ background: s.gradient }}
           >
             {emoji}
           </div>
-          <div className="flex flex-wrap gap-1 justify-end">
+        </div>
+        <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
             {hasSession && (
               <span
                 className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
@@ -332,7 +349,7 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
           </div>
         </div>
 
-        <p className="font-bold text-sm leading-snug" style={{ color: textMain }}>{mat.nom}</p>
+        <p className="font-bold text-sm leading-snug pr-10" style={{ color: textMain }}>{mat.nom}</p>
       </div>
     </button>
   );
