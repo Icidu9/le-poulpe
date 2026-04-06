@@ -123,6 +123,11 @@ export default function BetaPage() {
         <p className="text-center text-xs mt-5" style={{ color: "#9B9188" }}>
           Tu n'as pas de code ? Contacte-nous.
         </p>
+        <p className="text-center text-xs mt-3" style={{ color: "#C4BBAE" }}>
+          <a href="/mentions-legales" style={{ color: "#C4BBAE", textDecoration: "underline" }}>Mentions légales</a>
+          {" · "}
+          <a href="/politique-de-confidentialite" style={{ color: "#C4BBAE", textDecoration: "underline" }}>Confidentialité</a>
+        </p>
       </div>
     </div>
   );

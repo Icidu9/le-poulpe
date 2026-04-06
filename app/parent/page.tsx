@@ -656,9 +656,14 @@ export default function ParentPage() {
         </Card>
 
         {/* Footer */}
-        <div style={{ textAlign: "center", fontSize: 12, color: C.muted, paddingTop: 8 }}>
+        <div style={{ textAlign: "center", fontSize: 12, color: C.muted, paddingTop: 8, lineHeight: 2 }}>
           Le Poulpe — système IA à supervision humaine<br />
-          Loi IA européenne (UE) 2024/1689 · RGPD · Contact : lepoulpe.app@gmail.com
+          Loi IA européenne (UE) 2024/1689 · RGPD<br />
+          <span style={{ display: "inline-flex", gap: 16, flexWrap: "wrap", justifyContent: "center", marginTop: 4 }}>
+            <a href="/mentions-legales" style={{ color: C.orange, textDecoration: "none" }}>Mentions légales</a>
+            <a href="/politique-de-confidentialite" style={{ color: C.orange, textDecoration: "none" }}>Politique de confidentialité</a>
+            <span>Contact : lepoulpe.app@gmail.com</span>
+          </span>
         </div>
       </div>
     </div>
