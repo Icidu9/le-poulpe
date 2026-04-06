@@ -3,25 +3,24 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
-import PoulpeSubjectIcon from "../components/PoulpeSubjectIcon";
 
 // ── Design System ────────────────────────────────────────────────────────────
 const MAT_COLORS: Record<string, { gradient: string; light: string; text: string; border: string }> = {
-  "Français":             { gradient: "linear-gradient(135deg, #EF4444, #F87171)", light: "#FEF2F2", text: "#DC2626", border: "#FECACA" },
-  "Mathématiques":        { gradient: "linear-gradient(135deg, #2563EB, #60A5FA)", light: "#EFF6FF", text: "#1D4ED8", border: "#BFDBFE" },
-  "Histoire-Géographie":  { gradient: "linear-gradient(135deg, #16A34A, #4ADE80)", light: "#F0FDF4", text: "#15803D", border: "#BBF7D0" },
-  "Sciences de la Vie et de la Terre": { gradient: "linear-gradient(135deg, #059669, #34D399)", light: "#ECFDF5", text: "#065F46", border: "#A7F3D0" },
-  "Physique-Chimie":      { gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)", light: "#F5F3FF", text: "#6D28D9", border: "#DDD6FE" },
-  "Anglais":              { gradient: "linear-gradient(135deg, #0284C7, #38BDF8)", light: "#F0F9FF", text: "#0369A1", border: "#BAE6FD" },
-  "Espagnol":             { gradient: "linear-gradient(135deg, #C2410C, #FB923C)", light: "#FFF7ED", text: "#C2410C", border: "#FED7AA" },
-  "Allemand":             { gradient: "linear-gradient(135deg, #4338CA, #818CF8)", light: "#EEF2FF", text: "#4338CA", border: "#C7D2FE" },
-  "Latin":                { gradient: "linear-gradient(135deg, #A16207, #FACC15)", light: "#FEFCE8", text: "#854D0E", border: "#FEF08A" },
+  "Français":             { gradient: "linear-gradient(135deg, #9D174D, #F472B6)", light: "#FDF2F8", text: "#9D174D", border: "#FBCFE8" },
+  "Mathématiques":        { gradient: "linear-gradient(135deg, #3730A3, #818CF8)", light: "#EEF2FF", text: "#3730A3", border: "#C7D2FE" },
+  "Histoire-Géographie":  { gradient: "linear-gradient(135deg, #92400E, #F59E0B)", light: "#FFFBEB", text: "#92400E", border: "#FDE68A" },
+  "Sciences de la Vie et de la Terre": { gradient: "linear-gradient(135deg, #064E3B, #10B981)", light: "#ECFDF5", text: "#065F46", border: "#A7F3D0" },
+  "Physique-Chimie":      { gradient: "linear-gradient(135deg, #4C1D95, #C084FC)", light: "#F5F3FF", text: "#4C1D95", border: "#DDD6FE" },
+  "Anglais":              { gradient: "linear-gradient(135deg, #0C4A6E, #7DD3FC)", light: "#F0F9FF", text: "#0C4A6E", border: "#BAE6FD" },
+  "Espagnol":             { gradient: "linear-gradient(135deg, #991B1B, #F97316)", light: "#FFF7ED", text: "#991B1B", border: "#FED7AA" },
+  "Allemand":             { gradient: "linear-gradient(135deg, #1E3A5F, #93C5FD)", light: "#EFF6FF", text: "#1E3A5F", border: "#BFDBFE" },
+  "Latin":                { gradient: "linear-gradient(135deg, #713F12, #CA8A04)", light: "#FFFBEB", text: "#713F12", border: "#FDE68A" },
 };
 
 const MAT_EMOJIS: Record<string, string> = {
-  "Français": "📖", "Mathématiques": "📐", "Histoire-Géographie": "🌍",
-  "Sciences de la Vie et de la Terre": "🌿", "Physique-Chimie": "⚗️",
-  "Anglais": "🇬🇧", "Espagnol": "🇪🇸", "Allemand": "🇩🇪", "Latin": "🏛️",
+  "Français": "✍️", "Mathématiques": "📐", "Histoire-Géographie": "🗺️",
+  "Sciences de la Vie et de la Terre": "🔬", "Physique-Chimie": "🧪",
+  "Anglais": "💬", "Espagnol": "🌞", "Allemand": "🏰", "Latin": "📜",
 };
 
 function getMatStyle(mat: string) {
@@ -387,10 +386,10 @@ export default function AccueilPage() {
                       }}
                     >
                       <span
-                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+                        className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
                         style={{ background: matStyle.gradient }}
                       >
-                        <PoulpeSubjectIcon subject={mat} size={28} />
+                        {emoji}
                       </span>
                       <p className="flex-1 font-semibold text-sm" style={{ color: textMain }}>
                         {mat}

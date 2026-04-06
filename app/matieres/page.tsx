@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
-import PoulpeSubjectIcon from "../components/PoulpeSubjectIcon";
 import { getChapitres, findMatiereInProgramme, type Chapitre } from "../../lib/curriculum";
 
 type MatStyle = {
@@ -14,25 +13,25 @@ type MatStyle = {
 };
 
 const MAT_STYLES: Record<string, MatStyle> = {
-  "Français":             { gradient: "linear-gradient(135deg, #EF4444, #F87171)", light: "#FEF2F2", text: "#DC2626", border: "#FECACA" },
-  "Mathématiques":        { gradient: "linear-gradient(135deg, #2563EB, #60A5FA)", light: "#EFF6FF", text: "#1D4ED8", border: "#BFDBFE" },
-  "Histoire-Géographie":  { gradient: "linear-gradient(135deg, #16A34A, #4ADE80)", light: "#F0FDF4", text: "#15803D", border: "#BBF7D0" },
-  "Sciences de la Vie et de la Terre": { gradient: "linear-gradient(135deg, #0D9488, #5EEAD4)", light: "#F0FDFA", text: "#0F766E", border: "#99F6E4" },
-  "Physique-Chimie":      { gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)", light: "#F5F3FF", text: "#6D28D9", border: "#DDD6FE" },
-  "Anglais":              { gradient: "linear-gradient(135deg, #0284C7, #38BDF8)", light: "#F0F9FF", text: "#0369A1", border: "#BAE6FD" },
-  "Espagnol":             { gradient: "linear-gradient(135deg, #C2410C, #FB923C)", light: "#FFF7ED", text: "#C2410C", border: "#FED7AA" },
-  "Allemand":             { gradient: "linear-gradient(135deg, #4338CA, #818CF8)", light: "#EEF2FF", text: "#4338CA", border: "#C7D2FE" },
-  "Latin":                { gradient: "linear-gradient(135deg, #A16207, #FACC15)", light: "#FEFCE8", text: "#854D0E", border: "#FEF08A" },
-  "Philosophie":          { gradient: "linear-gradient(135deg, #7E22CE, #C084FC)", light: "#FAF5FF", text: "#7C3AED", border: "#E9D5FF" },
-  "SES":                  { gradient: "linear-gradient(135deg, #B45309, #FCD34D)", light: "#FFFBEB", text: "#92400E", border: "#FDE68A" },
-  "NSI":                  { gradient: "linear-gradient(135deg, #1D4ED8, #6D28D9)", light: "#EFF6FF", text: "#1E40AF", border: "#BFDBFE" },
+  "Français":             { gradient: "linear-gradient(135deg, #9D174D, #F472B6)", light: "#FDF2F8", text: "#9D174D", border: "#FBCFE8" },
+  "Mathématiques":        { gradient: "linear-gradient(135deg, #3730A3, #818CF8)", light: "#EEF2FF", text: "#3730A3", border: "#C7D2FE" },
+  "Histoire-Géographie":  { gradient: "linear-gradient(135deg, #92400E, #F59E0B)", light: "#FFFBEB", text: "#92400E", border: "#FDE68A" },
+  "Sciences de la Vie et de la Terre": { gradient: "linear-gradient(135deg, #064E3B, #10B981)", light: "#ECFDF5", text: "#065F46", border: "#A7F3D0" },
+  "Physique-Chimie":      { gradient: "linear-gradient(135deg, #4C1D95, #C084FC)", light: "#F5F3FF", text: "#4C1D95", border: "#DDD6FE" },
+  "Anglais":              { gradient: "linear-gradient(135deg, #0C4A6E, #7DD3FC)", light: "#F0F9FF", text: "#0C4A6E", border: "#BAE6FD" },
+  "Espagnol":             { gradient: "linear-gradient(135deg, #991B1B, #F97316)", light: "#FFF7ED", text: "#991B1B", border: "#FED7AA" },
+  "Allemand":             { gradient: "linear-gradient(135deg, #1E3A5F, #93C5FD)", light: "#EFF6FF", text: "#1E3A5F", border: "#BFDBFE" },
+  "Latin":                { gradient: "linear-gradient(135deg, #713F12, #CA8A04)", light: "#FFFBEB", text: "#713F12", border: "#FDE68A" },
+  "Philosophie":          { gradient: "linear-gradient(135deg, #4A044E, #E879F9)", light: "#FDF4FF", text: "#4A044E", border: "#F5D0FE" },
+  "SES":                  { gradient: "linear-gradient(135deg, #14532D, #4ADE80)", light: "#F0FDF4", text: "#14532D", border: "#BBF7D0" },
+  "NSI":                  { gradient: "linear-gradient(135deg, #0F172A, #475569)", light: "#F8FAFC", text: "#0F172A", border: "#CBD5E1" },
 };
 
 const MAT_EMOJIS: Record<string, string> = {
-  "Français": "📖", "Mathématiques": "📐", "Histoire-Géographie": "🌍",
-  "Sciences de la Vie et de la Terre": "🌿", "Physique-Chimie": "⚗️",
-  "Anglais": "🇬🇧", "Espagnol": "🇪🇸", "Allemand": "🇩🇪", "Latin": "🏛️",
-  "Philosophie": "🧠", "SES": "📊", "NSI": "💾",
+  "Français": "✍️", "Mathématiques": "📐", "Histoire-Géographie": "🗺️",
+  "Sciences de la Vie et de la Terre": "🔬", "Physique-Chimie": "🧪",
+  "Anglais": "💬", "Espagnol": "🌞", "Allemand": "🏰", "Latin": "📜",
+  "Philosophie": "🪬", "SES": "📈", "NSI": "⌨️",
 };
 
 function getStyle(nom: string): MatStyle {
@@ -115,10 +114,10 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
             </button>
           ) : (
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
               style={{ background: s.gradient }}
             >
-              <PoulpeSubjectIcon subject={mat.nom} size={38} />
+              {emoji}
             </div>
           )}
 
@@ -292,10 +291,10 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
       <div className="p-4 flex-1">
         <div className="flex items-start justify-between gap-2 mb-3">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
             style={{ background: s.gradient }}
           >
-            <PoulpeSubjectIcon subject={mat.nom} size={32} />
+            {emoji}
           </div>
           <div className="flex flex-wrap gap-1 justify-end">
             {hasSession && (

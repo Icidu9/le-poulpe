@@ -16,16 +16,16 @@ type FaillesData = { failles: Faille[] };
 
 // ── Design helpers ────────────────────────────────────────────────────────────
 const MAT_EMOJI: Record<string, string> = {
-  "Français": "📖", "Mathématiques": "📐", "Histoire": "🌍",
-  "Sciences de la Vie": "🌿", "SVT": "🌿", "Physique": "⚗️", "Chimie": "⚗️",
-  "Anglais": "🇬🇧", "Espagnol": "🇪🇸", "Allemand": "🇩🇪", "Latin": "🏛️",
-  "Philosophie": "🧠", "SES": "📊", "NSI": "💾",
+  "Français": "✍️", "Mathématiques": "📐", "Histoire": "🗺️",
+  "Sciences de la Vie": "🔬", "SVT": "🔬", "Physique": "🧪", "Chimie": "🧪",
+  "Anglais": "💬", "Espagnol": "🌞", "Allemand": "🏰", "Latin": "📜",
+  "Philosophie": "🪬", "SES": "📈", "NSI": "⌨️",
 };
 const MAT_COLOR: Record<string, string> = {
-  "Français": "#EF4444", "Mathématiques": "#2563EB", "Histoire": "#16A34A",
-  "Sciences de la Vie": "#0D9488", "SVT": "#0D9488", "Physique": "#7C3AED", "Chimie": "#7C3AED",
-  "Anglais": "#0284C7", "Espagnol": "#C2410C", "Allemand": "#4338CA", "Latin": "#A16207",
-  "Philosophie": "#7E22CE", "SES": "#B45309", "NSI": "#1D4ED8",
+  "Français": "#9D174D", "Mathématiques": "#3730A3", "Histoire": "#92400E",
+  "Sciences de la Vie": "#064E3B", "SVT": "#064E3B", "Physique": "#4C1D95", "Chimie": "#4C1D95",
+  "Anglais": "#0C4A6E", "Espagnol": "#991B1B", "Allemand": "#1E3A5F", "Latin": "#713F12",
+  "Philosophie": "#4A044E", "SES": "#14532D", "NSI": "#0F172A",
 };
 function getEmoji(mat: string) {
   for (const [k, v] of Object.entries(MAT_EMOJI))
