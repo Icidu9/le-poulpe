@@ -114,7 +114,7 @@ function FlipCard({ card, index, total, onKnow, onAlmost, onRepeat, onPrev, canG
           <div className="flex justify-between mb-1.5">
             <span className="text-[11px] font-semibold" style={{ color: textSub }}>Carte {index + 1} sur {total}</span>
             {isMastered
-              ? <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(99,102,241,0.12)", color: "#6366F1" }}>Maîtrisée · révision dans {daysLeft}j</span>
+              ? <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", color: isDark ? "rgba(255,255,255,0.35)" : "#8ABAD0" }}>Maîtrisée · révision dans {daysLeft}j</span>
               : <span className="text-[11px] font-semibold" style={{ color: textSub }}>{pct}%</span>
             }
           </div>
@@ -220,9 +220,9 @@ function FlipCard({ card, index, total, onKnow, onAlmost, onRepeat, onPrev, canG
             onClick={onKnow}
             className="flex-1 py-3.5 rounded-2xl font-bold text-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
             style={{
-              background: isDark ? "rgba(99,102,241,0.15)" : "#EEF2FF",
-              color: "#6366F1",
-              border: `1.5px solid ${isDark ? "rgba(99,102,241,0.3)" : "#C7D2FE"}`,
+              background: isDark ? "rgba(16,185,129,0.15)" : "#D1FAE5",
+              color: "#10B981",
+              border: `1.5px solid ${isDark ? "rgba(16,185,129,0.3)" : "#A7F3D0"}`,
             }}
           >
             ✓ Je sais !

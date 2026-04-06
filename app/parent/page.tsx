@@ -371,7 +371,7 @@ export default function ParentPage() {
                 onClick={() => setEditingProfile(true)}
                 style={{ background: C.orangeGlow, border: `1px solid ${C.orangeBorder}`, borderRadius: 10, color: C.orange, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
               >
-                ✏️ Modifier
+                Modifier
               </button>
             ) : (
               <div style={{ display: "flex", gap: 8 }}>

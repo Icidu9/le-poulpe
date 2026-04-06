@@ -141,7 +141,13 @@ export default function AccueilPage() {
     const savedTheme = localStorage.getItem("poulpe_theme") as "dark" | "light" | null;
     if (savedTheme) setTheme(savedTheme);
 
-    // Affiche le guide uniquement à la première visite
+    // Ouvre le guide "Comment ça marche" automatiquement après l'onboarding (première visite)
+    const tourPending = localStorage.getItem("poulpe_tour_pending");
+    if (tourPending === "true") {
+      setShowGuideModal(true);
+      localStorage.removeItem("poulpe_tour_pending");
+    }
+
     const guideDismissed = localStorage.getItem("poulpe_guide_dismissed");
     if (!guideDismissed) setShowGuide(true);
 
