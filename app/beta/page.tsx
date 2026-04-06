@@ -10,12 +10,43 @@ function setCookie(name: string, value: string, days: number) {
   document.cookie = `${name}=${value}; expires=${expires}; path=/`;
 }
 
+function PoulpeSVG() {
+  return (
+    <svg width="72" height="72" viewBox="0 0 48 48" fill="none">
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="#E8922A" />
+      <circle cx="19" cy="18" r="2.5" fill="white" />
+      <circle cx="29" cy="18" r="2.5" fill="white" />
+      <circle cx="19.8" cy="18.5" r="1.2" fill="#0F172A" />
+      <circle cx="29.8" cy="18.5" r="1.2" fill="#0F172A" />
+      <path d="M21 22.5 Q24 25 27 22.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <path d="M14 30 Q11 36 13 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M18 32 Q16 39 18 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M24 33 Q24 40 24 44" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M30 32 Q32 39 30 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M34 30 Q37 36 35 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+}
+
 export default function BetaPage() {
   const router  = useRouter();
   const [email,   setEmail]   = useState("");
   const [code,    setCode]    = useState("");
   const [error,   setError]   = useState(false);
   const [loading, setLoading] = useState(false);
+  const [theme,   setTheme]   = useState<"dark" | "light">("dark");
+
+  const isDark = theme === "dark";
+
+  // ── Tokens
+  const bg      = isDark ? "#030D18" : "#EBF4F8";
+  const card    = isDark ? "rgba(6,26,38,0.80)" : "rgba(255,255,255,0.80)";
+  const border  = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
+  const textSub  = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
+  const inputBg  = isDark ? "rgba(255,255,255,0.05)" : "white";
+  const inputBorder = (err: boolean) =>
+    err ? "#C05C2A" : isDark ? "rgba(255,255,255,0.12)" : "#D4E4EC";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,14 +64,10 @@ export default function BetaPage() {
         const emailNorm = email.trim().toLowerCase();
         if (emailNorm) {
           localStorage.setItem("poulpe_beta_email", emailNorm);
-
-          // Vérifie si un profil existe déjà dans Supabase pour cet email
           try {
             const profileRes = await fetch(`/api/profile?email=${encodeURIComponent(emailNorm)}`);
             const profileData = await profileRes.json();
-
             if (profileData.profile) {
-              // Compte existant — restaure tout et saute charte + onboarding
               localStorage.setItem("poulpe_onboarding_done", "true");
               localStorage.setItem("poulpe_charte_accepted", "true");
               localStorage.setItem("poulpe_profile", JSON.stringify(profileData.profile));
@@ -66,18 +93,55 @@ export default function BetaPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-6"
-      style={{ background: "#FAF7F2", fontFamily: '"Inter", system-ui, sans-serif' }}
+      className="min-h-screen flex items-center justify-center px-6 relative"
+      style={{ background: bg, fontFamily: '"Inter", system-ui, sans-serif', transition: "background 0.3s" }}
     >
-      <div className="w-full max-w-sm">
+      {/* Glow ambiant derrière le logo */}
+      {isDark && (
+        <div style={{
+          position: "absolute", top: "50%", left: "50%",
+          transform: "translate(-50%, -70%)",
+          width: 320, height: 320, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(232,146,42,0.12) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }} />
+      )}
+
+      {/* Toggle thème */}
+      <button
+        onClick={() => setTheme(isDark ? "light" : "dark")}
+        className="absolute top-5 right-5 w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all hover:scale-105"
+        style={{
+          background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+          border: `1px solid ${border}`,
+          color: textSub,
+        }}
+      >
+        {isDark ? "🌙" : "☀️"}
+      </button>
+
+      <div className="w-full max-w-sm relative z-10">
+
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🐙</div>
-          <h1 className="text-2xl font-bold" style={{ color: "#1E1A16" }}>Le Poulpe</h1>
-          <p className="text-sm mt-1.5" style={{ color: "#6B6258" }}>Accès bêta privé</p>
+          <div className="flex justify-center mb-4" style={{ filter: isDark ? "drop-shadow(0 0 24px rgba(232,146,42,0.45))" : "none" }}>
+            <PoulpeSVG />
+          </div>
+          <h1 className="text-2xl font-bold" style={{ color: textMain }}>Le Poulpe</h1>
+          <p className="text-sm mt-1.5" style={{ color: textSub }}>Accès bêta privé</p>
         </div>
 
-        <div className="rounded-2xl p-6" style={{ background: "#F2ECE3", border: "1px solid #EAE0D3" }}>
-          <p className="text-sm mb-5" style={{ color: "#1E1A16" }}>
+        {/* Card */}
+        <div
+          className="rounded-2xl p-6"
+          style={{
+            background: card,
+            border: `1px solid ${border}`,
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+          }}
+        >
+          <p className="text-sm mb-5" style={{ color: textSub }}>
             Cette application est en accès privé.<br />
             Renseigne ton email et le code reçu pour continuer.
           </p>
@@ -90,9 +154,9 @@ export default function BetaPage() {
               placeholder="Ton email (parent)"
               className="w-full px-4 py-3 rounded-xl text-sm outline-none"
               style={{
-                background: "white",
-                border: `1.5px solid ${error ? "#C05C2A" : "#EAE0D3"}`,
-                color: "#1E1A16",
+                background: inputBg,
+                border: `1.5px solid ${inputBorder(error)}`,
+                color: textMain,
               }}
             />
             <input
@@ -103,30 +167,40 @@ export default function BetaPage() {
               autoComplete="off"
               className="w-full px-4 py-3 rounded-xl text-sm outline-none"
               style={{
-                background: "white",
-                border: `1.5px solid ${error ? "#C05C2A" : "#EAE0D3"}`,
-                color: "#1E1A16",
+                background: inputBg,
+                border: `1.5px solid ${inputBorder(error)}`,
+                color: textMain,
               }}
             />
-            {error && <p className="text-xs" style={{ color: "#C05C2A" }}>Code ou email incorrect. Vérifie et réessaie.</p>}
+            {error && (
+              <p className="text-xs" style={{ color: "#E8922A" }}>
+                Code ou email incorrect. Vérifie et réessaie.
+              </p>
+            )}
             <button
               type="submit"
               disabled={loading || !code.trim()}
-              className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ background: "#E8922A" }}
+              className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-all hover:opacity-90 disabled:opacity-50"
+              style={{
+                background: "linear-gradient(135deg, #E8922A, #C05C2A)",
+                boxShadow: isDark ? "0 0 24px rgba(232,146,42,0.35)" : "none",
+              }}
             >
               {loading ? "Vérification..." : "Accéder →"}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-xs mt-5" style={{ color: "#9B9188" }}>
-          Tu n'as pas de code ? Contacte-nous.
+        <p className="text-center text-xs mt-5" style={{ color: textSub }}>
+          Tu n'as pas de code ?{" "}
+          <a href="mailto:contact@lepoulpe.fr" style={{ color: "#E8922A", textDecoration: "none" }}>
+            Contacte-nous.
+          </a>
         </p>
-        <p className="text-center text-xs mt-3" style={{ color: "#C4BBAE" }}>
-          <a href="/mentions-legales" style={{ color: "#C4BBAE", textDecoration: "underline" }}>Mentions légales</a>
+        <p className="text-center text-xs mt-3">
+          <a href="/mentions-legales" style={{ color: textSub, textDecoration: "underline" }}>Mentions légales</a>
           {" · "}
-          <a href="/politique-de-confidentialite" style={{ color: "#C4BBAE", textDecoration: "underline" }}>Confidentialité</a>
+          <a href="/politique-de-confidentialite" style={{ color: textSub, textDecoration: "underline" }}>Confidentialité</a>
         </p>
       </div>
     </div>
