@@ -178,6 +178,28 @@ const TOUR_STEPS: { target: string | null; emoji: string; title: string; message
   },
 ];
 
+// ── Formate les noms de matière pour l'affichage ─────────────────────────────
+function formatMatiere(mat: string): string {
+  const labels: Record<string, string> = {
+    "brevet_francais": "Brevet de Français",
+    "brevet_maths":    "Brevet de Mathématiques",
+    "brevet_hg":       "Brevet d'Histoire-Géo",
+    "brevet_oral":     "Brevet — Oral EPI",
+    "brevet_test":     "Test de niveau Brevet",
+  };
+  return labels[mat] || mat;
+}
+
+// ── Streaming persistant (survit aux navigations) ─────────────────────────────
+// Ce module-level object reste en vie même quand le composant est démonté.
+// Le streaming continue en tâche de fond et notify() met à jour le UI si disponible.
+const _stream = {
+  active: false,
+  accumulated: "",
+  chatKey: "",
+  notify: null as ((text: string) => void) | null,
+};
+
 // ── Page principale ──────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -598,6 +620,38 @@ export default function Home() {
     try { localStorage.setItem(key, JSON.stringify(toSave)); } catch {}
   }, [messages, matiereActive]);
 
+  // ── Reconnexion au streaming en cours si l'utilisateur navigue pendant la réponse ──
+  useEffect(() => {
+    const key = `poulpe_chat_${matiereActive || "general"}`;
+    if (_stream.active && _stream.chatKey === key) {
+      // Un streaming est en cours pour cette matière. On se réabonne.
+      _stream.notify = (text: string) => {
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === "assistant") {
+            return [...prev.slice(0, -1), { ...last, content: text }];
+          }
+          return [...prev, { role: "assistant", content: text }];
+        });
+      };
+      // Affiche immédiatement le texte déjà accumulé
+      if (_stream.accumulated) {
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === "assistant") {
+            return [...prev.slice(0, -1), { ...last, content: _stream.accumulated }];
+          }
+          return [...prev, { role: "assistant", content: _stream.accumulated }];
+        });
+      }
+    }
+    return () => {
+      // Se désabonne mais ne coupe pas le streaming
+      if (_stream.chatKey === key) _stream.notify = null;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matiereActive]);
+
   // ── Tour ──────────────────────────────────────────────────────────────────
 
   function nextTourStep() {
@@ -960,16 +1014,32 @@ export default function Home() {
 
       const reader  = response.body!.getReader();
       const decoder = new TextDecoder();
+      const currentChatKey = `poulpe_chat_${matiereActive || "general"}`;
+
+      // Initialise le streaming persistant
+      _stream.active      = true;
+      _stream.accumulated = "";
+      _stream.chatKey     = currentChatKey;
+      _stream.notify      = (text: string) => {
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          return [...prev.slice(0, -1), { ...last, content: text }];
+        });
+      };
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const text = decoder.decode(value);
-        setMessages((prev) => {
-          const last = prev[prev.length - 1];
-          return [...prev.slice(0, -1), { ...last, content: last.content + text }];
-        });
+        _stream.accumulated += text;
+        _stream.notify?.(_stream.accumulated);
       }
+
+      // Streaming terminé : sauvegarde dans localStorage (même si l'utilisateur est ailleurs)
+      _stream.active = false;
+      _stream.notify = null;
+      const finalMessages = [...newMessages, { role: "assistant", content: _stream.accumulated }];
+      localStorage.setItem(currentChatKey, JSON.stringify(finalMessages));
     } catch (err) {
       setLoading(false);
       const msg = err instanceof Error ? err.message : "Erreur inconnue";
@@ -1125,7 +1195,7 @@ export default function Home() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-75"
               style={{ background: C.amberLight, color: C.terracotta, border: `1px solid ${C.amberBorder}` }}
             >
-              <span>{matiereActive || "Toutes matières"}</span>
+              <span>{matiereActive ? formatMatiere(matiereActive) : "Toutes matières"}</span>
               {matiereActive && (
                 <span className="text-[10px] font-normal" style={{ color: C.warmGray }}>· changer</span>
               )}
