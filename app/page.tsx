@@ -198,7 +198,7 @@ export default function Home() {
   const [matiereActive,  setMatiereActive]  = useState("");
   const [chapitreActif, setChapitreActif] = useState<{ matiere: string; chapitre: string; description: string; niveau: string } | null>(null);
   const [restoredSession, setRestoredSession] = useState(false);
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   const [focusContext, setFocusContext] = useState<{ concept: string; description: string; matiere: string } | null>(null);
   const [useClaudeMode, setUseClaudeMode] = useState(false);
   const [reviewCtx, setReviewCtx] = useState<{ concept: string; matiere: string; mode: "learning" | "review"; level: number } | null>(null);
