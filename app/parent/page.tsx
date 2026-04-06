@@ -314,7 +314,7 @@ export default function ParentPage() {
           title={isDark ? "Mode clair" : "Mode sombre"}
           style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "7px 12px", cursor: "pointer", fontSize: 16, flexShrink: 0 }}
         >
-          {isDark ? "☀️" : "🌙"}
+          {isDark ? "🌙" : "☀️"}
         </button>
       </div>
 

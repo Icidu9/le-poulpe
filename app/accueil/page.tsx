@@ -575,7 +575,7 @@ export default function AccueilPage() {
                         🎓 Brevet des collèges 2026
                       </p>
                       <p className="text-xs mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>
-                        26 juin 2026 · DNB
+                        26 juin 2026
                       </p>
                     </div>
                     <div className="text-right">
@@ -585,9 +585,9 @@ export default function AccueilPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { label: "Simul. Français", mat: "brevet_francais", icon: "✍️" },
-                      { label: "Simul. Maths", mat: "brevet_maths", icon: "📐" },
-                      { label: "Simul. HG", mat: "brevet_hg", icon: "🌍" },
+                      { label: "Annales Français", mat: "brevet_francais", icon: "✍️" },
+                      { label: "Annales Maths", mat: "brevet_maths", icon: "📐" },
+                      { label: "Annales HG", mat: "brevet_hg", icon: "🌍" },
                       { label: "Oral EPI", mat: "brevet_oral", icon: "🎤" },
                     ].map(({ label, mat, icon }) => (
                       <button
