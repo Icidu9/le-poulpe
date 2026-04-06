@@ -456,6 +456,33 @@ export default function FlashcardsPage() {
             </div>
           )}
 
+          {/* Explication méthode des J */}
+          {!selectedMat && (
+            <div
+              className="rounded-2xl p-4 space-y-3"
+              style={{ background: isDark ? "rgba(232,146,42,0.07)" : "rgba(232,146,42,0.06)", border: "1px solid rgba(232,146,42,0.2)" }}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base">🧠</span>
+                <p className="text-xs font-bold" style={{ color: "#E8922A" }}>Comment le Poulpe t'aide à mémoriser</p>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.6)" : "#4A6070" }}>
+                Le Poulpe crée tes fiches automatiquement à la fin de chaque session. Il décide <strong style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#0A2030" }}>quand te les faire réviser</strong> selon la méthode des J :
+              </p>
+              <div className="flex gap-1.5 flex-wrap">
+                {["J+1", "J+4", "J+10", "J+21", "J+45", "J+90"].map((j, i) => (
+                  <span key={j} className="text-[10px] font-bold px-2 py-1 rounded-lg"
+                    style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: i < 2 ? "#E8922A" : isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>
+                    {j}
+                  </span>
+                ))}
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>
+                Si tu sais → la carte revient plus tard. Si tu ne sais pas → elle revient dès demain. Plus tu révises régulièrement, moins tu as de cartes à faire chaque jour.
+              </p>
+            </div>
+          )}
+
           {/* Tabs */}
           {!selectedMat && (
             <div
