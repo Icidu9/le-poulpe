@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
+import PoulpeSubjectIcon from "../components/PoulpeSubjectIcon";
 import { getChapitres, findMatiereInProgramme, type Chapitre } from "../../lib/curriculum";
 
 type MatStyle = {
@@ -114,10 +115,10 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
             </button>
           ) : (
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden"
               style={{ background: s.gradient }}
             >
-              {emoji}
+              <PoulpeSubjectIcon subject={mat.nom} size={38} />
             </div>
           )}
 
@@ -291,10 +292,10 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
       <div className="p-4 flex-1">
         <div className="flex items-start justify-between gap-2 mb-3">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-            style={{ background: isDark ? "rgba(255,255,255,0.08)" : s.light }}
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+            style={{ background: s.gradient }}
           >
-            {emoji}
+            <PoulpeSubjectIcon subject={mat.nom} size={32} />
           </div>
           <div className="flex flex-wrap gap-1 justify-end">
             {hasSession && (

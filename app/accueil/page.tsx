@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/Sidebar";
+import PoulpeSubjectIcon from "../components/PoulpeSubjectIcon";
 
 // ── Design System ────────────────────────────────────────────────────────────
 const MAT_COLORS: Record<string, { gradient: string; light: string; text: string; border: string }> = {
@@ -386,10 +387,10 @@ export default function AccueilPage() {
                       }}
                     >
                       <span
-                        className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
                         style={{ background: matStyle.gradient }}
                       >
-                        {emoji}
+                        <PoulpeSubjectIcon subject={mat} size={28} />
                       </span>
                       <p className="flex-1 font-semibold text-sm" style={{ color: textMain }}>
                         {mat}
