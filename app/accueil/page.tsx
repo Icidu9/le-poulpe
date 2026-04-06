@@ -408,7 +408,7 @@ export default function AccueilPage() {
                       ) : (
                         <span
                           className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg, #FF9040, #E86030)" }}
+                          style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
                         >
                           Commencer →
                         </span>
@@ -456,7 +456,7 @@ export default function AccueilPage() {
                     </div>
                     <span
                       className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0"
-                      style={{ background: "linear-gradient(135deg, #FF9040, #E86030)" }}
+                      style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
                     >
                       Réviser →
                     </span>
