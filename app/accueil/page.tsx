@@ -404,28 +404,27 @@ export default function AccueilPage() {
                 className="absolute right-0 rounded-2xl overflow-hidden"
                 style={{ bottom: "calc(100% + 10px)", width: 300, background: isDark ? "rgba(4,16,28,0.98)" : "rgba(255,255,255,0.98)", border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.09)"}`, backdropFilter: "blur(32px)", WebkitBackdropFilter: "blur(32px)", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", zIndex: 40 }}>
                 {/* Header */}
-                <div className="px-4 pt-4 pb-3" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}` }}>
-                  <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>Comment ça marche</p>
-                  <p className="text-xs mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.4)" : "#5A7A8A" }}>5 fonctions à connaître</p>
+                <div className="px-3 pt-3 pb-2" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}` }}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>Comment ça marche</p>
                 </div>
                 {/* Items */}
                 {[
-                  { step: "1", title: "Remplis ton planning d'abord", desc: "Entre tes cours semaine A et B — Le Poulpe sait ce que tu as chaque jour et organise tes révisions en conséquence." },
-                  { step: "2", title: "Révise avec le Poulpe", desc: "Pose une question, envoie une photo d'exercice ou de cours. Il te guide pas à pas, sans te donner la réponse directement." },
-                  { step: "3", title: "Dépose 3 à 4 copies", desc: "Des contrôles que tu n'as pas réussis. Le Poulpe analyse tes erreurs et sait exactement quoi travailler." },
-                  { step: "4", title: "Explore tes matières", desc: "Parcours le programme officiel chapitre par chapitre. Lance des exercices ou des quiz ciblés." },
-                  { step: "5", title: "Tes fiches se créent seules", desc: "À chaque session, le Poulpe mémorise et prépare des fiches de révision selon la méthode des J." },
+                  { step: "1", title: "Remplis ton planning", desc: "Semaines A et B — Le Poulpe organise tes révisions en conséquence." },
+                  { step: "2", title: "Révise avec le Poulpe", desc: "Question, photo d'exercice ou de cours. Il te guide sans donner la réponse." },
+                  { step: "3", title: "Dépose 3 à 4 copies", desc: "Le Poulpe analyse tes erreurs et cible exactement quoi travailler." },
+                  { step: "4", title: "Explore tes matières", desc: "Programme chapitre par chapitre, exercices et quiz ciblés." },
+                  { step: "5", title: "Fiches créées automatiquement", desc: "Mémorisées et révisées selon la méthode des J." },
                 ].map(({ step, title, desc }) => (
-                  <div key={step} className="flex gap-3 px-4 py-3" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}` }}>
-                    <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold mt-0.5" style={{ background: "rgba(232,146,42,0.15)", color: "#E8922A" }}>{step}</div>
+                  <div key={step} className="flex gap-2.5 px-3 py-2" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}` }}>
+                    <div className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold mt-0.5" style={{ background: "rgba(232,146,42,0.15)", color: "#E8922A" }}>{step}</div>
                     <div>
-                      <p className="text-xs font-semibold leading-tight" style={{ color: isDark ? "rgba(255,255,255,0.88)" : "#0A2030" }}>{title}</p>
-                      <p className="text-[11px] mt-0.5 leading-snug" style={{ color: isDark ? "rgba(255,255,255,0.42)" : "#5A7A8A" }}>{desc}</p>
+                      <p className="text-[11px] font-semibold leading-tight" style={{ color: isDark ? "rgba(255,255,255,0.88)" : "#0A2030" }}>{title}</p>
+                      <p className="text-[10px] mt-0.5 leading-snug" style={{ color: isDark ? "rgba(255,255,255,0.42)" : "#5A7A8A" }}>{desc}</p>
                     </div>
                   </div>
                 ))}
-                <div className="px-4 py-3">
-                  <p className="text-[11px] font-medium" style={{ color: "#E8922A" }}>Cliquer pour le guide complet →</p>
+                <div className="px-3 py-2">
+                  <p className="text-[10px] font-medium" style={{ color: "#E8922A" }}>Cliquer pour le guide complet →</p>
                 </div>
               </div>
             )}
@@ -611,7 +610,8 @@ export default function AccueilPage() {
                           🎓 Brevet des collèges 2026
                         </p>
                         <button
-                          onClick={() => setShowBrevetInfo(v => !v)}
+                          onMouseEnter={() => setShowBrevetInfo(true)}
+                          onMouseLeave={() => setShowBrevetInfo(false)}
                           style={{ width: 16, height: 16, borderRadius: "50%", background: `${urgency}22`, border: `1px solid ${urgency}44`, color: urgency, fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
                         >
                           i
