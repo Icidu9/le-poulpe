@@ -386,26 +386,30 @@ export default function AccueilPage() {
                       className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-all hover:opacity-80"
                       style={{
                         background: isDark ? "rgba(6,26,38,0.55)" : "rgba(255,255,255,0.72)",
-                        border: `1px solid ${fait
-                          ? "rgba(16,185,129,0.18)"
-                          : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"
-                        }`,
-                        opacity: fait ? 0.6 : 1,
+                        border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}`,
+                        opacity: fait ? 0.52 : 1,
                       }}
                     >
                       <span
                         className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
-                        style={{ background: fait ? "rgba(16,185,129,0.18)" : matStyle.gradient }}
+                        style={{ background: matStyle.gradient }}
                       >
-                        {fait ? "✓" : emoji}
+                        {emoji}
                       </span>
-                      <p className="flex-1 font-semibold text-sm" style={{ color: fait ? "#10B981" : textMain }}>
+                      <p className="flex-1 font-semibold text-sm" style={{ color: textMain }}>
                         {mat}
                       </p>
-                      {!fait && (
+                      {fait ? (
+                        <span
+                          className="text-xs font-medium px-3 py-1.5 rounded-xl flex-shrink-0"
+                          style={{ border: "1px solid rgba(255,144,64,0.3)", color: "rgba(255,144,64,0.55)" }}
+                        >
+                          Refaire →
+                        </span>
+                      ) : (
                         <span
                           className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
+                          style={{ background: "linear-gradient(135deg, #FF9040, #E86030)" }}
                         >
                           Commencer →
                         </span>
@@ -453,7 +457,7 @@ export default function AccueilPage() {
                     </div>
                     <span
                       className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0"
-                      style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
+                      style={{ background: "linear-gradient(135deg, #FF9040, #E86030)" }}
                     >
                       Réviser →
                     </span>
