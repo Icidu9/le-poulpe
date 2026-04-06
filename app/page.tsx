@@ -243,7 +243,7 @@ export default function Home() {
       }
     }
 
-    setIsDark(localStorage.getItem("poulpe_theme") === "dark");
+    setIsDark(localStorage.getItem("poulpe_theme") !== "light");
 
     const p = localStorage.getItem("poulpe_prenom") || "";
     const profileRaw = localStorage.getItem("poulpe_profile");

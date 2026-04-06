@@ -463,7 +463,7 @@ export default function Examens() {
                     border: "1px solid rgba(232,146,42,0.25)",
                   }}
                 >
-                  <img src="/icon-192.png" alt="" style={{ width: 36, height: 36, borderRadius: 8 }} />
+                  <span style={{ fontSize: 32, lineHeight: 1 }}>🐙</span>
                   <div>
                     <p className="text-sm font-semibold" style={{ color: "#C05C2A" }}>Le Poulpe analyse la copie...</p>
                     <p className="text-xs mt-0.5" style={{ color: textSub }}>
@@ -493,7 +493,7 @@ export default function Examens() {
             <>
               {examens.length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <img src="/icon-192.png" alt="" style={{ width: 56, height: 56, borderRadius: 12, margin: "0 auto" }} />
+                  <div style={{ fontSize: 48, lineHeight: 1, margin: "0 auto" }}>🐙</div>
                   <p className="text-sm" style={{ color: textSub }}>Aucune copie déposée pour l'instant.</p>
                   <button
                     onClick={() => setActiveTab("upload")}
@@ -518,7 +518,7 @@ export default function Examens() {
             <>
               {Object.keys(faillesMap).length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <img src="/icon-192.png" alt="" style={{ width: 56, height: 56, borderRadius: 12, margin: "0 auto" }} />
+                  <div style={{ fontSize: 48, lineHeight: 1, margin: "0 auto" }}>🐙</div>
                   <p className="text-sm" style={{ color: textSub }}>Tes points de progrès apparaîtront après l'analyse de tes copies.</p>
                   <button
                     onClick={() => setActiveTab("upload")}
@@ -612,7 +612,7 @@ function AnalysisCard({ analysis, matiere, isDark, glass, textMain, textSub, cri
       style={{ ...glass, border: "2px solid rgba(232,146,42,0.4)" }}
     >
       <div className="flex items-center gap-2">
-        <img src="/icon-192.png" alt="" style={{ width: 28, height: 28, borderRadius: 6 }} />
+        <span style={{ fontSize: 24, lineHeight: 1 }}>🐙</span>
         <div>
           <p className="text-sm font-bold" style={{ color: "#C05C2A" }}>Analyse · {matiere}</p>
           <p className="text-xs" style={{ color: textSub }}>Résultats immédiats</p>
