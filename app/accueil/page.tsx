@@ -600,11 +600,12 @@ export default function AccueilPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { label: "Annales Français", mat: "brevet_francais", icon: "✍️" },
-                      { label: "Annales Maths", mat: "brevet_maths", icon: "📐" },
-                      { label: "Annales HG", mat: "brevet_hg", icon: "🌍" },
-                      { label: "Oral EPI", mat: "brevet_oral", icon: "🎤" },
-                    ].map(({ label, mat, icon }) => (
+                      { label: "Français",           sub: "Lecture, rédaction",     mat: "brevet_francais", icon: "✍️", color: "#F472B6", bg: "rgba(244,114,182,0.12)", border: "rgba(244,114,182,0.25)" },
+                      { label: "Mathématiques",       sub: "Exercices annales",      mat: "brevet_maths",    icon: "📐", color: "#818CF8", bg: "rgba(129,140,248,0.12)", border: "rgba(129,140,248,0.25)" },
+                      { label: "Histoire-Géographie", sub: "Analyse doc, compo",     mat: "brevet_hg",       icon: "🌍", color: "#F59E0B", bg: "rgba(245,158,11,0.12)",  border: "rgba(245,158,11,0.25)" },
+                      { label: "Physique-Chimie",     sub: "Expériences, calculs",   mat: "brevet_pc",       icon: "🧪", color: "#C084FC", bg: "rgba(192,132,252,0.12)", border: "rgba(192,132,252,0.25)" },
+                      { label: "SVT",                 sub: "Sciences du vivant",     mat: "brevet_svt",      icon: "🌱", color: "#10B981", bg: "rgba(16,185,129,0.12)",  border: "rgba(16,185,129,0.25)" },
+                    ].map(({ label, sub, mat, icon, color, bg, border }) => (
                       <button
                         key={mat}
                         onClick={() => goTo("/", () => {
@@ -613,32 +614,17 @@ export default function AccueilPage() {
                           localStorage.removeItem("poulpe_cours_mode");
                           localStorage.removeItem("poulpe_focus_context");
                         })}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-left transition-all hover:opacity-80"
-                        style={{
-                          background: isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.7)",
-                          border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}`,
-                        }}
+                        className={`flex flex-col gap-1 px-3 py-2.5 rounded-xl text-left transition-all hover:opacity-80 active:scale-95${label === "Histoire-Géographie" ? " col-span-2" : ""}`}
+                        style={{ background: isDark ? bg : `${bg.replace("0.12", "0.08")}`, border: `1px solid ${border}` }}
                       >
-                        <span className="text-base">{icon}</span>
-                        <span className="text-xs font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#0A2030" }}>
-                          {label}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm">{icon}</span>
+                          <span className="text-xs font-bold leading-tight" style={{ color: isDark ? "rgba(255,255,255,0.92)" : "#0A2030" }}>{label}</span>
+                        </div>
+                        <span className="text-[10px] pl-0.5" style={{ color }}>{sub} · 10 ans d'annales</span>
                       </button>
                     ))}
                   </div>
-                  <button
-                    onClick={() => goTo("/", () => {
-                      localStorage.setItem("poulpe_matiere_active", "brevet_test");
-                      localStorage.removeItem("poulpe_chapitre_actif");
-                      localStorage.removeItem("poulpe_cours_mode");
-                      localStorage.removeItem("poulpe_focus_context");
-                    })}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all hover:opacity-80"
-                    style={{ background: "linear-gradient(135deg, rgba(232,146,42,0.15), rgba(192,92,42,0.15))", border: "1px solid rgba(232,146,42,0.3)" }}
-                  >
-                    <span className="text-base">🧪</span>
-                    <span className="text-xs font-semibold" style={{ color: "#E8922A" }}>Test de niveau toutes matières</span>
-                  </button>
                 </div>
               </div>
             );

@@ -183,9 +183,9 @@ function formatMatiere(mat: string): string {
   const labels: Record<string, string> = {
     "brevet_francais": "Brevet de Français",
     "brevet_maths":    "Brevet de Mathématiques",
-    "brevet_hg":       "Brevet d'Histoire-Géo",
-    "brevet_oral":     "Brevet — Oral EPI",
-    "brevet_test":     "Test de niveau Brevet",
+    "brevet_hg":       "Brevet d'Histoire-Géographie",
+    "brevet_pc":       "Brevet de Physique-Chimie",
+    "brevet_svt":      "Brevet de SVT",
   };
   return labels[mat] || mat;
 }
@@ -462,14 +462,14 @@ export default function Home() {
         firstMsg = nom
           ? `Salut ${nom} ! On prépare le **Brevet Histoire-Géographie**. On va faire une analyse de document et une composition. Prêt(e) ? 🌍`
           : `On prépare le **Brevet Histoire-Géographie**. Analyse de document + composition. Prêt(e) ? 🌍`;
-      } else if (matActive === "brevet_oral") {
+      } else if (matActive === "brevet_pc") {
         firstMsg = nom
-          ? `Salut ${nom} ! On prépare l'**oral EPI du Brevet**. Dis-moi d'abord : c'est quoi ton projet EPI ? (thème, matières concernées, ton rôle dans le groupe) 🎤`
-          : `On prépare l'**oral EPI du Brevet**. Dis-moi : c'est quoi ton projet EPI ? (thème, matières concernées, ton rôle) 🎤`;
-      } else if (matActive === "brevet_test") {
+          ? `Salut ${nom} ! On prépare le **Brevet Physique-Chimie**. Je te propose des exercices tirés des annales : lecture de graphe, calculs, protocole expérimental.\n\nTu veux quoi ?\n\n**A)** Exercice complet format Brevet\n**B)** Entraînement sur un chapitre (électricité, optique, forces, chimie…)\n**C)** Les questions qui tombent le plus souvent 📊`
+          : `On prépare le **Brevet Physique-Chimie** avec les annales réelles.\n\n**A)** Exercice complet format Brevet\n**B)** Entraînement ciblé par chapitre\n**C)** Questions les plus fréquentes 📊`;
+      } else if (matActive === "brevet_svt") {
         firstMsg = nom
-          ? `Salut ${nom} ! C'est ton **test de niveau Brevet** : 20 questions dans toutes les matières (Maths, Français, Histoire-Géo, Physique-Chimie, SVT). Environ 35 minutes.\n\nRègle du jeu : je te donne les questions par bloc, tu réponds, je corrige et je te donne ton score. À la fin tu as un **plan de révision sur 2 semaines** basé sur tes vrais résultats. 🎓\n\nPrêt(e) à commencer ?`
-          : `C'est ton **test de niveau Brevet** : 20 questions dans toutes les matières, environ 35 minutes. À la fin, un plan de révision personnalisé sur 2 semaines. 🎓\n\nPrêt(e) à commencer ?`;
+          ? `Salut ${nom} ! On prépare le **Brevet SVT**. Je te propose des exercices basés sur les annales : exploitation de documents, schémas, questions de cours.\n\nTu veux quoi ?\n\n**A)** Exercice complet format Brevet\n**B)** Entraînement sur un chapitre (génétique, évolution, corps humain, écologie…)\n**C)** Les notions qui tombent le plus souvent 📊`
+          : `On prépare le **Brevet SVT** avec les annales réelles.\n\n**A)** Exercice complet format Brevet\n**B)** Entraînement ciblé par chapitre\n**C)** Notions les plus fréquentes 📊`;
       } else if (matActive) {
         firstMsg = nom
           ? `Salut ${nom} ! On travaille sur **${matActive}**, t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷`
