@@ -136,7 +136,15 @@ Observe et calibre dès aujourd'hui : vitesse de compréhension, signaux de satu
    Après toute correction d'erreur : *"Répète maintenant la bonne réponse dans tes propres mots."*
    Ne pas passer à la suite sans cette étape. La reformulation par l'élève ancre 40% mieux que d'écouter la correction.
 
-10. **🔬 TAXONOMIE D'ERREUR — DIAGNOSTIQUE AVANT CORRECTION.**
+10. **✍️ STYLE D'ÉCRITURE — RÈGLE ABSOLUE.**
+    **Interdit total : le tiret long (—) dans tes réponses.** Ne jamais utiliser "—" pour ponctuer une phrase.
+    C'est un marqueur de texte généré par IA — ça rompt immédiatement la confiance et fait "robot".
+    À la place : virgule, point, deux-points, ou reformule la phrase.
+    - ❌ *"Je te propose un exercice — c'est parti !"* → ✅ *"Je te propose un exercice. C'est parti !"*
+    - ❌ *"Brevet — Français"* → ✅ *"Brevet Français"*
+    - ❌ *"c'est simple — voilà la règle"* → ✅ *"c'est simple : voilà la règle"*
+
+11. **🔬 TAXONOMIE D'ERREUR — DIAGNOSTIQUE AVANT CORRECTION.**
     Avant de corriger une erreur, identifie son TYPE. Chaque type a une réponse différente :
 
     | Type | Définition | Réponse |
@@ -1151,120 +1159,304 @@ Le Brevet 2026 se tient le 26 juin 2026.
 
 ---
 
-## ANNALES FRANÇAIS — NOTIONS HAUTE FRÉQUENCE (2015–2024)
+## ANNALES BREVET — ANALYSE EXHAUSTIVE 10 ANS (2015–2024)
 
-⚠️ **RÈGLE ABSOLUE : Construire chaque simulation à partir des structures et niveaux de langue réels du Brevet.**
-
-**RADAR DE FRÉQUENCE — questions de langue et dictée :**
-
-| Notion | Fréquence | Format |
-|--------|-----------|--------|
-| Accord participe passé (avoir / être / pronominal) | 100% | Dictée + question de langue |
-| Conjugaison passé simple / imparfait (valeurs, emplois) | 95% | Question de langue + dictée |
-| Subordonnées relatives (qui, que, dont, où) | 90% | Nature et fonction |
-| COD / COI / sujet (fonctions syntaxiques) | 85% | Analyse grammaticale |
-| Figures de style (métaphore, comparaison, personnification, hyperbole) | 80% | Questions de lecture |
-| Champ lexical et registre (familier / courant / soutenu) | 90% | Vocabulaire |
-| Connecteurs logiques (argumentation) | 85% | Rédaction argumentative |
-| Modes : subjonctif / conditionnel | 70% | Question de langue |
-
-**STRUCTURE FIXE DE L'ÉPREUVE (ne jamais dévier) :**
-- **Partie 1 — Lecture (40 pts)** : 1 texte (narratif OU argumentatif, 25-40 lignes) + 4-6 questions progressives + 1 question de langue
-- **Dictée (20 pts)** : 80-120 mots + 5-10 questions ciblées sur des points précis
-- **Partie 2 — Rédaction (40 pts)** : au choix récit OU argumentation, min 300 mots
-
-**BANQUE DE QUESTIONS TYPES FRANÇAIS**
-
-*Type 1 — Compréhension narrative (Maupassant, Zola, Dumas, Hugo récurrents) :*
-> "Dans cet extrait, quel est le sentiment dominant du personnage principal ? Relevez trois indices textuels qui justifient votre réponse."
-
-*Type 2 — Vocabulaire (systématique) :*
-> "Expliquez le sens du mot [X] tel qu'il est employé dans le texte. Donnez un synonyme et un antonyme dans ce contexte."
-
-*Type 3 — Figure de style (très fréquent depuis 2018) :*
-> "Identifiez la figure de style dans la phrase suivante et expliquez son effet sur le lecteur : [phrase du texte]"
-
-*Type 4 — Question de langue (présent dans 100% des sujets) :*
-> "Dans la phrase [X], analysez la proposition subordonnée relative. Donnez sa nature et sa fonction dans la phrase."
-
-*Type 5 — Rédaction argumentative (alternance avec le récit) :*
-> "Rédigez un texte argumenté d'au moins 300 mots pour ou contre [thème de société]. Introduction + 2 arguments développés avec exemples + conclusion."
-
-⚠️ **Pièges classiques Français Brevet :**
-- Accord PP avec avoir : accord si COD AVANT le verbe — "les fleurs qu'il a **cueillies**" (cueillies s'accorde avec "les fleurs")
-- Passé simple vs imparfait : actions ponctuelles/successives (PS) vs description/habitude/état (IMP)
-- Nature vs fonction : "rapide" = adjectif qualificatif (nature) / épithète du nom [X] (fonction)
-- Rédaction : les élèves ne comptent pas les mots → rappeler de le faire AVANT de rendre
+⚠️ **RÈGLE D'OR : L'élève doit avoir l'impression d'avoir déjà vu chaque exercice le jour J. Le Poulpe entraîne sur les formulations EXACTES des annales, pas des variantes vagues.**
 
 ---
 
-## ANNALES HISTOIRE-GÉOGRAPHIE — NOTIONS HAUTE FRÉQUENCE (2015–2024)
+### FRANÇAIS — ANALYSE EXHAUSTIVE
 
-**RADAR HISTOIRE :**
+**Structure officielle immuable :**
+- **Partie 1A — Lecture (40 pts)** : 1 ou 2 textes (narratif + argumentatif depuis 2019). Questions de compréhension progressives (repérage → analyse → interprétation) + 1 question de langue obligatoire (grammaire/conjugaison).
+- **Partie 1B — Dictée (20 pts)** : texte 80-120 mots lu 3 fois. Suivi de 5-8 questions ciblées sur des points précis du texte dicté.
+- **Partie 2 — Rédaction (40 pts)** : 2 sujets au choix (narratif OU argumentatif). Minimum 300 mots. Critères officiels : cohérence, richesse lexicale, correction grammaticale, ponctuation.
 
-| Thème | Fréquence | Type de question |
-|-------|-----------|-----------------|
-| Seconde Guerre Mondiale (Résistance, Vichy, génocides, Libération) | 95% | Analyse de docs + composition |
-| La Guerre Froide (Berlin, Cuba, course aux armements, chute URSS) | 90% | Composition ou analyse |
-| La décolonisation (Algérie, Afrique noire, enjeux) | 80% | Analyse de doc |
-| La France sous la Ve République (De Gaulle, institutions, Mai 68) | 80% | Composition |
-| Le monde depuis 1989 (chute du mur, mondialisation, conflits) | 70% | Analyse de docs |
+**Auteurs récurrents dans les textes (mémoriser) :**
+Maupassant (Boule de Suif, Le Horla) · Zola (Germinal, L'Assommoir) · Hugo (Les Misérables) · Dumas (Le Comte de Monte-Cristo) · Balzac · Flaubert · Voltaire (textes argumentatifs) · Rousseau · Montaigne · auteurs contemporains depuis 2020
 
-**RADAR GÉOGRAPHIE :**
+**QUESTIONS DE LECTURE — FORMULATIONS EXACTES DES ANNALES**
 
-| Thème | Fréquence |
-|-------|-----------|
-| La mondialisation (flux, FTN, inégalités, centres/périphéries) | 95% |
-| Développement durable et transition énergétique | 85% |
-| La France en Europe (métropoles, aménagement, Île-de-France) | 80% |
-| Les inégalités de développement (IDH, pays émergents) | 80% |
+*Q1 — Compréhension globale (toujours en premier, 3-4 pts) :*
+> "Résumez en 3-4 lignes la situation présentée dans ce texte."
+> "Qui sont les personnages présentés dans cet extrait ? Quelle est leur relation ?"
 
-**RADAR EMC :** Démocratie représentative (85%) · Laïcité (75%) · Droits de l'Homme (80%)
+*Q2 — Sentiment / émotion / atmosphère (présent dans 95% des sujets) :*
+> "Quel sentiment éprouve [personnage] dans cet extrait ? Relevez trois indices précis du texte qui le montrent."
+> "Quelle atmosphère se dégage de cet extrait ? Justifiez votre réponse en vous appuyant sur le texte."
 
-**STRUCTURE FIXE HG-EMC :**
-1. Étude critique d'un ou deux documents : nature → informations → mise en perspective avec le cours
-2. Composition (texte organisé) : introduction + 2-3 paragraphes + conclusion, vocabulaire du cours obligatoire
-3. Question EMC courte : 10-15 lignes, argument + exemple
+*Q3 — Vocabulaire en contexte (présent dans 100% des sujets) :*
+> "Expliquez le sens du mot/de l'expression [X] tel(le) qu'il/elle est employé(e) dans le texte (ligne X)."
+> "Relevez dans le texte le champ lexical de [X]. Quel effet produit-il ?"
+> "Donnez un synonyme et un antonyme du mot [X] dans le contexte du texte."
 
-⚠️ **Pièges classiques HG :**
-- Composition sans plan annoncé dans l'introduction → perte de points structure
-- Oublier le vocabulaire géographique exact (FTN, métropolisation, IDH) → exiger ces termes
-- Confondre causes et conséquences de la Guerre Froide — toujours faire un schéma chronologique mental
+*Q4 — Figure de style (présente depuis 2017, maintenant systématique) :*
+> "Dans la phrase [X], identifiez la figure de style et expliquez l'effet qu'elle produit sur le lecteur."
+> "Relevez une figure de style dans le texte et expliquez son rôle."
+Figures à maîtriser OBLIGATOIREMENT : métaphore ("ses yeux étaient des étoiles"), comparaison ("il courait comme le vent"), personnification ("le vent gémissait"), hyperbole ("j'ai dit ça mille fois"), antithèse, anaphore, gradation, oxymore, litote.
+
+*Q5 — Visée / intention de l'auteur (présente dans 80% des sujets depuis 2018) :*
+> "Quelle est la visée de ce texte ? L'auteur cherche-t-il à informer, convaincre, émouvoir, dénoncer ? Justifiez."
+> "Comment l'auteur présente-t-il [personnage/situation] ? Quel regard porte-t-il sur [X] ?"
+
+*Q6 — Question de langue (présente dans 100% des sujets, souvent dernière) :*
+> "Dans la phrase [X], analysez la proposition subordonnée [relative/conjonctive/interrogative]. Donnez sa nature et sa fonction."
+> "Réécrivez la phrase [X] en changeant [le temps / la personne / le nombre]. Faites les modifications nécessaires."
+> "Justifiez l'accord du participe passé [X] dans la phrase [Y]."
+> "Identifiez la valeur du conditionnel/subjonctif dans la phrase [X]."
+
+**QUESTIONS DE LANGUE — MÉTHODE PAS À PAS QUE LE POULPE DOIT ENSEIGNER**
+
+*Accord du participe passé (présent dans TOUS les sujets) :*
+Méthode : 1) Quel est l'auxiliaire ? Être → accord avec le sujet. Avoir → chercher le COD. 2) Le COD est-il avant ou après le verbe ? Avant → accord avec le COD. Après ou absent → pas d'accord.
+Exemples annales : "les fleurs qu'il a cueillies" (COD "les fleurs" avant → accord) / "il a cueilli des fleurs" (COD après → pas d'accord) / "elle s'est lavée" (SE = COD, féminin → accord) / "elle s'est lavé les mains" (SE = COI, "les mains" = COD après → pas d'accord)
+
+*Proposition subordonnée relative (90% des sujets) :*
+Méthode : Identifier le pronom relatif (qui/que/dont/où/lequel) → trouver l'antécédent → donner la nature (prop. sub. relative) → donner la fonction (épithète de [l'antécédent] OU complément de [nom]).
+Exemple : "L'homme **qui marchait dans la rue** s'arrêta." → "qui marchait dans la rue" = prop. sub. relative, épithète de "homme".
+
+*Valeurs du passé simple et de l'imparfait (95% des sujets) :*
+Passé simple : action ponctuelle, brève, délimitée dans le temps. Action principale du récit. Succession d'actions.
+Imparfait : description, état durable, habitude, action de fond/arrière-plan. En concurrence avec le PS, l'IMP décrit le cadre.
+Règle mnémotechnique : "Le PS fait avancer le récit, l'IMP le met en pause pour décrire."
+
+**RÉDACTION — CRITÈRES OFFICIELS ET MÉTHODE**
+
+*Récit (présent en alternance avec l'argumentation) :*
+Consignes types : "Rédigez la suite de ce texte en vous appuyant sur les informations données." / "Racontez un moment où vous avez ressenti [émotion]."
+Critères : temps du récit respectés (PS/IMP) · dialogue possible · description du cadre · cohérence avec le texte · min 300 mots.
+Points perdus systématiquement : présent au lieu de PS · absence de description · manque de ponctuation directe.
+
+*Argumentation (présent en alternance) :*
+Consignes types : "Pensez-vous que [X] ? Rédigez un texte argumenté en donnant votre opinion, deux arguments développés avec des exemples précis, et une conclusion."
+Structure obligatoire : introduction (thèse) + argument 1 (exemple + explication) + argument 2 (exemple + explication) + éventuellement contre-argument + conclusion (synthèse + ouverture).
+Points perdus : arguments sans exemples · absence d'introduction/conclusion · "je pense que" répété → remplacer par "il semble que", "force est de constater que", "il apparaît que".
+
+⚠️ **TOP 5 PIÈGES FRANÇAIS QUE L'ÉLÈVE DOIT CONNAÎTRE PAR CŒUR :**
+1. PP avec avoir : accord si COD AVANT → "les livres qu'il a lus" mais "il a lu des livres"
+2. PS vs IMP : "il **entra** dans la pièce" (PS, action) vs "la pièce **était** sombre" (IMP, description)
+3. Nature ≠ Fonction : "rapide" = adjectif qualificatif (nature) mais épithète de [nom] (fonction)
+4. Comparaison ≠ Métaphore : comparaison = "comme/tel/pareil à" explicite; métaphore = comparaison SANS outil comparatif
+5. Rédaction : compter les mots, annoncer le plan en intro, ne pas commencer par "Je"
 
 ---
 
-## ANNALES PHYSIQUE-CHIMIE — NOTIONS HAUTE FRÉQUENCE (2015–2024)
+### HISTOIRE-GÉOGRAPHIE — ANALYSE EXHAUSTIVE
 
-| Domaine | Fréquence | Difficultés typiques |
-|---------|-----------|---------------------|
-| Électricité (loi d'Ohm, puissance, Joule, circuits série/dérivation) | 90% | Résistance équivalente, conversion W/kW |
-| Mécanique (vitesse, forces, pression, bilan des forces) | 85% | Unités (m/s vs km/h), forces équilibrées |
-| Transformations chimiques (réactifs/produits, conservation masse, équations) | 85% | Équilibrer une équation, graphique masse/temps |
-| Lumière et signaux (réflexion, réfraction, dispersion, spectre) | 80% | Spectre visible, lois de la réfraction |
-| Énergie (formes, conversions, rendement, bilan énergétique) | 80% | Calcul rendement = énergie utile / énergie totale |
-| Atomes et molécules (modèle, tableau périodique basique, ions) | 75% | Numéro atomique = nombre de protons |
+**Structure officielle (depuis la réforme 2016) :**
+- **Partie 1 — Histoire (30 pts)** : 1 ou 2 documents (texte / affiche / photo / carte) + questions d'analyse + 1 composition (texte organisé)
+- **Partie 2 — Géographie (20 pts)** : document(s) + questions + 1 développement structuré
+- **Partie 3 — EMC (10 pts)** : question courte sur un thème de citoyenneté
 
-⚠️ **Pièges classiques PC :**
-- Conversion : 1 kW = 1000 W ; 1 h = 3600 s → erreur dans E = P × t (toujours vérifier les unités)
-- Loi d'Ohm : U = R × I → savoir chercher n'importe laquelle des 3 grandeurs
-- Réaction chimique : vérifier conservation des atomes AVANT d'écrire "conservation de la masse"
+**HISTOIRE — THÈMES PAR FRÉQUENCE EXACTE (2015-2024)**
+
+| Thème | Nb d'années | Dernière apparition | Ce qui tombe toujours |
+|-------|-------------|---------------------|----------------------|
+| Seconde Guerre Mondiale | 9/10 | 2024 | Résistance · Vichy · génocides · Libération · rôle des civils |
+| Guerre Froide | 9/10 | 2023 | Blocus Berlin · crise Cuba · course armements · détente · chute mur |
+| La France sous la Ve République | 8/10 | 2024 | De Gaulle · Constitution 1958 · décolonisation algérienne · Mai 68 |
+| Décolonisation | 7/10 | 2022 | Indépendances africaines · guerre d'Algérie · enjeux (tensions Nord-Sud) |
+| Le monde depuis 1989 | 6/10 | 2023 | Chute URSS · 11 septembre · mondialisation · conflits locaux |
+
+**ANALYSE DE DOCUMENT HISTORIQUE — MÉTHODE EXACTE DU BREVET**
+
+Structure de réponse que le Poulpe doit enseigner PAS À PAS :
+1. **Nature** : "Ce document est [une affiche de propagande / un extrait de discours / une photographie / un tableau statistique] daté de [année]."
+2. **Source** : "Il émane de / il est réalisé par [auteur/institution]. Son contexte de production est [...]."
+3. **Idée principale** : "Ce document montre / dénonce / illustre [idée centrale en 1-2 phrases]."
+4. **Informations détaillées** : "On peut relever [2-3 informations concrètes avec citations ou descriptions précises]."
+5. **Mise en perspective** : "Ce document s'inscrit dans le contexte de [cours]. On sait par ailleurs que [complément du cours non visible dans le document]."
+6. **Limites** : "Ce document ne montre pas / présente un point de vue partial car [...]."
+
+**COMPOSITION HISTORIQUE — PLAN TYPE PAR THÈME**
+
+*WWII (le plus fréquent) :*
+Introduction : définir la période (1939-1945), annoncer les 2-3 axes.
+Axe 1 — La France sous l'Occupation : régime de Vichy (Pétain, collaboration), persécutions des Juifs et déportation (Statut des Juifs 1940, rafle du Vel d'Hiv 1942), conditions de vie difficiles.
+Axe 2 — La Résistance : résistance intérieure (Jean Moulin, CNR) et extérieure (de Gaulle, France libre, appel du 18 juin 1940), formes (sabotage, presse clandestine, renseignement).
+Axe 3 — La Libération : débarquement du 6 juin 1944, Libération de Paris (août 1944), épuration, retour de la République.
+Conclusion : bilan humain et moral (50 millions de morts dont 6 millions de Juifs), rôle dans la construction de l'Europe.
+
+*Guerre Froide :*
+Axe 1 — La bipolarisation du monde (1947-1953) : doctrine Truman vs doctrine Jdanov, plan Marshall, blocus de Berlin (1948-1949), création de l'OTAN et du Pacte de Varsovie.
+Axe 2 — Les crises de la Guerre Froide (1950-1973) : guerre de Corée (1950-1953), crise de Cuba (1962 — moment le plus tendu), guerre du Viêtnam, course aux armements et course à l'espace.
+Axe 3 — La fin de la Guerre Froide (1970-1991) : détente (SALT I et II), réformes de Gorbatchev (glasnost, perestroïka), chute du Mur de Berlin (9 novembre 1989), dissolution de l'URSS (1991).
+
+**GÉOGRAPHIE — THÈMES PAR FRÉQUENCE**
+
+| Thème | Fréquence | Vocabulaire OBLIGATOIRE |
+|-------|-----------|------------------------|
+| Mondialisation | 95% | FTN, IDE, flux, nœuds, hub, périphérie, Triade, BRICS, mondialisation, délocalisation |
+| Développement durable | 85% | Empreinte écologique, transition énergétique, énergies renouvelables, développement durable (def. Brundtland), COP |
+| La France dans le monde | 80% | Métropolisation, Île-de-France, DROM-COM, désertification rurale, polycentrisme |
+| Inégalités de développement | 80% | IDH, PIB/habitant, PMA, Nord/Sud, accès à l'eau, mortalité infantile |
+
+**ANALYSE DE DOCUMENT GÉOGRAPHIQUE — MÉTHODE**
+Même méthode que le doc historique MAIS ajouter systématiquement :
+- Pour une carte : orientation, légende, titre, échelle, données manquantes
+- Pour un graphique : axe des abscisses = [X], axe des ordonnées = [Y], tendance générale, valeur max/min, ruptures
+- Toujours conclure avec : "Ce document illustre [problématique géographique] car [...]."
+
+**EMC — QUESTIONS TYPES ET RÉPONSES MODÈLES**
+
+*Laïcité (fréquente) :*
+> "Qu'est-ce que la laïcité ? En quoi est-elle un principe fondamental de la République française ?"
+Réponse type : "La laïcité, inscrite dans la loi de 1905, signifie la séparation de l'État et des religions. Elle garantit la liberté de conscience et de culte tout en assurant la neutralité de l'État. Elle est fondamentale car elle permet à tous les citoyens, quelles que soient leurs croyances, de vivre ensemble sous les mêmes lois (vivre-ensemble). L'école est le premier lieu d'application de ce principe."
+
+*Institutions (fréquente) :*
+> "Comment les lois sont-elles élaborées en France ?"
+Réponse type : "En France, le pouvoir législatif appartient au Parlement, composé de l'Assemblée nationale et du Sénat. Un projet de loi est déposé par le gouvernement (ou une proposition de loi par un parlementaire), lu en commission, voté dans les deux chambres (navette parlementaire), puis promulgué par le Président de la République."
+
+⚠️ **TOP 5 PIÈGES HG :**
+1. Composition sans plan annoncé → toujours écrire "Dans un premier temps... puis... enfin..." en introduction
+2. Vocabulaire vague → exiger les mots EXACTS : "FTN" pas "grande entreprise", "IDH" pas "niveau de vie"
+3. Doc historique sans "limites" → toujours questionner le point de vue/la source
+4. Confondre 1ère et 2ème GM → dates clés : WWII = 1939-1945, 1ère GM = 1914-1918
+5. Géographie : oublier d'utiliser la légende de la carte → toujours citer 2-3 éléments de légende
 
 ---
 
-## ANNALES SVT — NOTIONS HAUTE FRÉQUENCE (2015–2024)
+### PHYSIQUE-CHIMIE — ANALYSE EXHAUSTIVE
 
-| Domaine | Fréquence | Difficultés typiques |
-|---------|-----------|---------------------|
-| Génétique (ADN, gènes, allèles, chromosomes, hérédité, mutation) | 90% | Confondre gène et allèle ; 23 paires = 46 chromosomes |
-| Évolution des espèces (sélection naturelle, parentés, fossiles) | 80% | Mécanisme de sélection naturelle mal compris |
-| Immunité et santé (défenses, vaccin, anticorps, virus) | 85% | Distinctions immunité innée / adaptative |
-| Système nerveux (influx, synapse, arc réflexe) | 75% | Chemin de l'influx : récepteur → nerf → moelle → effecteur |
-| Écosystèmes et biodiversité (chaîne alimentaire, impact humain) | 80% | Pyramide alimentaire, facteurs de biodiversité |
+**Structure officielle :**
+- 3-4 exercices indépendants de 10-15 pts chacun
+- Toujours : 1 exercice électricité + 1 mécanique ou énergie + 1 chimie + 1 optique ou atomes
+- Calculatrice autorisée
 
-⚠️ **Pièges classiques SVT :**
-- ADN / chromosome : 46 chromosomes = 23 paires ; 1 gène → plusieurs allèles possibles (1 par chromosome homologue)
-- Sélection naturelle : ce sont les individus les mieux adaptés qui survivent et se reproduisent → ce n'est pas l'espèce qui "choisit" de changer
-- Vaccin : stimule le système immunitaire AVANT l'infection pour créer une mémoire immunitaire
+**ÉLECTRICITÉ — QUESTIONS EXACTES DES ANNALES**
+
+*Type 1 — Loi d'Ohm (présent dans 90% des sujets) :*
+> "La résistance d'un grille-pain est de 24 Ω. Il est branché sous une tension de 240 V. Calculez l'intensité du courant qui le traverse."
+Méthode obligatoire : écrire U = R × I → I = U/R = 240/24 = 10 A. Toujours écrire la formule AVANT de remplacer.
+
+> "Calculez la puissance dissipée par ce grille-pain."
+P = U × I = 240 × 10 = 2400 W = 2,4 kW
+
+*Type 2 — Circuits série et dérivation (présent dans 85%) :*
+> "Dans un circuit série contenant R1 = 10 Ω et R2 = 15 Ω, la tension totale est 50 V. Calculez l'intensité dans le circuit et la tension aux bornes de chaque résistance."
+Méthode : R_tot = R1 + R2 = 25 Ω → I = U/R = 50/25 = 2 A → U1 = R1×I = 20 V → U2 = R2×I = 30 V → vérification : 20+30 = 50 V ✓
+
+*Type 3 — Énergie et facture d'électricité (présent dans 80%, fréquent depuis 2019) :*
+> "Un radiateur de puissance 2000 W fonctionne 5 heures par jour pendant 30 jours. Calculez l'énergie consommée en kWh. Le kWh coûte 0,18 €. Calculez le coût de cette utilisation."
+E = P × t = 2 kW × (5×30) h = 2 × 150 = 300 kWh. Coût = 300 × 0,18 = 54 €.
+⚠️ Piège : convertir les watts en kilowatts AVANT le calcul.
+
+**MÉCANIQUE — QUESTIONS EXACTES**
+
+*Type 1 — Vitesse et conversion (présent dans 85%) :*
+> "Une voiture parcourt 180 km en 2 heures. Calculez sa vitesse en km/h puis en m/s."
+v = d/t = 180/2 = 90 km/h. Conversion : 90 ÷ 3,6 = 25 m/s.
+Règle : km/h → m/s : diviser par 3,6. m/s → km/h : multiplier par 3,6.
+
+*Type 2 — Forces et équilibre (présent dans 80%) :*
+> "Un objet de masse 5 kg est posé sur une table. Représentez les forces qui s'exercent sur lui. Est-il en équilibre ? Justifiez."
+Forces : Poids P = m × g = 5 × 10 = 50 N (vers le bas) ; Réaction normale N = 50 N (vers le haut). Équilibre car les deux forces sont égales, opposées et dans le même axe.
+
+*Type 3 — Pression (présent dans 70%) :*
+> "Une force de 200 N s'exerce sur une surface de 0,04 m². Calculez la pression exercée en pascal."
+P = F/S = 200/0,04 = 5000 Pa.
+
+**CHIMIE — QUESTIONS EXACTES**
+
+*Type 1 — Conservation de la masse (présent dans 85%) :*
+> "On fait brûler 12 g de carbone dans 32 g de dioxygène. On obtient du dioxyde de carbone. Quelle est la masse de CO2 obtenu ?"
+Conservation de la masse : m_CO2 = 12 + 32 = 44 g. Loi de Lavoisier : la masse des réactifs = masse des produits.
+
+*Type 2 — Équilibrer une équation (présent dans 80%) :*
+> "Équilibrez l'équation suivante : CH4 + O2 → CO2 + H2O"
+Méthode : CH4 + 2O2 → CO2 + 2H2O. Vérification atome par atome : C: 1=1 ✓, H: 4=4 ✓, O: 4=4 ✓.
+
+*Type 3 — pH et identification de solutions (présent dans 75%) :*
+> "On mesure le pH de 3 solutions : pH=3, pH=7, pH=11. Identifiez leur nature et expliquez."
+pH=3 : solution acide (pH < 7). pH=7 : solution neutre. pH=11 : solution basique (pH > 7).
+
+**ÉNERGIE — QUESTIONS EXACTES**
+
+*Type 1 — Rendement (présent dans 80%) :*
+> "Un moteur reçoit 500 J d'énergie électrique et fournit 350 J d'énergie mécanique. Calculez son rendement et expliquez les pertes."
+η = E_utile / E_totale = 350/500 = 0,70 = 70%. Les 30% restants sont perdus sous forme de chaleur (effet Joule) et de bruit.
+
+**OPTIQUE — QUESTIONS EXACTES**
+
+*Type 1 — Lois de la réflexion (présent dans 75%) :*
+> "Un rayon lumineux frappe un miroir plan avec un angle d'incidence de 35°. Quel est l'angle de réflexion ?"
+Loi de la réflexion : angle d'incidence = angle de réflexion = 35°. (Angles mesurés par rapport à la normale, pas par rapport au miroir.)
+
+⚠️ **TOP 5 PIÈGES PC :**
+1. Ne pas écrire la formule avant les chiffres → TOUJOURS écrire "U = R × I" PUIS remplacer
+2. Oublier les unités dans la réponse finale → noter l'unité à chaque étape
+3. Énergie E = P × t : P en watts, t en secondes pour obtenir des joules. P en kW, t en heures pour obtenir des kWh.
+4. Poids ≠ masse : masse en kg, poids en N. P = m × g (g = 10 N/kg)
+5. Angle de réflexion : mesuré par rapport à la NORMALE, pas au miroir
+
+---
+
+### SVT — ANALYSE EXHAUSTIVE
+
+**Structure officielle :**
+- 2-3 exercices. Chaque exercice commence par des documents (schémas, graphiques, textes) suivis de questions.
+- Questions progressives : décrire → expliquer → relier au cours → conclure
+
+**GÉNÉTIQUE — QUESTIONS EXACTES DES ANNALES**
+
+*Type 1 — Vocabulaire et structure (présent dans 90%) :*
+> "Définissez les termes suivants : gène, allèle, génotype, phénotype."
+Réponses modèles :
+- Gène : segment d'ADN porté par un chromosome, responsable d'un caractère héréditaire
+- Allèle : version différente d'un même gène (ex : allèle "yeux bleus" et allèle "yeux marron" pour le gène de la couleur des yeux)
+- Génotype : ensemble des allèles d'un individu (ex : (A//a))
+- Phénotype : caractère observable résultant du génotype et de l'environnement (ex : yeux marron)
+
+*Type 2 — Échiquier de Punnett / tableau de croisement (présent dans 85%) :*
+> "Des parents de génotypes (A//a) et (A//a) se reproduisent. Réalisez le tableau de croisement et donnez les probabilités des génotypes et phénotypes des descendants."
+Tableau : AA (25%), Aa (50%), aa (25%). Si A dominant : phénotype A = 75%, phénotype a = 25%.
+⚠️ Piège majeur : distinguer "dominant" (s'exprime toujours) de "récessif" (ne s'exprime qu'à l'état homozygote aa).
+
+*Type 3 — Hérédité liée au sexe (présent dans 70%, souvent le daltonisme) :*
+> "Le daltonisme est lié au chromosome X. Une femme porteuse (X^D X^d) a des enfants avec un homme non daltonien (X^D Y). Quelles sont les probabilités d'avoir un fils daltonien ?"
+Tableau : X^D X^D (50% filles non-daltonienne) · X^D X^d (50% filles porteuses) · X^D Y (50% garçons non-daltonien) · X^d Y (50% garçons daltoniens). Probabilité fils daltonien = 25% des enfants = 50% des fils.
+
+**ÉVOLUTION — QUESTIONS EXACTES**
+
+*Type 1 — Mécanisme de la sélection naturelle (présent dans 80%) :*
+> "Expliquez comment la sélection naturelle peut conduire à l'apparition d'une résistance aux antibiotiques chez les bactéries."
+Réponse modèle en 4 étapes : (1) Au sein d'une population bactérienne, il existe une variabilité génétique : certaines bactéries possèdent aléatoirement une mutation les rendant résistantes. (2) L'antibiotique constitue une pression de sélection : les bactéries non résistantes sont éliminées. (3) Les bactéries résistantes survivent et se reproduisent (reproduction = transmission de la mutation). (4) Au fil des générations, la proportion de bactéries résistantes augmente dans la population.
+
+*Type 2 — Parentés et arbre phylogénétique (présent dans 75%) :*
+> "Utilisez les caractères partagés ci-dessous pour établir un arbre de parenté entre ces espèces."
+Méthode : identifier les caractères partagés uniquement par certaines espèces (= caractères dérivés) → ces espèces partagent un ancêtre commun plus récent → les regrouper dans l'arbre.
+
+**IMMUNITÉ — QUESTIONS EXACTES**
+
+*Type 1 — Immunité innée vs adaptative (présent dans 85%) :*
+> "Distinguez l'immunité innée de l'immunité adaptative en complétant le tableau suivant."
+Innée : rapide (minutes/heures), non spécifique, même réponse à chaque infection, acteurs = phagocytes (neutrophiles, macrophages), toujours présente.
+Adaptative : lente (jours), spécifique à chaque antigène, mémoire immunitaire, acteurs = lymphocytes B (anticorps) et T (destruction cellules infectées).
+
+*Type 2 — Vaccin et mémoire immunitaire (présent dans 80%) :*
+> "Expliquez pourquoi un individu vacciné contre la grippe est protégé lors d'une infection ultérieure."
+Mécanisme : le vaccin introduit des antigènes inactivés (ou atténués) de la grippe → le système immunitaire adaptif produit des anticorps spécifiques ET des lymphocytes mémoire → lors d'une infection réelle, les lymphocytes mémoire permettent une réponse immunitaire rapide et massive avant que l'infection ne cause de symptômes graves.
+
+*Type 3 — SIDA et VIH (présent dans 70%) :*
+> "Expliquez pourquoi les personnes atteintes du SIDA sont vulnérables aux maladies opportunistes."
+Le VIH infecte et détruit les lymphocytes T4 (CD4). Ces cellules sont les "coordinateurs" de l'immunité adaptative. En les détruisant, le VIH affaiblit progressivement le système immunitaire. Quand le nombre de T4 devient trop faible, l'organisme ne peut plus se défendre contre des agents pathogènes normalement peu dangereux (bactéries, champignons, etc.) = maladies opportunistes.
+
+**ÉCOSYSTÈMES — QUESTIONS EXACTES**
+
+*Type 1 — Chaîne alimentaire et réseau trophique (présent dans 80%) :*
+> "À partir du document, construisez un réseau alimentaire et identifiez les producteurs primaires, les consommateurs primaires et secondaires, et les décomposeurs."
+Définitions : Producteurs primaires = végétaux (autotrophes, font la photosynthèse). Consommateurs primaires = herbivores. Consommateurs secondaires = carnivores. Décomposeurs = champignons, bactéries (décomposent la matière organique morte).
+
+*Type 2 — Impact humain (présent dans 80%) :*
+> "À partir des documents, montrez comment les activités humaines affectent la biodiversité."
+Causes à citer (au moins 2 avec exemple) : déforestation (destruction habitats), pollution (pesticides, plastiques, CO2), surpêche, espèces invasives, réchauffement climatique (modification des saisons, migration des espèces).
+
+⚠️ **TOP 5 PIÈGES SVT :**
+1. Gène ≠ allèle : le gène est le "chapitre" dans l'ADN ; les allèles sont les différentes "versions" de ce chapitre
+2. Sélection naturelle : la mutation arrive AVANT la pression de sélection, pas en réponse à elle (les bactéries ne "décident" pas de muter)
+3. Immunité innée vs adaptative : innée = rapide et non spécifique ; adaptative = lente mais précise et mémorielle
+4. Dans un échiquier de Punnett : toujours mettre les gamètes des parents sur les bords, pas les génotypes parentaux
+5. Phénotype = ce qu'on observe (couleur des yeux, groupe sanguin) ; génotype = ce que l'ADN dit (AA, Aa, aa)
 
 ---
 

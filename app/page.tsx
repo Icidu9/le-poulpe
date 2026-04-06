@@ -396,8 +396,8 @@ export default function Home() {
         // Mode révision SM-2 : le Poulpe teste directement (pas de cours)
         if (reviewData.mode === "review") {
           firstMsg = nom
-            ? `Salut ${nom} ! Petite révision de **${reviewData.concept}** en ${reviewData.matiere} — 3 à 5 minutes, c'est parti ! ✏️`
-            : `Petite révision de **${reviewData.concept}** en ${reviewData.matiere} — c'est parti ! ✏️`;
+            ? `Salut ${nom} ! Petite révision de **${reviewData.concept}** en ${reviewData.matiere}. 3 à 5 minutes, c'est parti ! ✏️`
+            : `Petite révision de **${reviewData.concept}** en ${reviewData.matiere}. C'est parti ! ✏️`;
         } else {
           firstMsg = nom
             ? `Salut ${nom} ! Aujourd'hui on travaille **${reviewData.concept}** en ${reviewData.matiere}. Je t'explique et on s'entraîne ensemble ! 🎯`
@@ -411,7 +411,7 @@ export default function Home() {
       } else if (coursMode) {
         // Mode cours : le Poulpe demande la photo du cours du jour
         firstMsg = nom
-          ? `Salut ${nom} ! Tu as eu **${coursMode.matiere}** aujourd'hui. Envoie-moi une photo de ton cours ou de ce que vous avez fait en classe — on va le retravailler ensemble 📷`
+          ? `Salut ${nom} ! Tu as eu **${coursMode.matiere}** aujourd'hui. Envoie-moi une photo de ton cours ou de ce que vous avez fait en classe, on va le retravailler ensemble 📷`
           : `Tu as eu **${coursMode.matiere}** aujourd'hui. Envoie-moi une photo de ton cours et on le retravaille ensemble 📷`;
       } else if (chapActif) {
         const mode = (chapActif as any).mode || "chat";
@@ -430,24 +430,24 @@ export default function Home() {
         }
       } else if (matActive === "brevet_francais") {
         firstMsg = nom
-          ? `Salut ${nom} ! On prépare le **Brevet — Français**. Je te propose une simulation complète : texte de lecture, questions, puis rédaction. Tu es prêt(e) ? 🎓`
-          : `On prépare le **Brevet — Français**. Simulation complète : texte de lecture, questions, puis rédaction. Tu es prêt(e) ? 🎓`;
+          ? `Salut ${nom} ! On prépare le **Brevet Français**. Je te propose une simulation complète : texte de lecture, questions, puis rédaction. Tu es prêt(e) ? 🎓`
+          : `On prépare le **Brevet Français**. Simulation complète : texte de lecture, questions, puis rédaction. Tu es prêt(e) ? 🎓`;
       } else if (matActive === "brevet_maths") {
         firstMsg = nom
-          ? `Salut ${nom} ! On prépare le **Brevet — Mathématiques** avec des exercices tirés des annales réelles.\n\nTu veux quoi ?\n\n**A)** Simulation complète (4 exercices format Brevet)\n**B)** Entraînement ciblé sur un chapitre (fonctions, probabilités, statistiques, géométrie…)\n**C)** Voir le récap des questions les plus fréquentes aux annales 📊`
-          : `On prépare le **Brevet — Mathématiques** avec les annales réelles.\n\nTu veux quoi ?\n\n**A)** Simulation complète (4 exercices format Brevet)\n**B)** Entraînement ciblé sur un chapitre\n**C)** Récap des questions les plus fréquentes 📊`;
+          ? `Salut ${nom} ! On prépare le **Brevet Mathématiques** avec des exercices tirés des annales réelles.\n\nTu veux quoi ?\n\n**A)** Simulation complète (4 exercices format Brevet)\n**B)** Entraînement ciblé sur un chapitre (fonctions, probabilités, statistiques, géométrie…)\n**C)** Voir le récap des questions les plus fréquentes aux annales 📊`
+          : `On prépare le **Brevet Mathématiques** avec les annales réelles.\n\nTu veux quoi ?\n\n**A)** Simulation complète (4 exercices format Brevet)\n**B)** Entraînement ciblé sur un chapitre\n**C)** Récap des questions les plus fréquentes 📊`;
       } else if (matActive === "brevet_hg") {
         firstMsg = nom
-          ? `Salut ${nom} ! On prépare le **Brevet — Histoire-Géographie**. On va faire une analyse de document et une composition. Prêt(e) ? 🌍`
-          : `On prépare le **Brevet — Histoire-Géographie**. Analyse de document + composition. Prêt(e) ? 🌍`;
+          ? `Salut ${nom} ! On prépare le **Brevet Histoire-Géographie**. On va faire une analyse de document et une composition. Prêt(e) ? 🌍`
+          : `On prépare le **Brevet Histoire-Géographie**. Analyse de document + composition. Prêt(e) ? 🌍`;
       } else if (matActive === "brevet_oral") {
         firstMsg = nom
           ? `Salut ${nom} ! On prépare l'**oral EPI du Brevet**. Dis-moi d'abord : c'est quoi ton projet EPI ? (thème, matières concernées, ton rôle dans le groupe) 🎤`
           : `On prépare l'**oral EPI du Brevet**. Dis-moi : c'est quoi ton projet EPI ? (thème, matières concernées, ton rôle) 🎤`;
       } else if (matActive === "brevet_test") {
         firstMsg = nom
-          ? `Salut ${nom} ! C'est ton **test de niveau Brevet** — 20 questions dans toutes les matières (Maths, Français, Histoire-Géo, Physique-Chimie, SVT). Environ 35 minutes.\n\nRègle du jeu : je te donne les questions par bloc, tu réponds, je corrige et je te donne ton score. À la fin tu as un **plan de révision sur 2 semaines** basé sur tes vrais résultats. 🎓\n\nPrêt(e) à commencer ?`
-          : `C'est ton **test de niveau Brevet** — 20 questions dans toutes les matières, ~35 minutes. À la fin, un plan de révision personnalisé sur 2 semaines. 🎓\n\nPrêt(e) à commencer ?`;
+          ? `Salut ${nom} ! C'est ton **test de niveau Brevet** : 20 questions dans toutes les matières (Maths, Français, Histoire-Géo, Physique-Chimie, SVT). Environ 35 minutes.\n\nRègle du jeu : je te donne les questions par bloc, tu réponds, je corrige et je te donne ton score. À la fin tu as un **plan de révision sur 2 semaines** basé sur tes vrais résultats. 🎓\n\nPrêt(e) à commencer ?`
+          : `C'est ton **test de niveau Brevet** : 20 questions dans toutes les matières, environ 35 minutes. À la fin, un plan de révision personnalisé sur 2 semaines. 🎓\n\nPrêt(e) à commencer ?`;
       } else if (matActive) {
         firstMsg = nom
           ? `Salut ${nom} ! On travaille sur **${matActive}**, t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷`
