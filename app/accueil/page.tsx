@@ -119,6 +119,7 @@ export default function AccueilPage() {
   const [revisions,    setRevisions]    = useState<RevisionItem[]>([]);
   const [navigating,   setNavigating]   = useState(false);
   const [workedSubjects, setWorkedSubjects] = useState<string[]>([]);
+  const [tomorrowAlerts, setTomorrowAlerts] = useState<{ matiere: string; concept: string }[]>([]);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -242,6 +243,31 @@ export default function AccueilPage() {
 
     candidates.sort((a, b) => a.priority - b.priority);
     setRevisions(candidates.slice(0, 2));
+
+    // ── Détection contrôle imminent : sujets de demain avec failles ──────
+    const JOURS_MAP2: Record<number, string> = {
+      0: "Dimanche", 1: "Lundi", 2: "Mardi", 3: "Mercredi",
+      4: "Jeudi", 5: "Vendredi", 6: "Samedi",
+    };
+    const tomorrowIdx = (new Date().getDay() + 1) % 7;
+    const tomorrowKey = JOURS_MAP2[tomorrowIdx] || "";
+    const tomorrowCours: string[] = edtRaw
+      ? (() => { try { return JSON.parse(edtRaw)[tomorrowKey] || []; } catch { return []; } })()
+      : [];
+    if (tomorrowCours.length > 0 && fRaw) {
+      try {
+        const faillesData = JSON.parse(fRaw) as Record<string, { failles: { concept: string; criticite: string }[] }>;
+        const alerts: { matiere: string; concept: string }[] = [];
+        for (const mat of tomorrowCours) {
+          const matFailles = faillesData[mat]?.failles || [];
+          if (matFailles.length > 0) {
+            const top = matFailles.find(f => f.criticite === "haute") || matFailles[0];
+            alerts.push({ matiere: mat, concept: top.concept });
+          }
+        }
+        setTomorrowAlerts(alerts);
+      } catch {}
+    }
   }, [router]);
 
   const toggleTheme = () => {
@@ -265,9 +291,9 @@ export default function AccueilPage() {
 
   // Theme tokens
   const isDark = theme === "dark";
-  const bgColor = isDark ? "#030D18" : "#EBF4F8";
-  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
-  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
+  const bgColor = isDark ? "#030D18" : "#FAF7F2";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#1E1A16";
+  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#6B6258";
   const glass: React.CSSProperties = isDark
     ? { background: "rgba(6,26,38,0.55)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.08)" }
     : { background: "rgba(255,255,255,0.62)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.5)" };
@@ -321,9 +347,10 @@ export default function AccueilPage() {
 
           {/* ── Hero — Cerveau card ── */}
           <div style={{ position: "relative" }}>
+            {/* Halo supérieur — hors du overflow:hidden, flotte au-dessus du bord */}
+            <div style={{ position: "absolute", top: 1, left: "50%", transform: "translateX(-50%)", width: 150, height: 0, borderRadius: "50%", boxShadow: "0 0 20px 5px rgba(255,210,140,0.28)", pointerEvents: "none", zIndex: 5 }} />
             <div className="rounded-3xl p-6 relative overflow-hidden"
               style={{ background: "linear-gradient(135deg, #E8922A 0%, #C05C2A 50%, #0D1B2A 100%)" }}>
-              <div style={{ position: "absolute", top: -50, left: "50%", transform: "translateX(-50%)", width: 180, height: 180, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.07)", pointerEvents: "none" }} />
               <div style={{ position: "absolute", bottom: -45, right: -30, width: 110, height: 110, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.07)", pointerEvents: "none" }} />
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1 mr-4">
@@ -352,6 +379,36 @@ export default function AccueilPage() {
               {isDark ? "🌙" : "☀️"}
             </button>
           </div>
+
+          {/* ── Alerte contrôle demain ── */}
+          {tomorrowAlerts.length > 0 && (
+            <div className="rounded-2xl p-4 space-y-2"
+              style={{ background: isDark ? "rgba(139,92,246,0.10)" : "#F5F3FF", border: "1px solid rgba(139,92,246,0.25)" }}>
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#8B5CF6" }}>
+                📌 Révision conseillée ce soir
+              </p>
+              {tomorrowAlerts.map(({ matiere, concept }) => (
+                <button
+                  key={matiere}
+                  onClick={() => goTo("/", () => { localStorage.setItem("poulpe_matiere_active", matiere); })}
+                  className="w-full flex items-center justify-between gap-3 py-2 text-left"
+                >
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.9)" : "#1E1A16" }}>
+                      {matiere} demain
+                    </span>
+                    <p className="text-xs mt-0.5 truncate" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "#6B6258" }}>
+                      Point fragile : {concept}
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0"
+                    style={{ background: "linear-gradient(135deg, #8B5CF6, #6D28D9)" }}>
+                    Réviser →
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* ── Cours du jour ── */}
           <div>

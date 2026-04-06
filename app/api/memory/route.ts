@@ -7,10 +7,24 @@ function getSupabase() {
   );
 }
 
+// Vérifie que l'email demandé correspond au cookie de session (anti-IDOR)
+function getSessionEmail(req: Request): string | null {
+  const cookieHeader = req.headers.get("cookie") || "";
+  const match = cookieHeader.split("; ").find(c => c.startsWith("poulpe_email="));
+  if (!match) return null;
+  return decodeURIComponent(match.split("=")[1] || "").toLowerCase().trim();
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const email = searchParams.get("email");
   if (!email) return Response.json({ memory: null });
+
+  // Protection IDOR : seul le propriétaire du cookie peut lire ses données
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail || sessionEmail !== email.toLowerCase().trim()) {
+    return Response.json({ memory: null }, { status: 401 });
+  }
 
   const { data } = await getSupabase()
     .from("child_memory")

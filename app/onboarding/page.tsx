@@ -338,6 +338,9 @@ export default function Onboarding() {
   // P5 — Attentes
   const [pEspoir, setPEspoir] = useState("");
 
+  // Consentement RGPD Art. 9 — données de santé
+  const [pConsentSante, setPConsentSante] = useState(false);
+
   // ── État enfant ──────────────────────────────────────────────────────────
 
   // E0 — Qui tu es
@@ -458,6 +461,8 @@ export default function Onboarding() {
         pReactionEchec, pReactionEchecAutre, pAccepteAide, pAccepteAideAutre,
         pConfianceCapacites, pConfianceCapacitesAutre, pMeilleurContexte,
         pEspoir,
+        consentSante: pConsentSante,
+        consentSanteDate: pConsentSante ? new Date().toISOString() : null,
       },
       enfant: {
         ePrenom, ePassion,
@@ -695,19 +700,42 @@ export default function Onboarding() {
                   <Label>Votre enfant a-t-il/elle un diagnostic ?</Label>
                   <Sub>Strictement confidentiel — le Poulpe s'adapte sans jamais en parler à votre enfant.</Sub>
                   <div className="mt-3">
-                    <SelectWithOther options={DIAGNO} selected={pDiagno} onToggle={toggle(setPDiagno)} other={pDiagnoAutre} onOther={setPDiagnoAutre} otherPlaceholder="Précisez le diagnostic..." />
+                    <SelectWithOther options={DIAGNO} selected={pDiagno} onToggle={(v) => { toggle(setPDiagno)(v); setPConsentSante(false); }} other={pDiagnoAutre} onOther={setPDiagnoAutre} otherPlaceholder="Précisez le diagnostic..." />
                   </div>
                 </div>
                 {pDiagno.length > 0 && !pDiagno.every(d => d === "Aucun / je ne sais pas") && (
-                  <div>
-                    <Label>Ce qui a aidé, ce qui n'a pas fonctionné</Label>
-                    <Sub>Optionnel — bilan, recommandations, observations personnelles...</Sub>
-                    <div className="mt-2"><TextArea value={pDiagnoInfo} onChange={setPDiagnoInfo} placeholder="ex : Il comprend mieux avec des exemples visuels. Elle se décourage vite si..." /></div>
-                  </div>
+                  <>
+                    <div>
+                      <Label>Ce qui a aidé, ce qui n'a pas fonctionné</Label>
+                      <Sub>Optionnel — bilan, recommandations, observations personnelles...</Sub>
+                      <div className="mt-2"><TextArea value={pDiagnoInfo} onChange={setPDiagnoInfo} placeholder="ex : Il comprend mieux avec des exemples visuels. Elle se décourage vite si..." /></div>
+                    </div>
+                    <div className="rounded-xl p-4" style={{ background: "#FDF0E0", border: "1px solid #EED4AA" }}>
+                      <p className="text-xs font-semibold mb-2" style={{ color: C.terracotta }}>🔒 Consentement — données de santé (RGPD Art. 9)</p>
+                      <p className="text-xs leading-relaxed mb-3" style={{ color: C.charcoal }}>
+                        Le diagnostic de votre enfant est une <strong>donnée de santé</strong> au sens du RGPD.
+                        Elle est stockée de façon chiffrée et utilisée <strong>uniquement</strong> pour adapter la pédagogie du Poulpe.
+                        Elle ne sera jamais communiquée à des tiers, ni mentionnée à votre enfant.
+                        Vous pouvez la supprimer à tout moment depuis votre espace parent.
+                      </p>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={pConsentSante}
+                          onChange={e => setPConsentSante(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 flex-shrink-0 cursor-pointer"
+                          style={{ accentColor: C.amber }}
+                        />
+                        <span className="text-xs leading-relaxed" style={{ color: C.charcoal }}>
+                          J&apos;accepte explicitement que Le Poulpe traite le diagnostic de mon enfant pour personnaliser son accompagnement pédagogique.
+                        </span>
+                      </label>
+                    </div>
+                  </>
                 )}
                 <div className="flex gap-3">
                   {backBtn(() => setParentStep(0))}
-                  {nextBtn(() => setParentStep(2), pDiagno.length === 0)}
+                  {nextBtn(() => setParentStep(2), pDiagno.length === 0 || (pDiagno.length > 0 && !pDiagno.every(d => d === "Aucun / je ne sais pas") && !pConsentSante))}
                 </div>
               </Card>
             )}

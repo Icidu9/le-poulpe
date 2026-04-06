@@ -7,11 +7,25 @@ function getSupabase() {
   );
 }
 
+// Vérifie que l'email demandé correspond au cookie de session (anti-IDOR)
+function getSessionEmail(req: Request): string | null {
+  const cookieHeader = req.headers.get("cookie") || "";
+  const match = cookieHeader.split("; ").find(c => c.startsWith("poulpe_email="));
+  if (!match) return null;
+  return decodeURIComponent(match.split("=")[1] || "").toLowerCase().trim();
+}
+
 // Charge le profil depuis Supabase
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const email = searchParams.get("email");
   if (!email) return Response.json({ profile: null });
+
+  // Protection IDOR : seul le propriétaire du cookie peut lire ses données
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail || sessionEmail !== email.toLowerCase().trim()) {
+    return Response.json({ profile: null }, { status: 401 });
+  }
 
   const { data } = await getSupabase()
     .from("child_profiles")
@@ -31,7 +45,8 @@ export async function GET(req: Request) {
 
 // Sauvegarde le profil dans Supabase
 export async function POST(req: Request) {
-  const { email, prenom, profile, emploiDuTemps, failles } = (await req.json()) as {
+  const body = await req.json();
+  const { email, prenom, profile, emploiDuTemps, failles } = body as {
     email: string;
     prenom?: string;
     profile?: Record<string, unknown>;
@@ -40,6 +55,12 @@ export async function POST(req: Request) {
   };
 
   if (!email) return Response.json({ ok: false }, { status: 400 });
+
+  // Protection IDOR : seul le propriétaire du cookie peut modifier ses données
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail || sessionEmail !== email.toLowerCase().trim()) {
+    return Response.json({ ok: false }, { status: 401 });
+  }
 
   const updateData: Record<string, unknown> = {
     parent_email: email.toLowerCase(),
@@ -62,6 +83,12 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   const { email } = (await req.json()) as { email: string };
   if (!email) return Response.json({ ok: false }, { status: 400 });
+
+  // Protection IDOR
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail || sessionEmail !== email.toLowerCase().trim()) {
+    return Response.json({ ok: false }, { status: 401 });
+  }
 
   const supabase = getSupabase();
   const emailLower = email.toLowerCase();

@@ -27,6 +27,24 @@ function getStyle(mat: string) {
   }
   return { gradient: "linear-gradient(135deg, #FF6B35, #FF8F6B)", light: "#FFF7ED", text: "#C2410C", border: "#FED7AA" };
 }
+function PoulpeIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0 }}>
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.92" />
+      <circle cx="19" cy="18" r="2.5" fill="white" />
+      <circle cx="29" cy="18" r="2.5" fill="white" />
+      <circle cx="19.8" cy="18.5" r="1.2" fill="#7C2A00" />
+      <circle cx="29.8" cy="18.5" r="1.2" fill="#7C2A00" />
+      <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#7C2A00" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.7"/>
+      <path d="M14 30 Q11 36 13 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.7"/>
+      <path d="M18 32 Q16 39 18 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.7"/>
+      <path d="M24 33 Q24 40 24 44" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.7"/>
+      <path d="M30 32 Q32 39 30 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.7"/>
+      <path d="M34 30 Q37 36 35 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.7"/>
+    </svg>
+  );
+}
+
 function getEmoji(mat: string) {
   for (const [k, v] of Object.entries(MAT_EMOJIS)) {
     if (mat.toLowerCase().includes(k.toLowerCase())) return v;
@@ -50,10 +68,10 @@ function FlipCard({ card, index, total, onKnow, onRepeat, onPrev, canGoBack, mat
 
   const pct = Math.round(((index) / total) * 100);
   const cardBg = isDark ? "rgba(6,26,38,0.85)" : "#FFFFFF";
-  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
-  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
-  const border = isDark ? "rgba(255,255,255,0.10)" : "#DCE9ED";
-  const progressBg = isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#1E1A16";
+  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#6B6258";
+  const border = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.06)";
+  const progressBg = isDark ? "rgba(255,255,255,0.08)" : "#EAE0D3";
 
   return (
     <div className="flex flex-col items-center gap-5 w-full max-w-md mx-auto">
@@ -193,9 +211,9 @@ function ResultScreen({ score, total, onRestart, onBack, isDark }: {
     : { emoji: "💪", msg: "Continue à t'entraîner, ça viendra !", color: "#EF4444" };
 
   const cardBg = isDark ? "rgba(6,26,38,0.85)" : "#FFFFFF";
-  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
-  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
-  const border = isDark ? "rgba(255,255,255,0.10)" : "#DCE9ED";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#1E1A16";
+  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#6B6258";
+  const border = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.06)";
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-sm mx-auto text-center py-8">
@@ -313,12 +331,12 @@ export default function FlashcardsPage() {
   }
 
   const isDark = theme === "dark";
-  const bgColor = isDark ? "#030D18" : "#F4F9FA";
+  const bgColor = isDark ? "#030D18" : "#FAF7F2";
   const cardBg = isDark ? "rgba(6,26,38,0.75)" : "#FFFFFF";
-  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
-  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
-  const textLight = isDark ? "rgba(255,255,255,0.25)" : "#8ABAD0";
-  const border = isDark ? "rgba(255,255,255,0.08)" : "#DCE9ED";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#1E1A16";
+  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#6B6258";
+  const textLight = isDark ? "rgba(255,255,255,0.25)" : "#9B9188";
+  const border = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
 
   const setsForTab = cardSets.filter((s) => tab === "session" ? s.sessionCards.length > 0 : s.programmeCards.length > 0);
   const totalCards = cardSets.reduce((n, s) => n + (tab === "session" ? s.sessionCards.length : s.programmeCards.length), 0);
@@ -338,7 +356,7 @@ export default function FlashcardsPage() {
               <h1
                 className="text-2xl font-bold tracking-tight"
                 style={{
-                  color: isDark ? "#E8922A" : "#0A2030",
+                  color: isDark ? "#E8922A" : "#1E1A16",
                   textShadow: isDark ? "0 0 30px rgba(232,146,42,0.4)" : "none",
                 }}
               >
@@ -436,7 +454,7 @@ export default function FlashcardsPage() {
                   >
                     {tab === "session" ? (
                       <>
-                        <img src="/icon-192.png" alt="" style={{ width: 18, height: 18, borderRadius: 3 }} />
+                        <PoulpeIcon size={20} />
                         Réviser avec le Poulpe
                       </>
                     ) : "📚 Voir le programme"}

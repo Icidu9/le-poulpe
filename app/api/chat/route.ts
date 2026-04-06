@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { Mistral } from "@mistralai/mistralai";
 import { createClient } from "@supabase/supabase-js";
+import { Redis } from "@upstash/redis";
 import { MASTER_SYSTEM_PROMPT } from "../../../master-system-prompt";
 import { injectProfileIntoPrompt } from "../../../build-system-prompt";
 
@@ -14,17 +15,39 @@ function getMistral() {
   return new Mistral({ apiKey: process.env.MISTRAL_API_KEY });
 }
 
-// ── Rate limiting simple en mémoire (par IP) ─────────────────────────────────
-// Max 30 messages par heure par IP. Resets au redémarrage du serveur.
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_MAX = 30;
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 heure
+// ── Rate limiting Redis (Upstash) — persistant entre les redémarrages ────────
+// Max 50 messages par heure par IP. Résiste aux redéploiements Vercel.
+const RATE_LIMIT_MAX = 50;
+const RATE_LIMIT_WINDOW_S = 60 * 60; // 1 heure en secondes
 
-function checkRateLimit(ip: string): boolean {
+function getRedis(): Redis | null {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) return null;
+  return new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+}
+
+// Fallback en mémoire si Redis non configuré
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+async function checkRateLimit(ip: string): Promise<boolean> {
+  const redis = getRedis();
+  if (redis) {
+    try {
+      const key = `rl:${ip}`;
+      const count = await redis.incr(key);
+      if (count === 1) await redis.expire(key, RATE_LIMIT_WINDOW_S);
+      return count <= RATE_LIMIT_MAX;
+    } catch {
+      // Si Redis down → fallback mémoire
+    }
+  }
+  // Fallback mémoire (beta sans Redis configuré)
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
   if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_S * 1000 });
     return true;
   }
   if (entry.count >= RATE_LIMIT_MAX) return false;
@@ -45,19 +68,19 @@ type IncomingMessage = {
   content: string;
   imageBase64?: string;   // legacy
   imageMimeType?: string; // legacy
-  images?: { base64: string; mimeType: string }[];
+  images?: { base64: string; mimeType: string; ocrText?: string }[];
 };
 
 type ValidMime = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 
-function toAnthropicMessages(messages: IncomingMessage[]): Anthropic.MessageParam[] {
-  return messages.map((m) => {
+function toAnthropicMessages(messages: IncomingMessage[], isLast: (m: IncomingMessage, i: number, arr: IncomingMessage[]) => boolean): Anthropic.MessageParam[] {
+  return messages.map((m, i, arr) => {
     if (m.role === "assistant") {
       return { role: "assistant" as const, content: m.content };
     }
 
     // Normalise en tableau (nouveau format) ou legacy
-    const imgs: { base64: string; mimeType: string }[] =
+    const imgs: { base64: string; mimeType: string; ocrText?: string }[] =
       m.images?.length
         ? m.images
         : m.imageBase64
@@ -66,6 +89,18 @@ function toAnthropicMessages(messages: IncomingMessage[]): Anthropic.MessagePara
 
     if (imgs.length === 0) {
       return { role: "user" as const, content: m.content };
+    }
+
+    // Messages historiques avec OCR disponible → remplace l'image par du texte (économie coût)
+    const isCurrentMessage = isLast(m, i, arr);
+    const allHaveOcr = imgs.every((img) => img.ocrText);
+
+    if (!isCurrentMessage && allHaveOcr) {
+      const ocrContent = imgs.map((img) => `[Photo : ${img.ocrText}]`).join("\n");
+      const combinedText = m.content && m.content.trim()
+        ? `${ocrContent}\n${m.content}`
+        : ocrContent;
+      return { role: "user" as const, content: combinedText };
     }
 
     const blocks: Anthropic.ContentBlockParam[] = imgs.map((img) => ({
@@ -174,7 +209,7 @@ Crée une fiche mémoire concise. Règles :
 export async function POST(req: Request) {
   // Rate limiting — message doux, pas de blocage brutal
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!checkRateLimit(ip)) {
+  if (!(await checkRateLimit(ip))) {
     const enc = new TextEncoder();
     const msg = "Tu as vraiment beaucoup travaillé aujourd'hui ! 🐙 C'est très bien. Pour laisser ton cerveau assimiler tout ça, je te propose une pause — reviens dans une heure et on continue là où on s'est arrêtés.";
     return new Response(new ReadableStream({ start(c) { c.enqueue(enc.encode(msg)); c.close(); } }), {
@@ -352,11 +387,21 @@ export async function POST(req: Request) {
     })();
   }
 
-  const hasImages = messages.some(
-    (m) => m.images?.length || m.imageBase64
-  );
+  // hasImages = seulement le dernier message utilisateur a des images
+  // Les messages historiques avec OCR sont convertis en texte → routés vers Mistral
+  const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
+  const hasImages = !!(lastUserMessage?.images?.length || lastUserMessage?.imageBase64);
 
-  const anthropicMessages = toAnthropicMessages(messages);
+  const isLastWithImages = (m: IncomingMessage, i: number, arr: IncomingMessage[]) => {
+    for (let j = arr.length - 1; j >= 0; j--) {
+      if (arr[j].role === "user" && (arr[j].images?.length || arr[j].imageBase64)) {
+        return j === i;
+      }
+    }
+    return false;
+  };
+
+  const anthropicMessages = toAnthropicMessages(messages, isLastWithImages);
   if (closeSession) {
     anthropicMessages.push({ role: "user", content: "C'est tout pour aujourd'hui, résume notre session." });
   }
@@ -385,9 +430,23 @@ export async function POST(req: Request) {
               controller.enqueue(encoder.encode(chunk.delta.text));
             }
           }
+        } else if (useClaude) {
+          // ── Claude Sonnet — forcé manuellement (mode useClaude) ──────────────
+          const stream = getClient().messages.stream({
+            model: "claude-sonnet-4-6",
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: anthropicMessages,
+          });
+          for await (const chunk of stream) {
+            if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
+              fullResponse += chunk.delta.text;
+              controller.enqueue(encoder.encode(chunk.delta.text));
+            }
+          }
         } else {
           // ── Mistral (EU) — conversations texte ───────────────────────────────
-          // Mistral Large pour le tutoring général et quiz/exercices
+          // Mistral Large pour le tutoring général. Fallback Sonnet si Mistral échoue.
           const chapMode = (chapitre as any)?.mode;
           const isQuickMode = chapMode === "quiz" || chapMode === "exercice";
 
@@ -404,17 +463,33 @@ export async function POST(req: Request) {
             mistralMessages.push({ role: "user", content: "C'est tout pour aujourd'hui, résume notre session." });
           }
 
-          const stream = await getMistral().chat.stream({
-            model: isQuickMode ? "mistral-large-latest" : "mistral-large-latest",
-            maxTokens: isQuickMode ? 350 : 1024,
-            messages: mistralMessages,
-          });
-
-          for await (const chunk of stream) {
-            const text = chunk.data.choices[0]?.delta?.content || "";
-            if (text) {
-              fullResponse += text;
-              controller.enqueue(encoder.encode(text));
+          try {
+            const stream = await getMistral().chat.stream({
+              model: "mistral-large-latest",
+              maxTokens: isQuickMode ? 350 : 1024,
+              messages: mistralMessages,
+            });
+            for await (const chunk of stream) {
+              const text = chunk.data.choices[0]?.delta?.content || "";
+              if (text) {
+                fullResponse += text;
+                controller.enqueue(encoder.encode(text));
+              }
+            }
+          } catch (mistralErr) {
+            // Fallback Sonnet si Mistral indisponible
+            console.error("[MISTRAL FALLBACK → SONNET]", mistralErr instanceof Error ? mistralErr.message : mistralErr);
+            const stream = getClient().messages.stream({
+              model: "claude-sonnet-4-6",
+              max_tokens: 1024,
+              system: systemPrompt,
+              messages: anthropicMessages,
+            });
+            for await (const chunk of stream) {
+              if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
+                fullResponse += chunk.delta.text;
+                controller.enqueue(encoder.encode(chunk.delta.text));
+              }
             }
           }
         }

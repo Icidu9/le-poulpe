@@ -12,7 +12,7 @@ interface Message {
   content: string;
   imageBase64?: string;  // legacy
   imageMimeType?: string; // legacy
-  images?: { base64: string; mimeType: string }[];
+  images?: { base64: string; mimeType: string; ocrText?: string }[];
 }
 
 // ── Palette ──────────────────────────────────────────────────────────────────
@@ -209,7 +209,7 @@ export default function Home() {
   const [isSessionClosed, setIsSessionClosed] = useState(false);
   const [flashcardsLoading, setFlashcardsLoading] = useState(false);
   const [flashcardsReady, setFlashcardsReady] = useState(false);
-  const [selectedPhotos, setSelectedPhotos] = useState<{ base64: string; mimeType: string; preview: string }[]>([]);
+  const [selectedPhotos, setSelectedPhotos] = useState<{ base64: string; mimeType: string; preview: string; ocrText?: string }[]>([]);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
   const [isRecording,    setIsRecording]    = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -764,13 +764,42 @@ export default function Home() {
             const reader = new FileReader();
             reader.onload = () => {
               const dataUrl = reader.result as string;
-              resolve({ base64: dataUrl.split(",")[1], mimeType: file.type || "image/jpeg", preview: dataUrl });
+              const img = new Image();
+              img.onload = () => {
+                const MAX = 800;
+                const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+                canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const compressed = canvas.toDataURL("image/jpeg", 0.7);
+                resolve({ base64: compressed.split(",")[1], mimeType: "image/jpeg", preview: compressed });
+              };
+              img.src = dataUrl;
             };
             reader.readAsDataURL(file);
           })
       )
     ).then((newPhotos) => {
       setSelectedPhotos((prev) => [...prev, ...newPhotos].slice(0, 5));
+      // Extraction OCR en arrière-plan — remplace l'image par du texte pour les appels suivants (économie ~75% coût)
+      newPhotos.forEach((photo, i) => {
+        fetch("/api/extract-text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ base64: photo.base64, mimeType: photo.mimeType }),
+        })
+          .then((r) => r.json())
+          .then(({ text }) => {
+            if (!text) return;
+            setSelectedPhotos((prev) =>
+              prev.map((p) =>
+                p.base64 === photo.base64 ? { ...p, ocrText: text } : p
+              )
+            );
+          })
+          .catch(() => {});
+      });
     });
     e.target.value = "";
   }
@@ -867,7 +896,7 @@ export default function Home() {
       role: "user",
       content,
       images: selectedPhotos.length > 0
-        ? selectedPhotos.map((p) => ({ base64: p.base64, mimeType: p.mimeType }))
+        ? selectedPhotos.map((p) => ({ base64: p.base64, mimeType: p.mimeType, ocrText: p.ocrText }))
         : undefined,
     };
     const newMessages = [...messages, userMessage];

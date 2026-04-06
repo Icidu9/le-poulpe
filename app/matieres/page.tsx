@@ -347,7 +347,6 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
               </span>
             )}
           </div>
-        </div>
 
         <p className="font-bold text-sm leading-snug pr-10" style={{ color: textMain }}>{mat.nom}</p>
       </div>
