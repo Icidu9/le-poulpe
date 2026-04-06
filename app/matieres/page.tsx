@@ -288,8 +288,6 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
           : isDark ? "0 1px 6px rgba(0,0,0,0.2)" : "0 1px 6px rgba(15,23,42,0.05)",
       }}
     >
-      <div className="w-full h-1.5" style={{ background: s.gradient }} />
-
       <div className="p-4 flex-1">
         <div className="flex items-start justify-between gap-2 mb-3">
           <div
@@ -318,7 +316,7 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
             {badge === "difficile" && !hasSession && (
               <span
                 className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                style={{ background: isDark ? "rgba(239,68,68,0.15)" : "#FEE2E2", color: "#EF4444" }}
+                style={{ background: isDark ? "rgba(232,146,42,0.15)" : "#FFF7ED", color: "#E8922A" }}
               >
                 Focus
               </span>
@@ -335,9 +333,6 @@ function MatiereCard({ mat, badge, hasSession, hasFlash, onClick, isDark }: {
         </div>
 
         <p className="font-bold text-sm leading-snug" style={{ color: textMain }}>{mat.nom}</p>
-        <p className="text-[11px] mt-1.5 font-medium" style={{ color: textSub }}>
-          Réviser · Cours · Quiz →
-        </p>
       </div>
     </button>
   );
@@ -459,8 +454,8 @@ export default function MatieresPage() {
             >
               Mes matières
             </h1>
-            <p className="text-sm mt-1" style={{ color: textSub }}>
-              Clique pour réviser, accéder au programme ou voir tes flashcards.
+            <p className="text-xs mt-1.5 font-medium" style={{ color: textSub }}>
+              Sélectionne une matière pour réviser, explorer le programme ou tester tes connaissances.
             </p>
           </div>
 
@@ -471,7 +466,7 @@ export default function MatieresPage() {
                 <h2 className="font-bold text-sm" style={{ color: textMain }}>Matières prioritaires</h2>
                 <span
                   className="text-[10px] font-bold px-2.5 py-1 rounded-full"
-                  style={{ background: isDark ? "rgba(239,68,68,0.15)" : "#FEE2E2", color: "#EF4444" }}
+                  style={{ background: isDark ? "rgba(232,146,42,0.15)" : "#FFF7ED", color: "#E8922A" }}
                 >
                   Focus
                 </span>
