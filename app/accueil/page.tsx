@@ -347,10 +347,9 @@ export default function AccueilPage() {
 
           {/* ── Hero — Cerveau card ── */}
           <div style={{ position: "relative" }}>
-            {/* Halo supérieur — hors du overflow:hidden, flotte au-dessus du bord */}
-            <div style={{ position: "absolute", top: 1, left: "50%", transform: "translateX(-50%)", width: 150, height: 0, borderRadius: "50%", boxShadow: "0 0 20px 5px rgba(255,210,140,0.28)", pointerEvents: "none", zIndex: 5 }} />
             <div className="rounded-3xl p-6 relative overflow-hidden"
               style={{ background: "linear-gradient(135deg, #E8922A 0%, #C05C2A 50%, #0D1B2A 100%)" }}>
+              <div style={{ position: "absolute", top: -50, left: "50%", transform: "translateX(-50%)", width: 180, height: 180, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.07)", pointerEvents: "none" }} />
               <div style={{ position: "absolute", bottom: -45, right: -30, width: 110, height: 110, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.07)", pointerEvents: "none" }} />
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1 mr-4">

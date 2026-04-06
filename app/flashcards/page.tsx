@@ -433,15 +433,15 @@ export default function FlashcardsPage() {
             <>
               {setsForTab.length === 0 ? (
                 <div
-                  className="rounded-3xl p-10 text-center space-y-4"
+                  className="rounded-2xl p-7 text-center space-y-4"
                   style={{ background: cardBg, border: `1px solid ${border}` }}
                 >
-                  <span className="text-6xl block">🃏</span>
+                  <span className="text-4xl block">🔖</span>
                   <div>
-                    <p className="font-bold text-base" style={{ color: textMain }}>
+                    <p className="font-bold text-sm" style={{ color: textMain }}>
                       {tab === "session" ? "Pas encore de fiches" : "Pas de fiches de programme"}
                     </p>
-                    <p className="text-sm leading-relaxed mt-2 max-w-xs mx-auto" style={{ color: textSub }}>
+                    <p className="text-xs leading-relaxed mt-2 max-w-xs mx-auto" style={{ color: textSub }}>
                       {tab === "session"
                         ? "Après une session, clique sur \"Créer mes fiches de révision\" pour générer tes fiches."
                         : "Travaille un chapitre du programme, des fiches seront générées automatiquement."}
@@ -449,12 +449,12 @@ export default function FlashcardsPage() {
                   </div>
                   <button
                     onClick={() => router.push(tab === "session" ? "/" : "/matieres")}
-                    className="px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all hover:scale-[1.02] flex items-center gap-2 mx-auto"
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] flex items-center gap-2 mx-auto"
                     style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)", boxShadow: "0 4px 16px rgba(232,146,42,0.3)" }}
                   >
                     {tab === "session" ? (
                       <>
-                        <PoulpeIcon size={20} />
+                        <PoulpeIcon size={16} />
                         Réviser avec le Poulpe
                       </>
                     ) : "📚 Voir le programme"}
