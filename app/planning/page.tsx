@@ -393,54 +393,6 @@ export default function PlanningPage() {
             )}
           </div>
 
-          {/* Révisions recommandées */}
-          {matieresDiff.length > 0 && (
-            <div
-              className="rounded-2xl p-5 space-y-3"
-              style={{ background: cardBg, border: `1px solid ${border}` }}
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-sm" style={{ color: textMain }}>
-                  Révisions recommandées
-                </h2>
-                <span className="text-xs" style={{ color: textSub }}>
-                  ~{revisionsJour.length * 20} min
-                </span>
-              </div>
-
-              {revisionsJour.length > 0 ? (
-                <div className="space-y-2">
-                  {revisionsJour.map((mat) => (
-                    <div
-                      key={mat}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                      style={{ background: isDark ? "rgba(255,255,255,0.04)" : "#FFFFFF", border: `1px solid ${border}` }}
-                    >
-                      <span className="text-xl">{getEmoji(mat)}</span>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium" style={{ color: textMain }}>{mat}</div>
-                        <div className="text-[11px]" style={{ color: textSub }}>Bloc de 20 min · avec Le Poulpe</div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          localStorage.setItem("poulpe_matiere_active", mat);
-                          router.push("/");
-                        }}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg"
-                        style={{ background: primaryLight, color: primaryDark }}
-                      >
-                        Démarrer →
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-3 text-xs" style={{ color: textSub }}>
-                  Pas de révision suggérée ce jour, repos mérité 😌
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Vue semaine complète */}
           <div>
