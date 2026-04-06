@@ -283,26 +283,27 @@ export default function ProgressionPage() {
               boxShadow: workedSubjects.length > 0 ? "0 0 40px rgba(16,185,129,0.06)" : "none",
             }}
           >
-            <div className="flex items-center gap-2 px-5 pt-5 pb-3">
+            <div className="flex items-center gap-3 px-5 pt-5 pb-3">
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2"
-                  style={{ color: "rgba(255,255,255,0.35)" }}>{dateCap}</p>
-                <h1 className="text-xl font-bold text-white leading-snug">
-                  {greeting}, {prenom}
-                </h1>
-                <p className="text-xs mt-1.5 font-medium" style={{ color: workedSubjects.length > 0 ? "#10B981" : "rgba(255,255,255,0.35)" }}>
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-3"
+                  style={{ color: "rgba(255,255,255,0.28)" }}>Ton cerveau</p>
+                <p className="text-sm font-medium leading-relaxed mb-3"
+                  style={{ color: "rgba(255,255,255,0.62)" }}>
+                  Chaque session trace<br />de nouveaux chemins.
+                </p>
+                <p className="text-xs font-semibold" style={{ color: workedSubjects.length > 0 ? "#10B981" : "rgba(255,255,255,0.28)" }}>
                   {workedSubjects.length > 0
                     ? `${Math.min(workedSubjects.length, 5)} zone${workedSubjects.length > 1 ? "s" : ""} active${workedSubjects.length > 1 ? "s" : ""}`
-                    : streak > 1 ? `${streak} jours de suite` : "Commence pour activer ton cerveau"}
+                    : "Commence pour activer ton cerveau"}
                 </p>
               </div>
-              <div className="flex-shrink-0" style={{ width: 110, height: 90 }}>
+              <div className="flex-shrink-0" style={{ width: 135, height: 115 }}>
                 <BrainCerveau activeSubjects={workedSubjects} isDark={true} />
               </div>
             </div>
             <div className="px-5 pb-4">
-              <p className="text-[10px] font-medium" style={{ color: "rgba(255,255,255,0.22)" }}>
-                Ton cerveau en action →
+              <p className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.42)" }}>
+                Voir ton cerveau en action →
               </p>
             </div>
           </button>
