@@ -388,6 +388,7 @@ export default function Onboarding() {
   const [microMatieres, setMicroMatieres]         = useState<string[]>([]);
   const [microMatieresAutre, setMicroMatieresAutre] = useState("");
   const [microConsentRGPD, setMicroConsentRGPD]   = useState(false);
+  const [microCodeClasse, setMicroCodeClasse]     = useState("");
 
   // Les classes qui impliquent un mineur de moins de 15 ans (Art. 45 CNIL)
   const classesMineur15 = ["6ème", "5ème", "4ème", "3ème"];
@@ -432,6 +433,15 @@ export default function Onboarding() {
     if (needsParentalConsent) {
       (profile.parent as Record<string, unknown>).consentParentalRGPD = true;
       (profile.parent as Record<string, unknown>).consentParentalRGPDDate = new Date().toISOString();
+    }
+    // Code classe enseignant (optionnel)
+    if (microCodeClasse.trim()) {
+      (profile as Record<string, unknown>).classeCode = microCodeClasse.trim().toUpperCase();
+    }
+    // Email parent pour jointure enseignant
+    const emailForTeacher = microEmailParent.trim() || localStorage.getItem("poulpe_beta_email") || "";
+    if (emailForTeacher) {
+      (profile as Record<string, unknown>).parentEmail = emailForTeacher.toLowerCase();
     }
     localStorage.setItem("poulpe_onboarding_done", "true");
     localStorage.setItem("poulpe_profile", JSON.stringify(profile));
@@ -611,6 +621,18 @@ export default function Onboarding() {
                       placeholder="ex. maman@gmail.com"
                       className="w-full px-4 py-2.5 rounded-xl text-sm outline-none mt-2"
                       style={{ background: C.cream, border: `1.5px solid ${microEmailParent ? C.amber : C.parchDark}`, color: C.charcoal }}
+                    />
+                  </div>
+                  <div>
+                    <Label>Code classe <span style={{ color: C.warmGray, fontWeight: 400 }}>(facultatif)</span></Label>
+                    <Sub>Ton prof te donne ce code pour rejoindre sa classe</Sub>
+                    <input
+                      type="text"
+                      value={microCodeClasse}
+                      onChange={(e) => setMicroCodeClasse(e.target.value.toUpperCase())}
+                      placeholder="ex. 4B-DUPONT"
+                      className="w-full px-4 py-2.5 rounded-xl text-sm outline-none mt-2 font-mono tracking-wider"
+                      style={{ background: C.cream, border: `1.5px solid ${microCodeClasse ? C.amber : C.parchDark}`, color: C.charcoal }}
                     />
                   </div>
                 </div>
