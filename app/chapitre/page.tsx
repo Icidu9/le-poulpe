@@ -6,6 +6,25 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 
+function PoulpeIcon({ size = 40 }: { size?: number }) {
+  const s = Math.round(size * 0.72);
+  return (
+    <div style={{ width: size, height: size, borderRadius: size * 0.28, background: "linear-gradient(135deg, #E8922A, #C05C2A)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <svg width={s} height={s} viewBox="0 0 48 48" fill="none">
+        <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.92" />
+        <circle cx="19" cy="18" r="2.5" fill="white" /><circle cx="29" cy="18" r="2.5" fill="white" />
+        <circle cx="19.8" cy="18.5" r="1.2" fill="#7C2A00" /><circle cx="29.8" cy="18.5" r="1.2" fill="#7C2A00" />
+        <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#7C2A00" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.6"/>
+        <path d="M14 30 Q11 36 13 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+        <path d="M18 32 Q16 39 18 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+        <path d="M24 33 Q24 40 24 44" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+        <path d="M30 32 Q32 39 30 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+        <path d="M34 30 Q37 36 35 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      </svg>
+    </div>
+  );
+}
+
 const C = {
   amber:        "#E8922A",
   terracotta:   "#C05C2A",
@@ -243,7 +262,7 @@ function ChapitreContent() {
               className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-all hover:opacity-90 hover:scale-[1.01]"
               style={{ background: C.amberLight, border: `1.5px solid ${C.amberBorder}` }}
             >
-              <span className="text-2xl">🐙</span>
+              <PoulpeIcon size={40} />
               <div>
                 <p className="font-semibold text-sm" style={{ color: C.terracotta }}>Poser mes questions</p>
                 <p className="text-xs mt-0.5" style={{ color: C.warmGray }}>

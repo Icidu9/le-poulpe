@@ -3,6 +3,22 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+function Poulpe({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0 }}>
+      <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.92" />
+      <circle cx="19" cy="18" r="2.5" fill="white" /><circle cx="29" cy="18" r="2.5" fill="white" />
+      <circle cx="19.8" cy="18.5" r="1.2" fill="#7C2A00" /><circle cx="29.8" cy="18.5" r="1.2" fill="#7C2A00" />
+      <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#7C2A00" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.6"/>
+      <path d="M14 30 Q11 36 13 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M18 32 Q16 39 18 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M24 33 Q24 40 24 44" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M30 32 Q32 39 30 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <path d="M34 30 Q37 36 35 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
+    </svg>
+  );
+}
+
 // ── Design System ─────────────────────────────────────────────────────────────
 const DARK = {
   bg: "#030D18",
@@ -285,7 +301,8 @@ export default function ParentPage() {
 
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 17, fontWeight: 700, color: C.text, display: "flex", alignItems: "center", gap: 8 }}>
-            🐙 Espace parent
+            <div style={{ width: 26, height: 26, borderRadius: 8, background: "linear-gradient(135deg, #E8922A, #C05C2A)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Poulpe size={18} /></div>
+            Espace parent
             {saving && <span style={{ fontSize: 12, fontWeight: 500, color: C.orange }}>Sauvegarde…</span>}
           </div>
           <div style={{ fontSize: 12, color: C.sub }}>Suivi de {prenom || "votre enfant"}</div>
@@ -688,16 +705,15 @@ function Card({ children, C }: { children: React.ReactNode; C: Colors }) {
   );
 }
 
-function SectionTitle({ icon, label, C }: { icon: string; label: string; C: Colors }) {
+function SectionTitle({ label, C }: { icon?: string; label: string; C: Colors }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: 16 }}>{icon}</span>
       <span style={{ fontSize: 13, fontWeight: 700, color: C.sub, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</span>
     </div>
   );
 }
 
-function StatCard({ icon, label, value, sub, C, accent }: { icon: string; label: string; value: string; sub: string; C: Colors; accent: string }) {
+function StatCard({ label, value, sub, C, accent }: { icon?: string; label: string; value: string; sub: string; C: Colors; accent: string }) {
   return (
     <div style={{
       flex: "1 1 140px",
@@ -706,7 +722,6 @@ function StatCard({ icon, label, value, sub, C, accent }: { icon: string; label:
       borderRadius: 14,
       padding: "14px 16px",
     }}>
-      <div style={{ fontSize: 20, marginBottom: 8 }}>{icon}</div>
       <div style={{ fontSize: 24, fontWeight: 800, color: accent, lineHeight: 1, marginBottom: 4 }}>{value}</div>
       <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 2 }}>{label}</div>
       <div style={{ fontSize: 11, color: C.muted }}>{sub}</div>

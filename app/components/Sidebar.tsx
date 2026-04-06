@@ -189,12 +189,12 @@ export default function Sidebar() {
           </div>
         </div>
         {/* Espace parent + Se déconnecter */}
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex flex-col gap-1 mt-3">
           <button
             onClick={() => router.push("/parent")}
-            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.25)", padding: 0 }}
+            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.25)", padding: 0, textAlign: "left" }}
           >
-            👨‍👩‍👧 Espace parent
+            Espace parent
           </button>
           <button
             onClick={() => {
@@ -202,7 +202,7 @@ export default function Sidebar() {
               document.cookie = "poulpe_email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
               router.push("/beta");
             }}
-            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.2)", padding: 0 }}
+            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.2)", padding: 0, textAlign: "left" }}
           >
             ↩ Se déconnecter
           </button>
