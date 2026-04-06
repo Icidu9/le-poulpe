@@ -291,9 +291,9 @@ export default function AccueilPage() {
 
   // Theme tokens
   const isDark = theme === "dark";
-  const bgColor = isDark ? "#030D18" : "#FAF7F2";
-  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#1E1A16";
-  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#6B6258";
+  const bgColor = isDark ? "#030D18" : "#EBF4F8";
+  const textMain = isDark ? "rgba(255,255,255,0.92)" : "#0A2030";
+  const textSub = isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A";
   const glass: React.CSSProperties = isDark
     ? { background: "rgba(6,26,38,0.55)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.08)" }
     : { background: "rgba(255,255,255,0.62)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.5)" };
