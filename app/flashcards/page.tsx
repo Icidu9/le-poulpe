@@ -426,7 +426,7 @@ export default function FlashcardsPage() {
           )}
 
           {/* Résultat */}
-          {finished && <ResultScreen score={score} total={deck.length} onRestart={handleRestart} onBack={() => setSelectedMat(null)} isDark={isDark} />}
+          {finished && <ResultScreen score={score} total={deck.length} onRestart={handleRestart} onBack={() => { setSelectedMat(null); setFinished(false); }} isDark={isDark} />}
 
           {/* Liste des matières */}
           {!selectedMat && !finished && (
