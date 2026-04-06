@@ -386,13 +386,27 @@ export default function AccueilPage() {
             </button>
           </div>
 
-          {/* ── Mode d'emploi — première visite uniquement ── */}
+          {/* ── Bouton ℹ minimaliste (guide fermé) ── */}
+          {!showGuide && (
+            <button
+              onClick={() => setShowGuide(true)}
+              className="flex items-center gap-1.5 text-[10px] font-semibold px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80"
+              style={{ color: "rgba(232,146,42,0.65)", background: "rgba(232,146,42,0.07)", border: "1px solid rgba(232,146,42,0.15)", alignSelf: "flex-start" }}
+            >
+              <span style={{ fontSize: 11 }}>ℹ</span> Comment ça marche
+            </button>
+          )}
+
+          {/* ── Mode d'emploi ── */}
           {showGuide && (
             <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(232,146,42,0.3)", background: isDark ? "rgba(6,26,38,0.85)" : "rgba(255,255,255,0.85)" }}>
               <div className="flex items-center justify-between px-4 pt-4 pb-2">
-                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>
-                  🐙 Comment ça marche
-                </p>
+                <div className="flex items-center gap-2">
+                  <div style={{ width: 20, height: 20, borderRadius: 6, background: "linear-gradient(135deg, #E8922A, #C05C2A)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Poulpe size={14} />
+                  </div>
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>Comment ça marche</p>
+                </div>
                 <button
                   onClick={() => { setShowGuide(false); localStorage.setItem("poulpe_guide_dismissed", "1"); }}
                   className="text-xs px-2 py-1 rounded-lg"
@@ -403,17 +417,20 @@ export default function AccueilPage() {
               </div>
               <div className="px-4 pb-4 space-y-2.5">
                 {[
-                  { icon: "💬", title: "Réviser", desc: "Pose une question, envoie une photo de ton cours ou d'un exercice. Le Poulpe t'explique et te guide, étape par étape." },
-                  { icon: "📤", title: "Mes copies", desc: "Télécharge une copie notée par ton prof. Le Poulpe analyse tes erreurs et crée un plan de révision personnalisé." },
-                  { icon: "🗂️", title: "Mes matières", desc: "Parcours le programme officiel par matière. Lance des quiz ou des exercices sur chaque chapitre." },
-                  { icon: "🃏", title: "Fiches de révision", desc: "Le Poulpe crée tes fiches automatiquement. Il te les fait réviser selon la méthode des J (J+1, J+4, J+10, J+21…) pour que ça s'inscrive en mémoire à long terme — pas juste avant l'interro." },
-                  { icon: "📅", title: "Mon planning", desc: "Entre ton emploi du temps (semaines A et B séparées). Le Poulpe sait exactement quelles matières tu as chaque jour et adapte ses suggestions. Sans ça, il travaille à l'aveugle." },
-                  { icon: "📊", title: "Ma progression", desc: "Entre tes copies avec de mauvaises notes — idéalement 4 par mois dans des matières différentes. Le Poulpe analyse tes vraies lacunes et crée un plan de révision personnalisé." },
-                ].map(({ icon, title, desc }) => (
-                  <div key={title} className="flex items-start gap-3 py-2.5 px-3 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)" }}>
+                  { icon: "📅", title: "Mon planning", desc: "C'est la première chose à remplir. Entre ton emploi du temps semaines A et B. Sans ça, Le Poulpe ne sait pas ce que tu as comme cours chaque jour et travaille à l'aveugle.", highlight: true },
+                  { icon: "💬", title: "Réviser", desc: "Pose une question, envoie une photo de ton cours ou d'un exercice. Le Poulpe ne te donne pas la réponse — il te guide pour que tu comprennes vraiment. Au fil des conversations, il se souvient de comment tu aimes être expliqué.", highlight: false },
+                  { icon: "🗂️", title: "Mes matières", desc: "Parcours le programme officiel par matière. Lance des quiz ou des exercices sur chaque chapitre.", highlight: false },
+                  { icon: "🃏", title: "Fiches de révision", desc: "Le Poulpe crée tes fiches automatiquement. Il te les fait réviser selon la méthode des J (J+1, J+4, J+10, J+21…) pour que ça s'inscrive en mémoire à long terme.", highlight: false },
+                  { icon: "📤", title: "Mes copies", desc: "Télécharge 3 ou 4 copies par mois avec une mauvaise note, dans des matières différentes. Petit à petit et vraiment consolidé, c'est bien plus efficace que beaucoup à la fois.", highlight: false },
+                  { icon: "📊", title: "Ma progression", desc: "Le Poulpe suit les petites lacunes repérées au fil de tes révisions et te les fait retravailler selon la méthode des J pour les ancrer en mémoire à long terme.", highlight: false },
+                ].map(({ icon, title, desc, highlight }) => (
+                  <div key={title} className="flex items-start gap-3 py-2.5 px-3 rounded-xl" style={{ background: highlight ? (isDark ? "rgba(232,146,42,0.08)" : "rgba(232,146,42,0.06)") : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"), border: highlight ? "1px solid rgba(232,146,42,0.2)" : "none" }}>
                     <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
                     <div>
-                      <p className="text-xs font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.9)" : "#0A2030" }}>{title}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.9)" : "#0A2030" }}>{title}</p>
+                        {highlight && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(232,146,42,0.2)", color: "#E8922A" }}>à faire en premier</span>}
+                      </div>
                       <p className="text-xs mt-0.5 leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A" }}>{desc}</p>
                     </div>
                   </div>
