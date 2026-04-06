@@ -422,35 +422,6 @@ export default function AccueilPage() {
             </div>
           )}
 
-          {/* ── Alerte contrôle demain ── */}
-          {tomorrowAlerts.length > 0 && (
-            <div className="rounded-2xl p-4 space-y-2"
-              style={{ background: isDark ? "rgba(139,92,246,0.10)" : "#F5F3FF", border: "1px solid rgba(139,92,246,0.25)" }}>
-              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#8B5CF6" }}>
-                📌 Révision conseillée ce soir
-              </p>
-              {tomorrowAlerts.map(({ matiere, concept }) => (
-                <button
-                  key={matiere}
-                  onClick={() => goTo("/", () => { localStorage.setItem("poulpe_matiere_active", matiere); })}
-                  className="w-full flex items-center justify-between gap-3 py-2 text-left"
-                >
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.9)" : "#1E1A16" }}>
-                      {matiere} demain
-                    </span>
-                    <p className="text-xs mt-0.5 truncate" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "#6B6258" }}>
-                      Point fragile : {concept}
-                    </p>
-                  </div>
-                  <span className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0"
-                    style={{ background: "linear-gradient(135deg, #8B5CF6, #6D28D9)" }}>
-                    Réviser →
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* ── Cours du jour ── */}
           <div>
@@ -527,7 +498,9 @@ export default function AccueilPage() {
                 À réviser
               </p>
               <div className="space-y-2">
-                {revisions.map((rev) => (
+                {revisions.map((rev) => {
+                  const revMatStyle = getMatStyle(rev.matiere);
+                  return (
                   <button
                     key={rev.matiere + rev.concept}
                     onClick={() => goTo("/", () => {
@@ -547,7 +520,7 @@ export default function AccueilPage() {
                     }}
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: textSub }}>
+                      <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: revMatStyle.text }}>
                         {rev.matiere}
                       </p>
                       <p className="font-semibold text-sm leading-snug truncate" style={{ color: textMain }}>
@@ -556,12 +529,13 @@ export default function AccueilPage() {
                     </div>
                     <span
                       className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0"
-                      style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
+                      style={{ background: revMatStyle.gradient }}
                     >
                       Réviser →
                     </span>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

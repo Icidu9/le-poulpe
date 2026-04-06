@@ -12,7 +12,7 @@ const REGIONS = [
     label: "Lobe frontal",
     sublabel: "Logique & calcul",
     color: "#E8922A",
-    subjects: ["mathématiques", "physique", "chimie"],
+    subjects: ["mathématiques", "physique", "chimie", "maths"],
     description: "Zone de la logique, du calcul et de la résolution de problèmes. Chaque exercice de maths renforce tes connexions ici.",
   },
   {
@@ -20,7 +20,7 @@ const REGIONS = [
     label: "Lobe temporal",
     sublabel: "Langage & mémoire",
     color: "#EC4899",
-    subjects: ["français", "anglais", "espagnol", "allemand", "latin"],
+    subjects: ["français", "francais", "anglais", "espagnol", "allemand", "latin"],
     description: "Centre du langage, de la compréhension des textes et de la mémoire auditive. Lire et écrire l'active directement.",
   },
   {
@@ -28,7 +28,7 @@ const REGIONS = [
     label: "Lobe pariétal",
     sublabel: "Analyse & espace",
     color: "#10B981",
-    subjects: ["sciences de la vie", "svt", "histoire", "géographie"],
+    subjects: ["sciences de la vie", "svt", "histoire", "géographie", "hg"],
     description: "Traite l'information spatiale, les schémas et l'analyse scientifique. Les SVT et l'histoire géo la sollicitent.",
   },
   {
