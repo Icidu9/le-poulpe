@@ -123,6 +123,7 @@ export default function AccueilPage() {
   const [tomorrowAlerts, setTomorrowAlerts] = useState<{ matiere: string; concept: string }[]>([]);
   const [showGuide,      setShowGuide]      = useState(false);
   const [showGuideModal, setShowGuideModal] = useState(false);
+  const [showGuideHover, setShowGuideHover] = useState(false);
   const [showBrevetInfo, setShowBrevetInfo] = useState(false);
 
   useEffect(() => {
@@ -388,21 +389,42 @@ export default function AccueilPage() {
             </button>
           </div>
 
-          {/* ── Bouton ℹ permanent ── */}
-          <button
-            onClick={() => setShowGuideModal(true)}
-            className="flex items-center justify-center transition-opacity hover:opacity-80"
-            style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(232,146,42,0.12)", border: "1.5px solid rgba(232,146,42,0.3)", color: "#E8922A", fontSize: 12, fontWeight: 700, flexShrink: 0 }}
-            title="Comment ça marche"
-          >
-            i
-          </button>
+          {/* ── Guide — texte discret avec tooltip au survol ── */}
+          <div className="relative flex justify-end" style={{ marginTop: -14 }}>
+            <button
+              onMouseEnter={() => setShowGuideHover(true)}
+              onMouseLeave={() => setShowGuideHover(false)}
+              onClick={() => setShowGuideModal(true)}
+              className="text-[11px] font-medium transition-opacity hover:opacity-100"
+              style={{ color: isDark ? "rgba(255,255,255,0.25)" : "rgba(10,32,48,0.32)", opacity: 0.7 }}>
+              Comment ça marche ?
+            </button>
+            {showGuideHover && (
+              <div
+                className="absolute right-0 rounded-2xl p-3.5 w-60"
+                style={{ bottom: "calc(100% + 8px)", background: isDark ? "rgba(6,26,38,0.97)" : "rgba(255,255,255,0.97)", border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`, backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", boxShadow: "0 12px 40px rgba(0,0,0,0.35)", zIndex: 40 }}>
+                <p className="text-xs font-semibold mb-2.5" style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#0A2030" }}>Le Poulpe en 4 gestes</p>
+                {[
+                  ["💬", "Révise avec l'IA — pose une question ou envoie une photo"],
+                  ["🗂️", "Parcours les chapitres de tes matières"],
+                  ["📤", "Dépose 3 copies pour qu'il repère tes lacunes"],
+                  ["📅", "Remplis ton planning en premier"],
+                ].map(([icon, label]) => (
+                  <div key={label as string} className="flex items-start gap-2 py-1">
+                    <span className="text-sm flex-shrink-0">{icon}</span>
+                    <p className="text-[11px] leading-snug" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>{label}</p>
+                  </div>
+                ))}
+                <p className="text-[10px] mt-2.5 font-medium" style={{ color: "#E8922A" }}>Cliquer pour le guide complet →</p>
+              </div>
+            )}
+          </div>
 
           {/* ── Modal guide ── */}
           {showGuideModal && (
             <div
-              className="fixed inset-0 z-50 flex items-end"
-              style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+              className="fixed inset-0 flex items-end"
+              style={{ zIndex: 200, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
               onClick={() => setShowGuideModal(false)}
             >
               <div
