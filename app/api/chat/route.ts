@@ -338,14 +338,27 @@ export async function POST(req: Request) {
 
   // Instruction clôture de session
   if (closeSession) {
+    // Compte les messages réels de l'élève (hors message de clôture)
+    const studentMessages = messages.filter((m) => m.role === "user");
+    const studentRepliedSubstantially = studentMessages.some(
+      (m) => m.content && m.content.trim().length > 5
+    );
+
     systemPrompt +=
-      `\n\n---\n\n## INSTRUCTION CLÔTURE DE SESSION\n\n` +
-      `${nom} vient de terminer sa session de travail. Génère un message de fin en 4-5 lignes :\n` +
-      `1. Fais un récapitulatif bref de ce qu'on a travaillé (2-3 points max, bullet points courts)\n` +
-      `2. Encourage ${nom} chaleureusement pour l'effort fourni\n` +
-      `3. Donne-lui un seul conseil ou rappel pour la prochaine fois\n` +
-      `4. Dis au revoir avec ton ton habituel\n` +
-      `Ton positif, concis, motivant. Maximum 6 lignes au total.`;
+      `\n\n---\n\n## INSTRUCTION CLÔTURE DE SESSION — RÈGLE ABSOLUE : HONNÊTETÉ\n\n` +
+      `⚠️ RÈGLE CRITIQUE : Base ton récapitulatif UNIQUEMENT sur ce que ${nom} a RÉELLEMENT fait et écrit dans cette conversation. Ne mentionne JAMAIS une action qu'il n'a pas effectuée. Ne complimente JAMAIS un travail qu'il n'a pas rendu. Si tu inventes ou exagères ce que l'élève a fait, un parent le verra et ça détruira immédiatement la crédibilité de l'app.\n\n` +
+      (studentRepliedSubstantially
+        ? `${nom} a participé à la session. Génère un message de fin honnête :\n` +
+          `1. Récapitulatif de ce QU'ON A VU ensemble (pas de ce que l'élève a "fait" — sauf s'il a réellement répondu)\n` +
+          `2. Si ${nom} a répondu à des exercices : mentionne-le précisément et honnêtement\n` +
+          `3. Un seul conseil concret pour la prochaine fois\n` +
+          `4. Au revoir chaleureux\n`
+        : `${nom} a terminé la session rapidement sans répondre aux exercices. Génère un message court et HONNÊTE :\n` +
+          `1. Mentionne ce qu'on a abordé ensemble (le contenu présenté)\n` +
+          `2. NE DIS PAS qu'il a "travaillé" ou "répondu" ou "fait l'exercice" — ce serait faux\n` +
+          `3. Invite-le à revenir quand il est prêt à pratiquer\n` +
+          `4. Ton : bienveillant, sans reproche, sans fausse flatterie\n`) +
+      `Ton positif, concis, honnête. Maximum 6 lignes au total.`;
 
     // Si c'est une session de révision SM-2 : évaluer silencieusement la maîtrise
     if (reviewContext?.concept) {

@@ -1259,6 +1259,31 @@ export default function Home() {
         <div className="px-6 py-4 border-t flex-shrink-0" style={{ background: isDark ? "rgba(6,26,38,0.75)" : C.parchment, borderColor: isDark ? "rgba(255,255,255,0.08)" : C.parchmentDark }}>
           <div className="max-w-lg mx-auto">
 
+            {/* Fiches toujours visibles dès qu'il y a du contenu */}
+            {messages.length >= 2 && !isSessionClosed && (
+              <div className="flex items-center gap-2 mb-3 pb-3" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : C.parchmentDark}` }}>
+                <span className="text-[10px] font-medium flex-shrink-0" style={{ color: isDark ? "rgba(255,255,255,0.3)" : C.warmGray }}>Fiches :</span>
+                {!flashcardsReady ? (
+                  <button
+                    onClick={generateFlashcards}
+                    disabled={flashcardsLoading}
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+                    style={{ background: C.amberLight, color: C.terracotta, border: `1px solid ${C.amberBorder}` }}
+                  >
+                    {flashcardsLoading ? "Génération..." : "📚 Créer mes fiches de révision"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => router.push("/flashcards")}
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-opacity hover:opacity-90"
+                    style={{ background: "#EBF5EE", color: "#2D7A4F", border: "1px solid #B8DFC5" }}
+                  >
+                    ✓ Fiches créées → Voir
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Carte fin de session */}
             {isSessionClosed && (
               <div className="flex flex-col items-center gap-3 py-3">
