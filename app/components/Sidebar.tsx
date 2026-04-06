@@ -156,20 +156,12 @@ export default function Sidebar() {
           onClick={() => router.push("/examens")}
           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
           style={{
-            background: nbFailles > 0 ? "rgba(232,146,42,0.15)" : "rgba(255,255,255,0.04)",
-            color: nbFailles > 0 ? "#E8922A" : "rgba(255,255,255,0.42)",
+            background: "rgba(255,255,255,0.04)",
+            color: "rgba(255,255,255,0.42)",
           }}
         >
           <IconUpload />
           <span className="font-medium text-xs">Mes copies</span>
-          {nbFailles > 0 && (
-            <span
-              className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-              style={{ background: "#E8922A", color: "white" }}
-            >
-              {nbFailles}
-            </span>
-          )}
         </button>
       </div>
 

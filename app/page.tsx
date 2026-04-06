@@ -1035,15 +1035,9 @@ export default function Home() {
           <button
             onClick={() => router.push("/examens")}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-colors text-left"
-            style={{ background: nbCopies > 0 ? "rgba(232,146,42,0.15)" : "rgba(255,255,255,0.04)", color: nbCopies > 0 ? "#E8922A" : "rgba(255,255,255,0.42)" }}>
+            style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.42)" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             <span className="font-medium text-xs">Mes copies</span>
-            {nbCopies > 0 && (
-              <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                style={{ background: "#E8922A", color: "white" }}>
-                {nbCopies}
-              </span>
-            )}
           </button>
         </div>
 
@@ -1073,8 +1067,8 @@ export default function Home() {
       <div className="flex flex-col flex-1 min-w-0">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0"
-          style={{ background: isDark ? "rgba(6,26,38,0.75)" : C.cream, borderColor: isDark ? "rgba(255,255,255,0.08)" : C.parchmentDark }}>
+        <div className="flex items-center justify-between px-6 border-b flex-shrink-0"
+          style={{ background: isDark ? "rgba(6,26,38,0.75)" : C.cream, borderColor: isDark ? "rgba(255,255,255,0.08)" : C.parchmentDark, paddingTop: 18, paddingBottom: 18 }}>
           <div>
             <h1 className="font-semibold text-base" style={{ color: isDark ? "rgba(255,255,255,0.92)" : C.charcoal }}>Réviser</h1>
             <p className="text-xs" style={{ color: isDark ? "rgba(255,255,255,0.45)" : C.warmGray }}>
@@ -1230,7 +1224,7 @@ export default function Home() {
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-75"
                         style={{ background: C.parchment, border: `1px solid ${C.parchmentDark}`, color: C.warmGray }}
                       >
-                        📷 Envoyer un exercice
+                        📷 Envoie une photo
                       </button>
                     </div>
                   )}

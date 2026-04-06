@@ -216,8 +216,8 @@ function MatiereHub({ mat, hasSession, hasFlashcards, hasFailles, classe, onClos
               {/* Secondary actions */}
               {[
                 hasSession && { id: "nouvelle", icon: "✨", label: "Nouvelle session", sub: "Repartir de zéro" },
-                { id: "examens", icon: "📷", label: "Analyser une copie", sub: hasFailles ? "Voir les lacunes identifiées" : "Envoie une copie notée" },
-                { id: "flashcards", icon: "🗂️", label: "Flashcards", sub: hasFlashcards ? "Révise tes flashcards" : "Crée des flashcards" },
+                { id: "examens", icon: "📷", label: "Analyser une copie", sub: hasFailles ? "Voir les lacunes identifiées" : "Envoie une photo" },
+                { id: "flashcards", icon: "🔖", label: "Fiche de révision", sub: hasFlashcards ? "Révise tes fiches" : "Crée tes fiches" },
                 { id: "progression", icon: "📈", label: "Mes progrès", sub: "Points forts et lacunes" },
               ].filter(Boolean).map((item) => {
                 if (!item) return null;

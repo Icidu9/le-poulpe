@@ -452,53 +452,6 @@ export default function ProgressionPage() {
             </div>
           )}
 
-          {/* ── Vue d'ensemble par matière ─────────────────────────────── */}
-          {hasFailles && (
-            <div className="space-y-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest px-1" style={{ color: txSub }}>
-                Vue d&apos;ensemble
-              </p>
-              {matieresFailles.map(mat => {
-                const concepts = failles[mat]?.failles || [];
-                const total = concepts.length;
-                const longTerm = concepts.filter(f => isInLongTermMemory(mastery[masteryKey(mat, f.concept)]?.level ?? 0)).length;
-                const inProgress = concepts.filter(f => {
-                  const lvl = mastery[masteryKey(mat, f.concept)]?.level ?? 0;
-                  return lvl > 0 && !isInLongTermMemory(lvl);
-                }).length;
-                const toLearn = total - longTerm - inProgress;
-                const pLong = total > 0 ? Math.round((longTerm / total) * 100) : 0;
-                const pProg = total > 0 ? Math.round((inProgress / total) * 100) : 0;
-                const pNew  = total > 0 ? (100 - pLong - pProg) : 100;
-                return (
-                  <div key={mat} className="rounded-2xl px-4 py-3.5" style={{ background: card, border: `1px solid ${brd}` }}>
-                    <div className="flex items-center gap-2 mb-2.5">
-                      <span className="text-sm">{getEmoji(mat)}</span>
-                      <span className="text-xs font-semibold flex-1" style={{ color: tx }}>{mat}</span>
-                      {longTerm > 0 && (
-                        <span className="text-[10px] font-medium" style={{ color: "#10B981" }}>
-                          {longTerm}/{total} mémorisé{longTerm > 1 ? "s" : ""}
-                        </span>
-                      )}
-                    </div>
-                    {/* Barre de progression multi-segment */}
-                    <div className="h-2 rounded-full overflow-hidden flex gap-px" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "#EEF2F5" }}>
-                      {pLong > 0 && <div style={{ width: `${pLong}%`, background: "#10B981", borderRadius: "9999px 0 0 9999px" }} />}
-                      {pProg > 0 && <div style={{ width: `${pProg}%`, background: "#8B5CF6" }} />}
-                      {pNew > 0  && <div style={{ width: `${pNew}%`, background: isDark ? "rgba(255,128,0,0.35)" : "#FDBA74", borderRadius: pLong === 0 && pProg === 0 ? "9999px" : "0 9999px 9999px 0" }} />}
-                    </div>
-                    {(longTerm > 0 || inProgress > 0) && (
-                      <div className="flex gap-3 mt-2">
-                        {longTerm > 0 && <span className="text-[10px]" style={{ color: "#10B981" }}>● {longTerm} mémorisé{longTerm > 1 ? "s" : ""}</span>}
-                        {inProgress > 0 && <span className="text-[10px]" style={{ color: "#8B5CF6" }}>● {inProgress} en cours</span>}
-                        {toLearn > 0  && <span className="text-[10px]" style={{ color: txSub }}>● {toLearn} à apprendre</span>}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
 
           {/* Message bas */}
           {hasFailles && (

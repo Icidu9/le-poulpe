@@ -103,6 +103,7 @@ export default function Examens() {
   const [examens, setExamens]       = useState<Examen[]>([]);
   const [faillesMap, setFaillesMap] = useState<FaillesMap>({});
   const [activeTab, setActiveTab]   = useState<Tab>("upload");
+  const [expandedMat, setExpandedMat] = useState<string | null>(null);
 
   const [previews, setPreviews]     = useState<string[]>([]);
   const [matiere, setMatiere]       = useState("");
@@ -509,62 +510,64 @@ export default function Examens() {
                   </button>
                 </div>
               ) : (
-                <>
-                  <div
-                    className="rounded-2xl p-4 text-sm"
-                    style={{
-                      background: isDark ? "rgba(232,146,42,0.08)" : "#FDF0E0",
-                      border: "1px solid rgba(232,146,42,0.25)",
-                      color: isDark ? "rgba(255,255,255,0.75)" : "#7C4A00",
-                    }}
-                  >
-                    <strong>📈 Tes points de progrès</strong> Ce sont les points que le Poulpe travaille avec toi en priorité. Chaque point travaillé, c'est un pas de plus.
-                  </div>
-                  {Object.entries(faillesMap).map(([mat, data]) => (
-                    <div
-                      key={mat}
-                      className="rounded-2xl p-5 space-y-3"
-                      style={glass}
-                    >
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-sm" style={{ color: textMain }}>{mat}</h3>
-                        <span
-                          className="text-[10px] px-2 py-0.5 rounded-full"
-                          style={{ background: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9", color: textSub }}
+                <div className="space-y-2">
+                  {Object.entries(faillesMap).map(([mat, data]) => {
+                    const isOpen = expandedMat === mat;
+                    return (
+                      <div key={mat} className="rounded-2xl overflow-hidden" style={glass}>
+                        <button
+                          onClick={() => setExpandedMat(isOpen ? null : mat)}
+                          className="w-full flex items-center justify-between px-5 py-4 text-left"
                         >
-                          {data.failles.length} point{data.failles.length > 1 ? "s" : ""} à travailler
-                        </span>
-                      </div>
-                      <div className="space-y-2">
-                        {data.failles.map((f, i) => (
-                          <div
-                            key={i}
-                            className="rounded-xl p-3 space-y-1"
-                            style={{
-                              background: isDark ? "rgba(232,146,42,0.08)" : "#FDF6EE",
-                              border: `1px solid ${isDark ? "rgba(232,146,42,0.2)" : "#EED4AA"}`,
-                            }}
-                          >
-                            <div className="flex items-center gap-2 justify-between">
-                              <span className="text-xs font-semibold" style={{ color: isDark ? "#FBBF24" : "#C05C2A" }}>
-                                📌 {f.concept}
-                              </span>
-                              {(f.count || 1) > 1 && (
-                                <span
-                                  className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-                                  style={{ background: isDark ? "rgba(232,146,42,0.15)" : "#EED4AA", color: isDark ? "#FBBF24" : "#C05C2A" }}
-                                >
-                                  repéré {f.count}×
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.7)" : "#5A7A8A" }}>{f.description}</p>
+                          <span className="font-semibold text-sm" style={{ color: textMain }}>{mat}</span>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="text-[10px] px-2 py-0.5 rounded-full"
+                              style={{ background: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9", color: textSub }}
+                            >
+                              {data.failles.length} point{data.failles.length > 1 ? "s" : ""}
+                            </span>
+                            <svg
+                              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                              style={{ color: textSub, transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                            >
+                              <polyline points="6 9 12 15 18 9"/>
+                            </svg>
                           </div>
-                        ))}
+                        </button>
+                        {isOpen && (
+                          <div className="px-5 pb-4 space-y-2">
+                            {data.failles.map((f, i) => (
+                              <div
+                                key={i}
+                                className="rounded-xl p-3 space-y-1"
+                                style={{
+                                  background: isDark ? "rgba(232,146,42,0.08)" : "#FDF6EE",
+                                  border: `1px solid ${isDark ? "rgba(232,146,42,0.2)" : "#EED4AA"}`,
+                                }}
+                              >
+                                <div className="flex items-center gap-2 justify-between">
+                                  <span className="text-xs font-semibold" style={{ color: isDark ? "#FBBF24" : "#C05C2A" }}>
+                                    📌 {f.concept}
+                                  </span>
+                                  {(f.count || 1) > 1 && (
+                                    <span
+                                      className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                                      style={{ background: isDark ? "rgba(232,146,42,0.15)" : "#EED4AA", color: isDark ? "#FBBF24" : "#C05C2A" }}
+                                    >
+                                      repéré {f.count}×
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.7)" : "#5A7A8A" }}>{f.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
-                </>
+                    );
+                  })}
+                </div>
               )}
             </>
           )}
