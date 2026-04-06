@@ -338,7 +338,7 @@ export default function AccueilPage() {
                   </p>
                   <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>{streakMsg}</p>
                 </div>
-                <Poulpe size={54} />
+                <div style={{ marginTop: 20 }}><Poulpe size={54} /></div>
               </div>
             </div>
             {/* Theme toggle flottant */}
