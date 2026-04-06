@@ -323,7 +323,7 @@ export default function AccueilPage() {
             <div className="rounded-3xl p-6 relative overflow-hidden"
               style={{ background: "linear-gradient(135deg, #E8922A 0%, #C05C2A 50%, #0D1B2A 100%)" }}>
               <div style={{ position: "absolute", top: -30, right: -30, width: 160, height: 160, background: "radial-gradient(circle, rgba(255,200,80,0.22) 0%, transparent 70%)", pointerEvents: "none" }} />
-              <div style={{ position: "absolute", bottom: -40, right: 30, width: 130, height: 130, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", bottom: -65, right: 20, width: 130, height: 130, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)", pointerEvents: "none" }} />
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1 mr-4">
                   <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
