@@ -609,21 +609,6 @@ export default function AccueilPage() {
             );
           })()}
 
-          {/* ── Point fort ── */}
-          {matieresFort && (
-            <div
-              className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
-              style={{
-                background: isDark ? "rgba(16,185,129,0.06)" : "#F0FDF4",
-                border: "1px solid rgba(16,185,129,0.18)",
-              }}
-            >
-              <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#10B981" }} />
-              <p className="text-xs font-medium" style={{ color: isDark ? "rgba(255,255,255,0.75)" : "#065F46" }}>
-                Point fort · <strong>{matieresFort}</strong>
-              </p>
-            </div>
-          )}
 
         </div>
       </div>

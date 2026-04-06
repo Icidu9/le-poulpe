@@ -355,21 +355,6 @@ export default function ProgressionPage() {
             </div>
           </div>
 
-          {/* Point fort */}
-          {matieresFort && (
-            <div className="flex items-center gap-4 px-5 py-4 rounded-2xl"
-              style={{ background: isDark ? "rgba(16,185,129,0.07)" : "#F0FDF4", border: isDark ? "1px solid rgba(16,185,129,0.14)" : "1px solid #BBF7D0" }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                style={{ background: isDark ? "rgba(16,185,129,0.13)" : "#D1FAE5" }}>
-                {getEmoji(matieresFort)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#10B981" }}>Point fort</p>
-                <p className="text-sm font-semibold mt-0.5 truncate" style={{ color: tx }}>{matieresFort}</p>
-              </div>
-              <span className="text-lg">⭐</span>
-            </div>
-          )}
 
           {/* État vide */}
           {!hasFailles && (
