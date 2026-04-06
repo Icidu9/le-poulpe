@@ -12,7 +12,7 @@ const REGIONS = [
     label: "Lobe frontal",
     sublabel: "Logique & calcul",
     color: "#E8922A",
-    subjects: ["mathématiques", "physique", "chimie", "technologie"],
+    subjects: ["mathématiques", "physique", "chimie"],
     description: "Zone de la logique, du calcul et de la résolution de problèmes. Chaque exercice de maths renforce tes connexions ici.",
   },
   {
@@ -20,7 +20,7 @@ const REGIONS = [
     label: "Lobe temporal",
     sublabel: "Langage & mémoire",
     color: "#EC4899",
-    subjects: ["français", "anglais", "espagnol", "allemand", "latin", "musique"],
+    subjects: ["français", "anglais", "espagnol", "allemand", "latin"],
     description: "Centre du langage, de la compréhension des textes et de la mémoire auditive. Lire et écrire l'active directement.",
   },
   {
@@ -36,16 +36,16 @@ const REGIONS = [
     label: "Lobe occipital",
     sublabel: "Vision",
     color: "#8B5CF6",
-    subjects: ["arts plastiques", "arts"],
-    description: "Interprète les images, les couleurs et les représentations visuelles. L'art et la géographie la développent.",
+    subjects: [],
+    description: "Interprète les images, les couleurs et les représentations visuelles.",
   },
   {
     id: "cerebellum",
     label: "Cervelet",
     sublabel: "Coordination",
     color: "#3B82F6",
-    subjects: ["eps", "sport", "éducation physique"],
-    description: "Coordonne les mouvements et la précision. L'EPS l'entraîne comme les autres matières entraînent les lobes.",
+    subjects: [],
+    description: "Coordonne les mouvements et la précision motrice.",
   },
 ];
 

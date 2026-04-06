@@ -22,7 +22,7 @@ const REGION_DEFS: {
     pos: [0, 0.25, 0.88],
     color: 0xE8922A,
     hexColor: "#E8922A",
-    subjects: ["mathématiques", "physique", "chimie", "technologie"],
+    subjects: ["mathématiques", "physique", "chimie"],
   },
   {
     id: "temporal",
@@ -31,7 +31,7 @@ const REGION_DEFS: {
     pos: [-0.88, -0.05, 0.18],
     color: 0xEC4899,
     hexColor: "#EC4899",
-    subjects: ["français", "anglais", "espagnol", "allemand", "latin", "musique"],
+    subjects: ["français", "anglais", "espagnol", "allemand", "latin"],
   },
   {
     id: "parietal",
@@ -49,7 +49,7 @@ const REGION_DEFS: {
     pos: [0, 0.12, -0.92],
     color: 0x8B5CF6,
     hexColor: "#8B5CF6",
-    subjects: ["arts plastiques", "arts"],
+    subjects: [],
   },
   {
     id: "cerebellum",
@@ -58,7 +58,7 @@ const REGION_DEFS: {
     pos: [0, -0.42, -0.72],
     color: 0x3B82F6,
     hexColor: "#3B82F6",
-    subjects: ["eps", "sport", "éducation physique"],
+    subjects: [],
   },
 ];
 

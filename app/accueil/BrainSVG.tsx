@@ -3,11 +3,11 @@
 // ── Holographic brain — gyri-ribbon style, no dots, soft active glow ──────────
 
 const LOBE_SUBJECTS: Record<string, string[]> = {
-  frontal:    ["mathématiques","physique","chimie","technologie"],
+  frontal:    ["mathématiques","physique","chimie"],
   parietal:   ["sciences de la vie","svt","histoire","géographie"],
-  temporal:   ["français","anglais","espagnol","allemand","latin","musique"],
-  occipital:  ["arts plastiques","arts"],
-  cerebellum: ["eps","sport"],
+  temporal:   ["français","anglais","espagnol","allemand","latin"],
+  occipital:  [],
+  cerebellum: [],
 };
 
 function matchLobe(subject: string, subjects: string[]): boolean {

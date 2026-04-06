@@ -3,11 +3,11 @@
 // ── Brain — lateral view with colored active lobe regions ──────────────────────
 
 const LOBE_SUBJECTS: Record<string, string[]> = {
-  frontal:    ["mathématiques", "physique", "chimie", "technologie"],
-  temporal:   ["français", "anglais", "espagnol", "allemand", "latin", "musique"],
+  frontal:    ["mathématiques", "physique", "chimie"],
+  temporal:   ["français", "anglais", "espagnol", "allemand", "latin"],
   parietal:   ["sciences de la vie", "svt", "histoire", "géographie"],
-  occipital:  ["arts plastiques", "arts"],
-  cerebellum: ["eps", "sport"],
+  occipital:  [],
+  cerebellum: [],
 };
 
 const LOBE_COLORS: Record<string, string> = {

@@ -15,16 +15,12 @@ const MAT_COLORS: Record<string, { gradient: string; light: string; text: string
   "Espagnol":             { gradient: "linear-gradient(135deg, #C2410C, #FB923C)", light: "#FFF7ED", text: "#C2410C", border: "#FED7AA" },
   "Allemand":             { gradient: "linear-gradient(135deg, #4338CA, #818CF8)", light: "#EEF2FF", text: "#4338CA", border: "#C7D2FE" },
   "Latin":                { gradient: "linear-gradient(135deg, #A16207, #FACC15)", light: "#FEFCE8", text: "#854D0E", border: "#FEF08A" },
-  "Arts Plastiques":      { gradient: "linear-gradient(135deg, #BE185D, #F472B6)", light: "#FDF2F8", text: "#BE185D", border: "#FBCFE8" },
-  "Musique":              { gradient: "linear-gradient(135deg, #0F766E, #2DD4BF)", light: "#F0FDFA", text: "#0F766E", border: "#99F6E4" },
-  "EPS":                  { gradient: "linear-gradient(135deg, #4D7C0F, #A3E635)", light: "#F7FEE7", text: "#4D7C0F", border: "#D9F99D" },
 };
 
 const MAT_EMOJIS: Record<string, string> = {
   "Français": "📖", "Mathématiques": "📐", "Histoire-Géographie": "🌍",
   "Sciences de la Vie et de la Terre": "🌿", "Physique-Chimie": "⚗️",
   "Anglais": "🇬🇧", "Espagnol": "🇪🇸", "Allemand": "🇩🇪", "Latin": "🏛️",
-  "EPS": "🏃", "Arts Plastiques": "🎨", "Musique": "🎵", "Technologie": "💻",
 };
 
 function getMatStyle(mat: string) {
