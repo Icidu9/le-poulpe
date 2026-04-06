@@ -47,23 +47,33 @@ export default function ChartePage() {
     router.replace("/onboarding");
   }
 
+  const D = {
+    bg: "#030D18",
+    card: "rgba(6,26,38,0.85)",
+    border: "rgba(255,255,255,0.08)",
+    textMain: "rgba(255,255,255,0.92)",
+    textSub: "rgba(255,255,255,0.45)",
+    inputBg: "rgba(255,255,255,0.05)",
+    inputBorder: "rgba(255,255,255,0.12)",
+  };
+
   return (
     <div
       className="min-h-screen py-10 px-6"
-      style={{ background: "#FAF7F2", fontFamily: '"Inter", system-ui, sans-serif' }}
+      style={{ background: D.bg, fontFamily: '"Inter", system-ui, sans-serif' }}
     >
       <div className="w-full max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-4xl mb-3">🐙</div>
-          <h1 className="text-xl font-bold" style={{ color: "#1E1A16" }}>Charte de participation bêta privée</h1>
-          <p className="text-sm mt-1" style={{ color: "#6B6258" }}>À lire et signer avant d'accéder à l'application</p>
+          <h1 className="text-xl font-bold" style={{ color: D.textMain }}>Charte de participation bêta privée</h1>
+          <p className="text-sm mt-1" style={{ color: D.textSub }}>À lire et signer avant d'accéder à l'application</p>
         </div>
 
         {/* Charte */}
         <div
           className="rounded-2xl p-6 mb-6 text-sm space-y-5"
-          style={{ background: "#F2ECE3", border: "1px solid #EAE0D3", color: "#1E1A16", lineHeight: "1.7" }}
+          style={{ background: D.card, border: `1px solid ${D.border}`, color: D.textMain, lineHeight: "1.7", backdropFilter: "blur(12px)" }}
         >
           <div>
             <p className="font-semibold mb-1">Article 1 — Objet et cadre</p>
@@ -135,7 +145,7 @@ export default function ChartePage() {
             </p>
           </div>
 
-          <p className="text-xs pt-2" style={{ color: "#9B9188" }}>
+          <p className="text-xs pt-2" style={{ color: D.textSub }}>
             Droit applicable : Droit français. Juridiction compétente : Tribunal judiciaire compétent. {CHARTE_VERSION}
           </p>
         </div>
@@ -144,10 +154,10 @@ export default function ChartePage() {
         <form onSubmit={handleAccept}>
           <div
             className="rounded-2xl p-6 space-y-4"
-            style={{ background: "#F2ECE3", border: "1px solid #EAE0D3" }}
+            style={{ background: D.card, border: `1px solid ${D.border}`, backdropFilter: "blur(12px)" }}
           >
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: "#1E1A16" }}>
+              <label className="block text-sm font-medium mb-1.5" style={{ color: D.textMain }}>
                 Nom et prénom du parent / tuteur légal
               </label>
               <input
@@ -158,9 +168,9 @@ export default function ChartePage() {
                 required
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                 style={{
-                  background: "white",
-                  border: "1.5px solid #EAE0D3",
-                  color: "#1E1A16",
+                  background: D.inputBg,
+                  border: `1.5px solid ${D.inputBorder}`,
+                  color: D.textMain,
                 }}
               />
             </div>
@@ -173,7 +183,7 @@ export default function ChartePage() {
                 className="mt-0.5 w-4 h-4 flex-shrink-0"
                 style={{ accentColor: "#E8922A" }}
               />
-              <span className="text-sm" style={{ color: "#1E1A16" }}>
+              <span className="text-sm" style={{ color: D.textSub }}>
                 J'ai lu et j'accepte la Charte de participation bêta privée. Je confirme être le parent ou tuteur légal
                 du mineur participant et agir en cette qualité.
               </span>
@@ -183,14 +193,14 @@ export default function ChartePage() {
               type="submit"
               disabled={!accepted || !parentName.trim() || loading}
               className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ background: "#E8922A" }}
+              style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)", boxShadow: "0 0 20px rgba(232,146,42,0.3)" }}
             >
               {loading ? "Enregistrement..." : "Signer et accéder à l'application →"}
             </button>
           </div>
         </form>
 
-        <p className="text-center text-xs mt-5" style={{ color: "#9B9188" }}>
+        <p className="text-center text-xs mt-5" style={{ color: D.textSub }}>
           Des questions ? Contacte-nous avant de signer.
         </p>
       </div>

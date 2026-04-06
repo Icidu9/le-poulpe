@@ -13,12 +13,13 @@ function setEmailCookie(email: string) {
 const C = {
   amber:      "#E8922A",
   terracotta: "#C05C2A",
-  cream:      "#FAF7F2",
-  parchment:  "#F2ECE3",
-  parchDark:  "#EAE0D3",
-  charcoal:   "#1E1A16",
-  warmGray:   "#6B6258",
-  amberLight: "#FDF0E0",
+  bg:         "#030D18",
+  cream:      "rgba(255,255,255,0.05)",
+  parchment:  "rgba(6,26,38,0.85)",
+  parchDark:  "rgba(255,255,255,0.10)",
+  charcoal:   "rgba(255,255,255,0.92)",
+  warmGray:   "rgba(255,255,255,0.45)",
+  amberLight: "rgba(232,146,42,0.12)",
   sage:       "#5A8A6A",
 };
 
@@ -55,7 +56,7 @@ function Btn({ label, onClick, disabled = false }: { label: string; onClick: () 
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl p-5 space-y-5" style={{ background: C.parchment, border: `1px solid ${C.parchDark}` }}>
+    <div className="rounded-2xl p-5 space-y-5" style={{ background: C.parchment, border: `1px solid ${C.parchDark}`, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
       {children}
     </div>
   );
@@ -516,7 +517,7 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12"
-      style={{ background: C.cream, fontFamily: '"Inter", system-ui, sans-serif' }}>
+      style={{ background: C.bg, fontFamily: '"Inter", system-ui, sans-serif' }}>
       <div className="max-w-lg w-full space-y-5">
 
         {/* ── WELCOME ─────────────────────────────────────────────────────── */}

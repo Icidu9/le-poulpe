@@ -121,6 +121,7 @@ export default function AccueilPage() {
   const [navigating,   setNavigating]   = useState(false);
   const [workedSubjects, setWorkedSubjects] = useState<string[]>([]);
   const [tomorrowAlerts, setTomorrowAlerts] = useState<{ matiere: string; concept: string }[]>([]);
+  const [showGuide,      setShowGuide]      = useState(false);
 
   useEffect(() => {
     const done = localStorage.getItem("poulpe_onboarding_done");
@@ -137,6 +138,10 @@ export default function AccueilPage() {
 
     const savedTheme = localStorage.getItem("poulpe_theme") as "dark" | "light" | null;
     if (savedTheme) setTheme(savedTheme);
+
+    // Affiche le guide uniquement à la première visite
+    const guideDismissed = localStorage.getItem("poulpe_guide_dismissed");
+    if (!guideDismissed) setShowGuide(true);
 
     const p = localStorage.getItem("poulpe_prenom") || "";
     if (p) setPrenom(p);
@@ -380,6 +385,42 @@ export default function AccueilPage() {
               {isDark ? "🌙" : "☀️"}
             </button>
           </div>
+
+          {/* ── Mode d'emploi — première visite uniquement ── */}
+          {showGuide && (
+            <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(232,146,42,0.3)", background: isDark ? "rgba(6,26,38,0.85)" : "rgba(255,255,255,0.85)" }}>
+              <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>
+                  🐙 Comment ça marche
+                </p>
+                <button
+                  onClick={() => { setShowGuide(false); localStorage.setItem("poulpe_guide_dismissed", "1"); }}
+                  className="text-xs px-2 py-1 rounded-lg"
+                  style={{ color: isDark ? "rgba(255,255,255,0.35)" : "#5A7A8A", background: "transparent" }}
+                >
+                  ✕ Fermer
+                </button>
+              </div>
+              <div className="px-4 pb-4 space-y-2.5">
+                {[
+                  { icon: "💬", title: "Réviser", desc: "Pose une question, envoie une photo de ton cours ou d'un exercice. Le Poulpe t'explique et te guide, étape par étape." },
+                  { icon: "📤", title: "Mes copies", desc: "Télécharge une copie notée par ton prof. Le Poulpe analyse tes erreurs et crée un plan de révision personnalisé." },
+                  { icon: "🗂️", title: "Mes matières", desc: "Parcours le programme officiel par matière. Lance des quiz ou des exercices sur chaque chapitre." },
+                  { icon: "🃏", title: "Fiches de révision", desc: "Le Poulpe crée automatiquement des flashcards après chaque session. Révise-les avec la méthode Ebbinghaus (espacement optimal)." },
+                  { icon: "📅", title: "Mon planning", desc: "Ajoute ton emploi du temps. Le Poulpe sait quels cours tu as aujourd'hui et adapte ses suggestions." },
+                  { icon: "📊", title: "Ma progression", desc: "Suis tes points forts, tes failles, ton streak quotidien et tes révisions à faire." },
+                ].map(({ icon, title, desc }) => (
+                  <div key={title} className="flex items-start gap-3 py-2.5 px-3 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)" }}>
+                    <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
+                    <div>
+                      <p className="text-xs font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.9)" : "#0A2030" }}>{title}</p>
+                      <p className="text-xs mt-0.5 leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A" }}>{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* ── Alerte contrôle demain ── */}
           {tomorrowAlerts.length > 0 && (
