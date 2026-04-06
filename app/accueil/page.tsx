@@ -9,8 +9,11 @@ const MAT_COLORS: Record<string, { gradient: string; light: string; text: string
   "Français":             { gradient: "linear-gradient(135deg, #9D174D, #F472B6)", light: "#FDF2F8", text: "#9D174D", border: "#FBCFE8" },
   "Mathématiques":        { gradient: "linear-gradient(135deg, #3730A3, #818CF8)", light: "#EEF2FF", text: "#3730A3", border: "#C7D2FE" },
   "Histoire-Géographie":  { gradient: "linear-gradient(135deg, #92400E, #F59E0B)", light: "#FFFBEB", text: "#92400E", border: "#FDE68A" },
+  "Histoire":             { gradient: "linear-gradient(135deg, #92400E, #F59E0B)", light: "#FFFBEB", text: "#92400E", border: "#FDE68A" },
   "Sciences de la Vie et de la Terre": { gradient: "linear-gradient(135deg, #064E3B, #10B981)", light: "#ECFDF5", text: "#065F46", border: "#A7F3D0" },
+  "SVT":                  { gradient: "linear-gradient(135deg, #064E3B, #10B981)", light: "#ECFDF5", text: "#065F46", border: "#A7F3D0" },
   "Physique-Chimie":      { gradient: "linear-gradient(135deg, #4C1D95, #C084FC)", light: "#F5F3FF", text: "#4C1D95", border: "#DDD6FE" },
+  "Physique":             { gradient: "linear-gradient(135deg, #4C1D95, #C084FC)", light: "#F5F3FF", text: "#4C1D95", border: "#DDD6FE" },
   "Anglais":              { gradient: "linear-gradient(135deg, #0C4A6E, #7DD3FC)", light: "#F0F9FF", text: "#0C4A6E", border: "#BAE6FD" },
   "Espagnol":             { gradient: "linear-gradient(135deg, #991B1B, #F97316)", light: "#FFF7ED", text: "#991B1B", border: "#FED7AA" },
   "Allemand":             { gradient: "linear-gradient(135deg, #1E3A5F, #93C5FD)", light: "#EFF6FF", text: "#1E3A5F", border: "#BFDBFE" },
@@ -18,9 +21,11 @@ const MAT_COLORS: Record<string, { gradient: string; light: string; text: string
 };
 
 const MAT_EMOJIS: Record<string, string> = {
-  "Français": "✍️", "Mathématiques": "📐", "Histoire-Géographie": "🗺️",
-  "Sciences de la Vie et de la Terre": "🔬", "Physique-Chimie": "🧪",
-  "Anglais": "💬", "Espagnol": "🌞", "Allemand": "🏰", "Latin": "📜",
+  "Français": "✍️", "Mathématiques": "📐",
+  "Histoire-Géographie": "🗺️", "Histoire": "🗺️",
+  "Sciences de la Vie et de la Terre": "🔬", "SVT": "🔬", "Sciences": "🔬",
+  "Physique-Chimie": "🧪", "Physique": "🧪",
+  "Anglais": "💂", "Espagnol": "🌞", "Allemand": "🥨", "Latin": "📜",
 };
 
 function getMatStyle(mat: string) {

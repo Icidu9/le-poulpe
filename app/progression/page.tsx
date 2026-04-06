@@ -18,7 +18,7 @@ type FaillesData = { failles: Faille[] };
 const MAT_EMOJI: Record<string, string> = {
   "Français": "✍️", "Mathématiques": "📐", "Histoire": "🗺️",
   "Sciences de la Vie": "🔬", "SVT": "🔬", "Physique": "🧪", "Chimie": "🧪",
-  "Anglais": "💬", "Espagnol": "🌞", "Allemand": "🏰", "Latin": "📜",
+  "Anglais": "💂", "Espagnol": "🌞", "Allemand": "🥨", "Latin": "📜",
   "Philosophie": "🪬", "SES": "📈", "NSI": "⌨️",
 };
 const MAT_COLOR: Record<string, string> = {
