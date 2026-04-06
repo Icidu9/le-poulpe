@@ -497,7 +497,7 @@ export default function FlashcardsPage() {
                   </div>
                   <p className="text-xs font-bold" style={{ color: "#E8922A" }}>Comment le Poulpe t'aide à mémoriser</p>
                 </div>
-                <span className="text-xs font-bold transition-transform" style={{ color: "#E8922A", transform: showMemoInfo ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" }}>▾</span>
+                <span className="text-lg font-bold transition-transform flex-shrink-0" style={{ color: "#E8922A", transform: showMemoInfo ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block", lineHeight: 1 }}>⌄</span>
               </div>
               {showMemoInfo && (
                 <div className="px-4 pb-4 space-y-3" onClick={e => e.stopPropagation()}>

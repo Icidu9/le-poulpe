@@ -161,17 +161,27 @@ export default function Sidebar() {
 
       {/* Mes copies — mis en avant */}
       <div className="px-3 pb-2">
-        <button
-          onClick={() => router.push("/examens")}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            color: "rgba(255,255,255,0.42)",
-          }}
-        >
-          <IconUpload />
-          <span className="font-medium text-xs">Mes copies</span>
-        </button>
+        {(() => {
+          const isActive = pathname === "/examens";
+          return (
+            <button
+              onClick={() => router.push("/examens")}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
+              style={
+                isActive
+                  ? { background: "rgba(232,146,42,0.18)", color: "#E8922A", fontWeight: 600, boxShadow: "0 0 16px rgba(232,146,42,0.12)" }
+                  : { background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.42)" }
+              }
+            >
+              <IconUpload />
+              <span className="font-medium text-xs">Mes copies</span>
+              {isActive && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ background: "#E8922A", boxShadow: "0 0 6px rgba(232,146,42,0.6)" }} />
+              )}
+            </button>
+          );
+        })()}
       </div>
 
       {/* Profil + lien espace parent discret */}
