@@ -211,7 +211,7 @@ export default function PlanningPage() {
               ))}
             </div>
             <p className="text-[11px]" style={{ color: textSub }}>
-              EDT de la semaine {semaine} · actif maintenant
+              Emploi du temps de la semaine {semaine} · actif maintenant
             </p>
           </div>
 
@@ -277,9 +277,6 @@ export default function PlanningPage() {
                     </span>
                   )}
                 </h2>
-                <p className="text-[11px] mt-0.5" style={{ color: textSub }}>
-                  {jourActif} · Le Poulpe adapte la session selon ton EDT
-                </p>
               </div>
               <button
                 onClick={() => setShowPicker(!showPicker)}
@@ -440,7 +437,7 @@ export default function PlanningPage() {
                                 className="text-[10px] font-medium px-1.5 py-0.5 rounded-md"
                                 style={{ background: primaryLight, color: primaryDark }}
                               >
-                                ✏️ {r}
+                                {r}
                               </span>
                             ))}
                           </div>
@@ -476,7 +473,7 @@ export default function PlanningPage() {
               <path d="M34 30 Q37 36 35 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
             </svg>
             <p className="text-xs leading-relaxed" style={{ color: textSub }}>
-              Quand tu ouvres une session, Le Poulpe sait quels cours tu as eu aujourd'hui. Il peut anticiper ce que tu dois réviser, t'aider sur un devoir de la journée, ou adapter le niveau.
+              Saisis tes cours du jour — Le Poulpe s'adapte à la session selon ton emploi du temps.
             </p>
           </div>
 
