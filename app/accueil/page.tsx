@@ -406,9 +406,9 @@ export default function AccueilPage() {
                   { icon: "💬", title: "Réviser", desc: "Pose une question, envoie une photo de ton cours ou d'un exercice. Le Poulpe t'explique et te guide, étape par étape." },
                   { icon: "📤", title: "Mes copies", desc: "Télécharge une copie notée par ton prof. Le Poulpe analyse tes erreurs et crée un plan de révision personnalisé." },
                   { icon: "🗂️", title: "Mes matières", desc: "Parcours le programme officiel par matière. Lance des quiz ou des exercices sur chaque chapitre." },
-                  { icon: "🃏", title: "Fiches de révision", desc: "Le Poulpe crée automatiquement des flashcards après chaque session. Révise-les avec la méthode Ebbinghaus (espacement optimal)." },
-                  { icon: "📅", title: "Mon planning", desc: "Ajoute ton emploi du temps. Le Poulpe sait quels cours tu as aujourd'hui et adapte ses suggestions." },
-                  { icon: "📊", title: "Ma progression", desc: "Suis tes points forts, tes failles, ton streak quotidien et tes révisions à faire." },
+                  { icon: "🃏", title: "Fiches de révision", desc: "Le Poulpe crée tes fiches automatiquement. Il te les fait réviser selon la méthode des J (J+1, J+4, J+10, J+21…) pour que ça s'inscrive en mémoire à long terme — pas juste avant l'interro." },
+                  { icon: "📅", title: "Mon planning", desc: "Entre ton emploi du temps (semaines A et B séparées). Le Poulpe sait exactement quelles matières tu as chaque jour et adapte ses suggestions. Sans ça, il travaille à l'aveugle." },
+                  { icon: "📊", title: "Ma progression", desc: "Entre tes copies avec de mauvaises notes — idéalement 4 par mois dans des matières différentes. Le Poulpe analyse tes vraies lacunes et crée un plan de révision personnalisé." },
                 ].map(({ icon, title, desc }) => (
                   <div key={title} className="flex items-start gap-3 py-2.5 px-3 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)" }}>
                     <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>

@@ -57,6 +57,9 @@ export default function PlanningPage() {
   const [emploiDuTemps, setEmploiDuTemps] = useState<Record<string, string[]>>(EMPTY_EDT);
   const [showPicker,    setShowPicker]    = useState(false);
   const [autreInput,    setAutreInput]    = useState("");
+  const [semaine,       setSemaine]       = useState<"A" | "B">("A");
+  const [edtA,          setEdtA]          = useState<Record<string, string[]>>(EMPTY_EDT);
+  const [edtB,          setEdtB]          = useState<Record<string, string[]>>(EMPTY_EDT);
 
   const todayIdx = new Date().getDay();
   const todayNom = { 0: "Dimanche", 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi" }[todayIdx] || "";
@@ -87,20 +90,29 @@ export default function PlanningPage() {
       } catch {}
     }
 
-    const edtRaw = localStorage.getItem("poulpe_emploi_du_temps");
-    if (edtRaw) {
-      try {
-        const edt = JSON.parse(edtRaw);
-        setEmploiDuTemps({ ...EMPTY_EDT, ...edt });
-      } catch {}
-    }
+    const savedSemaine = (localStorage.getItem("poulpe_semaine_active") as "A" | "B") || "A";
+    setSemaine(savedSemaine);
+
+    const loadedA: Record<string, string[]> = { ...EMPTY_EDT };
+    const loadedB: Record<string, string[]> = { ...EMPTY_EDT };
+    try { Object.assign(loadedA, JSON.parse(localStorage.getItem("poulpe_edt_A") || "{}")); } catch {}
+    try { Object.assign(loadedB, JSON.parse(localStorage.getItem("poulpe_edt_B") || "{}")); } catch {}
+    setEdtA(loadedA);
+    setEdtB(loadedB);
+    const active = savedSemaine === "A" ? loadedA : loadedB;
+    setEmploiDuTemps(active);
+    localStorage.setItem("poulpe_emploi_du_temps", JSON.stringify(active));
 
     if (todayNom) setJourActif(todayNom);
   }, [router, todayNom]);
 
   function saveEdt(newEdt: Record<string, string[]>) {
     setEmploiDuTemps(newEdt);
+    // Sauvegarde dans la semaine active A ou B
+    const key = semaine === "A" ? "poulpe_edt_A" : "poulpe_edt_B";
+    localStorage.setItem(key, JSON.stringify(newEdt));
     localStorage.setItem("poulpe_emploi_du_temps", JSON.stringify(newEdt));
+    if (semaine === "A") setEdtA(newEdt); else setEdtB(newEdt);
     const email = localStorage.getItem("poulpe_parent_email") || localStorage.getItem("poulpe_beta_email") || "";
     if (email) {
       fetch("/api/profile", {
@@ -109,6 +121,14 @@ export default function PlanningPage() {
         body: JSON.stringify({ email, emploiDuTemps: newEdt }),
       }).catch(() => {});
     }
+  }
+
+  function switchSemaine(s: "A" | "B") {
+    setSemaine(s);
+    localStorage.setItem("poulpe_semaine_active", s);
+    const target = s === "A" ? edtA : edtB;
+    setEmploiDuTemps(target);
+    localStorage.setItem("poulpe_emploi_du_temps", JSON.stringify(target));
   }
 
   function addCours(cours: string) {
@@ -167,6 +187,31 @@ export default function PlanningPage() {
             </h1>
             <p className="text-sm mt-1" style={{ color: textSub }}>
               Saisis tes cours du jour, Le Poulpe s'en souviendra pendant la session.
+            </p>
+          </div>
+
+          {/* Toggle semaine A / B */}
+          <div className="flex items-center gap-3">
+            <p className="text-xs font-semibold uppercase tracking-widest flex-shrink-0" style={{ color: textSub }}>
+              Semaine
+            </p>
+            <div className="flex gap-1 p-0.5 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "#E8F0F4" }}>
+              {(["A", "B"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => switchSemaine(s)}
+                  className="px-4 py-1.5 rounded-xl text-xs font-bold transition-all"
+                  style={semaine === s
+                    ? { background: "linear-gradient(135deg, #E8922A, #C05C2A)", color: "white", boxShadow: "0 0 12px rgba(232,146,42,0.4)" }
+                    : { color: textSub, background: "transparent" }
+                  }
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px]" style={{ color: textSub }}>
+              EDT de la semaine {semaine} · actif maintenant
             </p>
           </div>
 
