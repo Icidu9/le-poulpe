@@ -123,7 +123,6 @@ export default function AccueilPage() {
   const [tomorrowAlerts, setTomorrowAlerts] = useState<{ matiere: string; concept: string }[]>([]);
   const [showGuide,      setShowGuide]      = useState(false);
   const [showGuideModal, setShowGuideModal] = useState(false);
-  const [showGuideHover, setShowGuideHover] = useState(false);
   const [showBrevetInfo, setShowBrevetInfo] = useState(false);
 
   useEffect(() => {
@@ -389,89 +388,108 @@ export default function AccueilPage() {
             </button>
           </div>
 
-          {/* ── Guide — texte discret avec tooltip au survol ── */}
-          <div className="relative flex justify-end" style={{ marginTop: -14 }}>
+          {/* ── Guide — hover ouvre le guide complet ── */}
+          <div className="flex justify-end" style={{ marginTop: -14 }}>
             <button
-              onMouseEnter={() => setShowGuideHover(true)}
-              onMouseLeave={() => setShowGuideHover(false)}
+              onMouseEnter={() => setShowGuideModal(true)}
               onClick={() => setShowGuideModal(true)}
               className="text-[11px] font-medium transition-opacity hover:opacity-100"
               style={{ color: isDark ? "rgba(255,255,255,0.25)" : "rgba(10,32,48,0.32)", opacity: 0.7 }}>
               Comment ça marche ?
             </button>
-            {showGuideHover && (
-              <div
-                className="absolute right-0 rounded-2xl overflow-hidden"
-                style={{ bottom: "calc(100% + 10px)", width: 300, background: isDark ? "rgba(4,16,28,0.98)" : "rgba(255,255,255,0.98)", border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.09)"}`, backdropFilter: "blur(32px)", WebkitBackdropFilter: "blur(32px)", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", zIndex: 40 }}>
-                {/* Header */}
-                <div className="px-3 pt-3 pb-2" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}` }}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>Comment ça marche</p>
-                </div>
-                {/* Items */}
-                {[
-                  { step: "1", title: "Remplis ton planning", desc: "Semaines A et B — Le Poulpe organise tes révisions en conséquence." },
-                  { step: "2", title: "Révise avec le Poulpe", desc: "Question, photo d'exercice ou de cours. Il te guide sans donner la réponse." },
-                  { step: "3", title: "Dépose 3 à 4 copies", desc: "Le Poulpe analyse tes erreurs et cible exactement quoi travailler." },
-                  { step: "4", title: "Explore tes matières", desc: "Programme chapitre par chapitre, exercices et quiz ciblés." },
-                  { step: "5", title: "Fiches créées automatiquement", desc: "Mémorisées et révisées selon la méthode des J." },
-                ].map(({ step, title, desc }) => (
-                  <div key={step} className="flex gap-2.5 px-3 py-2" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}` }}>
-                    <div className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold mt-0.5" style={{ background: "rgba(232,146,42,0.15)", color: "#E8922A" }}>{step}</div>
-                    <div>
-                      <p className="text-[11px] font-semibold leading-tight" style={{ color: isDark ? "rgba(255,255,255,0.88)" : "#0A2030" }}>{title}</p>
-                      <p className="text-[10px] mt-0.5 leading-snug" style={{ color: isDark ? "rgba(255,255,255,0.42)" : "#5A7A8A" }}>{desc}</p>
-                    </div>
-                  </div>
-                ))}
-                <div className="px-3 py-2">
-                  <p className="text-[10px] font-medium" style={{ color: "#E8922A" }}>Cliquer pour le guide complet →</p>
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* ── Modal guide ── */}
+          {/* ── Guide complet — plein écran ── */}
           {showGuideModal && (
             <div
-              className="fixed inset-0 flex items-end"
-              style={{ zIndex: 200, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
-              onClick={() => setShowGuideModal(false)}
+              className="fixed inset-0 overflow-y-auto"
+              style={{ zIndex: 200, background: isDark ? "rgba(3,13,24,0.97)" : "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)" }}
             >
-              <div
-                className="w-full rounded-t-3xl overflow-y-auto"
-                style={{ background: isDark ? "#061A26" : "#fff", maxHeight: "82vh", paddingBottom: "env(safe-area-inset-bottom)" }}
-                onClick={e => e.stopPropagation()}
-              >
-                <div className="flex items-center justify-between px-5 pt-5 pb-3">
-                  <div className="flex items-center gap-2">
-                    <div style={{ width: 22, height: 22, borderRadius: 7, background: "linear-gradient(135deg, #E8922A, #C05C2A)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Poulpe size={15} />
-                    </div>
-                    <p className="text-sm font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#0A2030" }}>Comment ça marche</p>
+              <div className="max-w-md mx-auto px-5 pt-12 pb-16">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "#E8922A" }}>Guide</p>
+                    <h2 className="text-2xl font-bold" style={{ color: isDark ? "rgba(255,255,255,0.92)" : "#0A2030" }}>Comment ça marche ?</h2>
                   </div>
-                  <button onClick={() => setShowGuideModal(false)} className="text-xs px-2 py-1 rounded-lg" style={{ color: isDark ? "rgba(255,255,255,0.35)" : "#5A7A8A" }}>✕</button>
+                  <button
+                    onClick={() => setShowGuideModal(false)}
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium transition-opacity hover:opacity-60"
+                    style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}
+                  >✕</button>
                 </div>
-                <div className="px-4 pb-6 space-y-2">
+
+                {/* Steps */}
+                <div className="space-y-4">
                   {[
-                    { icon: "📅", title: "Mon planning", desc: "C'est la première chose à remplir. Entre ton emploi du temps semaines A et B. Sans ça, Le Poulpe ne sait pas ce que tu as comme cours chaque jour.", highlight: true },
-                    { icon: "💬", title: "Réviser", desc: "Pose une question, envoie une photo de ton cours ou d'un exercice. Le Poulpe ne te donne pas la réponse, il te guide pour que tu comprennes vraiment. Au fil des conversations, il se souvient de comment tu aimes être expliqué.", highlight: false },
-                    { icon: "🗂️", title: "Mes matières", desc: "Parcours le programme officiel par matière. Lance des quiz ou des exercices sur chaque chapitre.", highlight: false },
-                    { icon: "🔖", title: "Fiches de révision", desc: "Le Poulpe crée tes fiches automatiquement. Il te les fait réviser selon la méthode des J (J+1, J+4, J+10, J+21…) pour que ça s'inscrive en mémoire à long terme.", highlight: false },
-                    { icon: "📤", title: "Mes copies", desc: "Dépose 3 à 4 contrôles que tu n'as pas très bien réussis, dans des matières différentes. Le Poulpe analyse tes erreurs et sait exactement sur quoi travailler pour progresser plus vite.", highlight: false },
-                    { icon: "📊", title: "Ma progression", desc: "Le Poulpe suit les petites lacunes repérées au fil de tes révisions et te les fait retravailler selon la méthode des J pour les ancrer en mémoire à long terme.", highlight: false },
-                  ].map(({ icon, title, desc, highlight }) => (
-                    <div key={title} className="flex items-start gap-3 py-2.5 px-3 rounded-xl" style={{ background: highlight ? (isDark ? "rgba(232,146,42,0.08)" : "rgba(232,146,42,0.06)") : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"), border: highlight ? "1px solid rgba(232,146,42,0.2)" : "none" }}>
-                      <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.9)" : "#0A2030" }}>{title}</p>
-                          {highlight && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(232,146,42,0.2)", color: "#E8922A" }}>en premier</span>}
+                    {
+                      num: "01", icon: "📅", title: "Remplis ton emploi du temps",
+                      desc: "C'est la première chose à faire. Entre tes cours semaine A et semaine B. Le Poulpe sait alors exactement ce que tu as chaque jour et organise tes révisions en conséquence.",
+                      highlight: true,
+                      tag: "À faire en premier"
+                    },
+                    {
+                      num: "02", icon: "💬", title: "Révise avec le Poulpe",
+                      desc: "Pose une question, envoie une photo de ton cours ou d'un exercice. Le Poulpe ne te donne jamais la réponse directement — il te guide pas à pas pour que tu comprennes vraiment. Il s'adapte à ta façon d'apprendre.",
+                      highlight: false, tag: null
+                    },
+                    {
+                      num: "03", icon: "📤", title: "Dépose tes copies",
+                      desc: "Dépose 3 à 4 contrôles que tu n'as pas très bien réussis, dans des matières différentes. Le Poulpe analyse tes erreurs et sait exactement sur quoi travailler pour que tu progresses plus vite.",
+                      highlight: false, tag: null
+                    },
+                    {
+                      num: "04", icon: "🗂️", title: "Explore tes matières",
+                      desc: "Parcours le programme officiel chapitre par chapitre. Tu peux lancer des exercices ciblés ou des quiz sur n'importe quelle notion, dans toutes tes matières.",
+                      highlight: false, tag: null
+                    },
+                    {
+                      num: "05", icon: "🔖", title: "Tes fiches se créent seules",
+                      desc: "À chaque session, le Poulpe mémorise ce que tu as travaillé et crée des fiches de révision automatiquement. Il te les fait réviser selon la méthode des J (J+1, J+4, J+10, J+21…) pour ancrer les notions en mémoire à long terme.",
+                      highlight: false, tag: null
+                    },
+                    {
+                      num: "06", icon: "📊", title: "Suis ta progression",
+                      desc: "Le Poulpe repère tes lacunes au fil des sessions et te les fait retravailler au bon moment. Tu vois clairement ce que tu maîtrises et ce qu'il reste à consolider.",
+                      highlight: false, tag: null
+                    },
+                  ].map(({ num, icon, title, desc, highlight, tag }) => (
+                    <div
+                      key={num}
+                      className="rounded-2xl p-5"
+                      style={{
+                        background: highlight
+                          ? (isDark ? "rgba(232,146,42,0.10)" : "rgba(232,146,42,0.07)")
+                          : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
+                        border: highlight
+                          ? "1px solid rgba(232,146,42,0.25)"
+                          : `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}`,
+                      }}
+                    >
+                      <div className="flex items-start gap-4">
+                        <span className="text-2xl flex-shrink-0 mt-0.5">{icon}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-[10px] font-bold" style={{ color: "#E8922A" }}>{num}</span>
+                            <p className="text-sm font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.92)" : "#0A2030" }}>{title}</p>
+                            {tag && (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(232,146,42,0.2)", color: "#E8922A" }}>{tag}</span>
+                            )}
+                          </div>
+                          <p className="text-sm leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.48)" : "#5A7A8A" }}>{desc}</p>
                         </div>
-                        <p className="text-xs mt-0.5 leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A" }}>{desc}</p>
                       </div>
                     </div>
                   ))}
                 </div>
+
+                <button
+                  onClick={() => setShowGuideModal(false)}
+                  className="mt-8 w-full py-4 rounded-2xl text-sm font-semibold text-white"
+                  style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}
+                >
+                  C'est compris, on y va !
+                </button>
               </div>
             </div>
           )}
