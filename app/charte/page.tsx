@@ -127,7 +127,21 @@ export default function ChartePage() {
           </div>
 
           <div>
-            <p className="font-semibold mb-1">Article 5 — Représentation du mineur</p>
+            <p className="font-semibold mb-1">Article 5 — Durée et conditions de la période bêta</p>
+            <p>
+              L'accès à la présente version bêta est accordé à titre gratuit pour une durée de <strong>trente (30) jours</strong> à
+              compter de la première connexion du Participant. À l'issue de cette période, l'accès à l'Application sera
+              suspendu automatiquement. Aucune reconduction tacite n'est prévue.
+            </p>
+            <p className="mt-2">
+              Le Participant sera informé par email <strong>cinq (5) jours avant l'expiration</strong> de son accès, accompagné
+              d'une invitation à partager son retour d'expérience. La Société se réserve le droit de proposer une offre
+              payante à l'issue de la bêta.
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold mb-1">Article 6 — Représentation du mineur</p>
             <p>
               Le parent ou tuteur légal soussigné reconnaît disposer de l'autorité parentale au sens des
               articles <strong>372 et 382 du Code civil</strong> et signe la présente Charte en son nom propre
@@ -137,7 +151,7 @@ export default function ChartePage() {
           </div>
 
           <div>
-            <p className="font-semibold mb-1">Article 6 — Valeur juridique du consentement électronique</p>
+            <p className="font-semibold mb-1">Article 7 — Valeur juridique du consentement électronique</p>
             <p>
               La validation de la présente Charte par case à cocher assortie de la saisie du nom constitue une signature
               électronique au sens des articles <strong>1366 et 1367 du Code civil</strong> et du règlement européen
