@@ -430,12 +430,12 @@ export default function AccueilPage() {
                     },
                     {
                       num: "02", icon: "💬", title: "Révise avec le Poulpe",
-                      desc: "Pose une question, envoie une photo de ton cours ou d'un exercice. Le Poulpe ne te donne jamais la réponse directement — il te guide pas à pas pour que tu comprennes vraiment. Il s'adapte à ta façon d'apprendre.",
+                      desc: "Pose une question, envoie une photo de ton cours ou d'un exercice. Le Poulpe ne te donne jamais la réponse directement. Il te guide pas à pas pour que tu comprennes vraiment. Il s'adapte à ta façon d'apprendre.",
                       highlight: false, tag: null
                     },
                     {
                       num: "03", icon: "📤", title: "Dépose tes copies",
-                      desc: "Dépose 3 à 4 contrôles que tu n'as pas très bien réussis, dans des matières différentes. Le Poulpe analyse tes erreurs et sait exactement sur quoi travailler pour que tu progresses plus vite.",
+                      desc: "Dépose tes contrôles que tu n'as pas très bien réussis, dans des matières différentes. Plus tu en déposes, mieux le Poulpe comprend comment tu penses et où tu bloques. C'est ça, la grande différence.",
                       highlight: false, tag: null
                     },
                     {

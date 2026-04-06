@@ -470,7 +470,7 @@ export default function PlanningPage() {
               <path d="M34 30 Q37 36 35 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
             </svg>
             <p className="text-xs leading-relaxed" style={{ color: textSub }}>
-              Saisis tes cours du jour — Le Poulpe s'adapte à la session selon ton emploi du temps.
+              Saisis tes cours du jour. Le Poulpe s'adapte à la session selon ton emploi du temps.
             </p>
           </div>
 

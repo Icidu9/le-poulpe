@@ -310,6 +310,7 @@ export default function FlashcardsPage() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [cardSets,     setCardSets]     = useState<CardSet[]>([]);
   const [tab,          setTab]          = useState<"session" | "programme">("session");
+  const [showMemoInfo, setShowMemoInfo] = useState(false);
   const [selectedMat,  setSelectedMat]  = useState<string | null>(null);
   const [deck,         setDeck]         = useState<Flashcard[]>([]);
   const [index,        setIndex]        = useState(0);
@@ -482,31 +483,41 @@ export default function FlashcardsPage() {
             </div>
           )}
 
-          {/* Explication méthode des J */}
+          {/* Explication méthode des J — accordéon */}
           {!selectedMat && (
-            <div
-              className="rounded-2xl p-4 space-y-3"
+            <button
+              onClick={() => setShowMemoInfo(v => !v)}
+              className="w-full rounded-2xl text-left transition-all"
               style={{ background: isDark ? "rgba(232,146,42,0.07)" : "rgba(232,146,42,0.06)", border: "1px solid rgba(232,146,42,0.2)" }}
             >
-              <div className="flex items-center gap-2">
-                <span className="text-base">🧠</span>
-                <p className="text-xs font-bold" style={{ color: "#E8922A" }}>Comment le Poulpe t'aide à mémoriser</p>
+              <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}>
+                    <PoulpeIcon size={16} />
+                  </div>
+                  <p className="text-xs font-bold" style={{ color: "#E8922A" }}>Comment le Poulpe t'aide à mémoriser</p>
+                </div>
+                <span className="text-xs font-bold transition-transform" style={{ color: "#E8922A", transform: showMemoInfo ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" }}>▾</span>
               </div>
-              <p className="text-xs leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.6)" : "#4A6070" }}>
-                Le Poulpe crée tes fiches automatiquement à la fin de chaque session. Il décide <strong style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#0A2030" }}>quand te les faire réviser</strong> selon la méthode des J :
-              </p>
-              <div className="flex gap-1.5 flex-wrap">
-                {["J+1", "J+4", "J+10", "J+21", "J+45", "J+90"].map((j, i) => (
-                  <span key={j} className="text-[10px] font-bold px-2 py-1 rounded-lg"
-                    style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: i < 2 ? "#E8922A" : isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>
-                    {j}
-                  </span>
-                ))}
-              </div>
-              <p className="text-xs leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>
-                Si tu sais → la carte revient plus tard. Si tu ne sais pas → elle revient dès demain. Plus tu révises régulièrement, moins tu as de cartes à faire chaque jour.
-              </p>
-            </div>
+              {showMemoInfo && (
+                <div className="px-4 pb-4 space-y-3" onClick={e => e.stopPropagation()}>
+                  <p className="text-xs leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.6)" : "#4A6070" }}>
+                    Le Poulpe crée tes fiches automatiquement à la fin de chaque session. Il décide <strong style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#0A2030" }}>quand te les faire réviser</strong> selon la méthode des J :
+                  </p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {["J+1", "J+4", "J+10", "J+21", "J+45", "J+90"].map((j) => (
+                      <span key={j} className="text-[10px] font-bold px-2 py-1 rounded-lg"
+                        style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>
+                        {j}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs leading-relaxed" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>
+                    Si tu sais → la carte revient plus tard. Si tu ne sais pas → elle revient dès demain. Plus tu révises régulièrement, moins tu as de cartes à faire chaque jour.
+                  </p>
+                </div>
+              )}
+            </button>
           )}
 
           {/* Tabs */}
