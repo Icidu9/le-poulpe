@@ -184,14 +184,32 @@ export function injectProfileIntoPrompt(basePrompt: string, nom: string, profile
   const startMatch = basePrompt.search(sectionStart);
   const endMatch = basePrompt.search(sectionEnd);
 
+  let result: string;
   if (startMatch === -1 || endMatch === -1) {
-    // Fallback : replace all si les markers ne sont pas trouvés
-    return basePrompt.replaceAll("Arthur", nom);
+    result = basePrompt.replaceAll("Arthur", nom);
+  } else {
+    const before = basePrompt.slice(0, startMatch);
+    const after = basePrompt.slice(endMatch);
+    const dynamicSection = buildDynamicProfile(nom, profile);
+    result = (before + dynamicSection + after).replaceAll("Arthur", nom);
   }
 
-  const before = basePrompt.slice(0, startMatch);
-  const after = basePrompt.slice(endMatch);
-  const dynamicSection = buildDynamicProfile(nom, profile);
+  // ── Trim Brevet pour les non-3ème (~8-10k tokens économisés) ──────────────
+  // La section Brevet (annales, simulations, test diagnostique) n'est utile
+  // que pour les élèves en 3ème qui préparent le DNB.
+  // Si la classe est renseignée et n'est pas "3ème" ou "troisième" → on la retire.
+  const classe = profile?.parent?.pClasse || "";
+  const isKnownNonTroisieme =
+    classe !== "" &&
+    !classe.includes("3") &&
+    !classe.toLowerCase().includes("troisième");
 
-  return (before + dynamicSection + after).replaceAll("Arthur", nom);
+  if (isKnownNonTroisieme) {
+    result = result.replace(
+      /\n## MODE BREVET[\s\S]*?(?=\n## PROGRESSION SPIRALE INTER-CLASSES)/,
+      "\n"
+    );
+  }
+
+  return result;
 }
