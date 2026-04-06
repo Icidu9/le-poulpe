@@ -401,21 +401,32 @@ export default function AccueilPage() {
             </button>
             {showGuideHover && (
               <div
-                className="absolute right-0 rounded-2xl p-3.5 w-60"
-                style={{ bottom: "calc(100% + 8px)", background: isDark ? "rgba(6,26,38,0.97)" : "rgba(255,255,255,0.97)", border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`, backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", boxShadow: "0 12px 40px rgba(0,0,0,0.35)", zIndex: 40 }}>
-                <p className="text-xs font-semibold mb-2.5" style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#0A2030" }}>Le Poulpe en 4 gestes</p>
+                className="absolute right-0 rounded-2xl overflow-hidden"
+                style={{ bottom: "calc(100% + 10px)", width: 300, background: isDark ? "rgba(4,16,28,0.98)" : "rgba(255,255,255,0.98)", border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.09)"}`, backdropFilter: "blur(32px)", WebkitBackdropFilter: "blur(32px)", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", zIndex: 40 }}>
+                {/* Header */}
+                <div className="px-4 pt-4 pb-3" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}` }}>
+                  <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "#E8922A" }}>Comment ça marche</p>
+                  <p className="text-xs mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.4)" : "#5A7A8A" }}>5 fonctions à connaître</p>
+                </div>
+                {/* Items */}
                 {[
-                  ["💬", "Révise avec l'IA — pose une question ou envoie une photo"],
-                  ["🗂️", "Parcours les chapitres de tes matières"],
-                  ["📤", "Dépose 3 copies pour qu'il repère tes lacunes"],
-                  ["📅", "Remplis ton planning en premier"],
-                ].map(([icon, label]) => (
-                  <div key={label as string} className="flex items-start gap-2 py-1">
-                    <span className="text-sm flex-shrink-0">{icon}</span>
-                    <p className="text-[11px] leading-snug" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>{label}</p>
+                  { step: "1", title: "Remplis ton planning d'abord", desc: "Entre tes cours semaine A et B — Le Poulpe sait ce que tu as chaque jour et organise tes révisions en conséquence." },
+                  { step: "2", title: "Révise avec le Poulpe", desc: "Pose une question, envoie une photo d'exercice ou de cours. Il te guide pas à pas, sans te donner la réponse directement." },
+                  { step: "3", title: "Dépose 3 à 4 copies", desc: "Des contrôles que tu n'as pas réussis. Le Poulpe analyse tes erreurs et sait exactement quoi travailler." },
+                  { step: "4", title: "Explore tes matières", desc: "Parcours le programme officiel chapitre par chapitre. Lance des exercices ou des quiz ciblés." },
+                  { step: "5", title: "Tes fiches se créent seules", desc: "À chaque session, le Poulpe mémorise et prépare des fiches de révision selon la méthode des J." },
+                ].map(({ step, title, desc }) => (
+                  <div key={step} className="flex gap-3 px-4 py-3" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}` }}>
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold mt-0.5" style={{ background: "rgba(232,146,42,0.15)", color: "#E8922A" }}>{step}</div>
+                    <div>
+                      <p className="text-xs font-semibold leading-tight" style={{ color: isDark ? "rgba(255,255,255,0.88)" : "#0A2030" }}>{title}</p>
+                      <p className="text-[11px] mt-0.5 leading-snug" style={{ color: isDark ? "rgba(255,255,255,0.42)" : "#5A7A8A" }}>{desc}</p>
+                    </div>
                   </div>
                 ))}
-                <p className="text-[10px] mt-2.5 font-medium" style={{ color: "#E8922A" }}>Cliquer pour le guide complet →</p>
+                <div className="px-4 py-3">
+                  <p className="text-[11px] font-medium" style={{ color: "#E8922A" }}>Cliquer pour le guide complet →</p>
+                </div>
               </div>
             )}
           </div>
@@ -620,14 +631,14 @@ export default function AccueilPage() {
                       <p className="text-[10px] font-medium mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A" }}>jours</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}` }}>
                     {[
-                      { label: "Français",           sub: "Lecture, rédaction",     mat: "brevet_francais", icon: "✍️", color: "#F472B6", bg: "rgba(244,114,182,0.12)", border: "rgba(244,114,182,0.25)" },
-                      { label: "Mathématiques",       sub: "Exercices annales",      mat: "brevet_maths",    icon: "📐", color: "#818CF8", bg: "rgba(129,140,248,0.12)", border: "rgba(129,140,248,0.25)" },
-                      { label: "Histoire-Géographie", sub: "Analyse doc, compo",     mat: "brevet_hg",       icon: "🌍", color: "#F59E0B", bg: "rgba(245,158,11,0.12)",  border: "rgba(245,158,11,0.25)" },
-                      { label: "Physique-Chimie",     sub: "Expériences, calculs",   mat: "brevet_pc",       icon: "🧪", color: "#C084FC", bg: "rgba(192,132,252,0.12)", border: "rgba(192,132,252,0.25)" },
-                      { label: "SVT",                 sub: "Sciences du vivant",     mat: "brevet_svt",      icon: "🌱", color: "#10B981", bg: "rgba(16,185,129,0.12)",  border: "rgba(16,185,129,0.25)" },
-                    ].map(({ label, sub, mat, icon, color, bg, border }) => (
+                      { label: "Français",           sub: "Lecture et rédaction",   mat: "brevet_francais", color: "#F472B6" },
+                      { label: "Mathématiques",       sub: "Exercices sur annales",  mat: "brevet_maths",    color: "#818CF8" },
+                      { label: "Histoire-Géographie", sub: "Analyse de doc, compo",  mat: "brevet_hg",       color: "#F59E0B" },
+                      { label: "Physique-Chimie",     sub: "Expériences et calculs", mat: "brevet_pc",       color: "#C084FC" },
+                      { label: "SVT",                 sub: "Sciences du vivant",     mat: "brevet_svt",      color: "#10B981" },
+                    ].map(({ label, sub, mat, color }, i, arr) => (
                       <button
                         key={mat}
                         onClick={() => goTo("/", () => {
@@ -636,14 +647,18 @@ export default function AccueilPage() {
                           localStorage.removeItem("poulpe_cours_mode");
                           localStorage.removeItem("poulpe_focus_context");
                         })}
-                        className={`flex flex-col gap-1 px-3 py-2.5 rounded-xl text-left transition-all hover:opacity-80 active:scale-95${label === "Histoire-Géographie" ? " col-span-2" : ""}`}
-                        style={{ background: isDark ? bg : `${bg.replace("0.12", "0.08")}`, border: `1px solid ${border}` }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-opacity hover:opacity-70 active:opacity-50"
+                        style={{
+                          background: isDark ? "rgba(255,255,255,0.025)" : "rgba(255,255,255,0.75)",
+                          borderBottom: i < arr.length - 1 ? `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}` : "none",
+                        }}
                       >
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm">{icon}</span>
-                          <span className="text-xs font-bold leading-tight" style={{ color: isDark ? "rgba(255,255,255,0.92)" : "#0A2030" }}>{label}</span>
+                        <div style={{ width: 3, height: 28, borderRadius: 2, background: color, flexShrink: 0 }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.88)" : "#0A2030" }}>{label}</p>
+                          <p className="text-[10px] mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.38)" : "#5A7A8A" }}>{sub} · 10 ans d'annales</p>
                         </div>
-                        <span className="text-[10px] pl-0.5" style={{ color }}>{sub} · 10 ans d'annales</span>
+                        <span className="text-xs flex-shrink-0" style={{ color: isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.2)" }}>›</span>
                       </button>
                     ))}
                   </div>

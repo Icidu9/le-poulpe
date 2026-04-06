@@ -294,7 +294,7 @@ export default function Examens() {
                   : { color: textSub }
                 }
               >
-                {tab === "upload" ? "📤 Ajouter" : tab === "historique" ? "📋 Historique" : "📈 Progrès"}
+                {tab === "upload" ? "Ajouter" : tab === "historique" ? "Historique" : "Progrès"}
               </button>
             ))}
           </div>
@@ -517,7 +517,7 @@ export default function Examens() {
             <>
               {examens.length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <div style={{ margin: "0 auto" }}><PoulpeIcon size={64} /></div>
+                  <div className="flex justify-center"><PoulpeIcon size={64} /></div>
                   <p className="text-sm" style={{ color: textSub }}>Aucune copie déposée pour l'instant.</p>
                   <button
                     onClick={() => setActiveTab("upload")}
@@ -542,7 +542,7 @@ export default function Examens() {
             <>
               {Object.keys(faillesMap).length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <div style={{ margin: "0 auto" }}><PoulpeIcon size={64} /></div>
+                  <div className="flex justify-center"><PoulpeIcon size={64} /></div>
                   <p className="text-sm" style={{ color: textSub }}>Tes points de progrès apparaîtront après l'analyse de tes copies.</p>
                   <button
                     onClick={() => setActiveTab("upload")}
