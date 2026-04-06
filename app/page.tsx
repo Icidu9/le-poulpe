@@ -428,6 +428,22 @@ export default function Home() {
             ? `Salut ${nom} ! Tu as une question sur **${chapActif.chapitre}** ? Je suis là. 🐙`
             : `Tu as une question sur **${chapActif.chapitre}** ? Je suis là. 🐙`;
         }
+      } else if (matActive === "brevet_francais") {
+        firstMsg = nom
+          ? `Salut ${nom} ! On prépare le **Brevet — Français**. Je te propose une simulation complète : texte de lecture, questions, puis rédaction. Tu es prêt(e) ? 🎓`
+          : `On prépare le **Brevet — Français**. Simulation complète : texte de lecture, questions, puis rédaction. Tu es prêt(e) ? 🎓`;
+      } else if (matActive === "brevet_maths") {
+        firstMsg = nom
+          ? `Salut ${nom} ! On prépare le **Brevet — Mathématiques** avec des exercices tirés des annales réelles.\n\nTu veux quoi ?\n\n**A)** Simulation complète (4 exercices format Brevet)\n**B)** Entraînement ciblé sur un chapitre (fonctions, probabilités, statistiques, géométrie…)\n**C)** Voir le récap des questions les plus fréquentes aux annales 📊`
+          : `On prépare le **Brevet — Mathématiques** avec les annales réelles.\n\nTu veux quoi ?\n\n**A)** Simulation complète (4 exercices format Brevet)\n**B)** Entraînement ciblé sur un chapitre\n**C)** Récap des questions les plus fréquentes 📊`;
+      } else if (matActive === "brevet_hg") {
+        firstMsg = nom
+          ? `Salut ${nom} ! On prépare le **Brevet — Histoire-Géographie**. On va faire une analyse de document et une composition. Prêt(e) ? 🌍`
+          : `On prépare le **Brevet — Histoire-Géographie**. Analyse de document + composition. Prêt(e) ? 🌍`;
+      } else if (matActive === "brevet_oral") {
+        firstMsg = nom
+          ? `Salut ${nom} ! On prépare l'**oral EPI du Brevet**. Dis-moi d'abord : c'est quoi ton projet EPI ? (thème, matières concernées, ton rôle dans le groupe) 🎤`
+          : `On prépare l'**oral EPI du Brevet**. Dis-moi : c'est quoi ton projet EPI ? (thème, matières concernées, ton rôle) 🎤`;
       } else if (matActive) {
         firstMsg = nom
           ? `Salut ${nom} ! On travaille sur **${matActive}**, t'as quoi comme exercice ce soir ? Tu peux aussi m'envoyer une photo 📷`

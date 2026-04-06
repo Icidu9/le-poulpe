@@ -110,6 +110,7 @@ export default function AccueilPage() {
   const router = useRouter();
   const [prenom,       setPrenom]       = useState("toi");
   const [matieresFort, setMatieresFort] = useState("");
+  const [classe,       setClasse]       = useState("");
   const [streak,       setStreak]       = useState(0);
   const [sessionCount, setSessionCount] = useState(0);
   const [flashCount,   setFlashCount]   = useState(0);
@@ -145,6 +146,7 @@ export default function AccueilPage() {
       try {
         const profile = JSON.parse(profileRaw);
         if (profile.parent?.pMatieresFort) setMatieresFort(profile.parent.pMatieresFort);
+        if (profile.parent?.pClasse) setClasse(profile.parent.pClasse);
       } catch {}
     }
 
@@ -522,6 +524,62 @@ export default function AccueilPage() {
               </div>
             </div>
           )}
+
+          {/* ── Brevet countdown — 3ème uniquement ── */}
+          {classe === "3ème" && (() => {
+            const brevetDate = new Date("2026-06-26");
+            const today = new Date();
+            const daysLeft = Math.max(0, Math.ceil((brevetDate.getTime() - today.setHours(0,0,0,0)) / 86400000));
+            const urgency = daysLeft < 30 ? "#E8922A" : daysLeft < 60 ? "#8B5CF6" : "#10B981";
+            return (
+              <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${urgency}33` }}>
+                <div className="px-4 py-3.5" style={{ background: isDark ? `${urgency}12` : `${urgency}10` }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: urgency }}>
+                        🎓 Brevet des collèges 2026
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "#5A7A8A" }}>
+                        26 juin 2026 · DNB
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-3xl font-bold leading-none" style={{ color: urgency }}>{daysLeft}</p>
+                      <p className="text-[10px] font-medium mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#5A7A8A" }}>jours</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: "Simul. Français", mat: "brevet_francais", icon: "✍️" },
+                      { label: "Simul. Maths", mat: "brevet_maths", icon: "📐" },
+                      { label: "Simul. HG", mat: "brevet_hg", icon: "🌍" },
+                      { label: "Oral EPI", mat: "brevet_oral", icon: "🎤" },
+                    ].map(({ label, mat, icon }) => (
+                      <button
+                        key={mat}
+                        onClick={() => goTo("/", () => {
+                          localStorage.setItem("poulpe_matiere_active", mat);
+                          localStorage.removeItem("poulpe_chapitre_actif");
+                          localStorage.removeItem("poulpe_cours_mode");
+                          localStorage.removeItem("poulpe_focus_context");
+                        })}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-left transition-all hover:opacity-80"
+                        style={{
+                          background: isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.7)",
+                          border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}`,
+                        }}
+                      >
+                        <span className="text-base">{icon}</span>
+                        <span className="text-xs font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#0A2030" }}>
+                          {label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* ── Point fort ── */}
           {matieresFort && (

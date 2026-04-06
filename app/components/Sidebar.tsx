@@ -188,14 +188,25 @@ export default function Sidebar() {
             <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{classe} · beta</div>
           </div>
         </div>
-        {/* Espace parent — lien discret en bas */}
-        <button
-          onClick={() => router.push("/parent")}
-          className="w-full text-left mt-3"
-          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.25)", padding: 0 }}
-        >
-          👨‍👩‍👧 Espace parent
-        </button>
+        {/* Espace parent + Se déconnecter */}
+        <div className="flex items-center justify-between mt-3">
+          <button
+            onClick={() => router.push("/parent")}
+            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.25)", padding: 0 }}
+          >
+            👨‍👩‍👧 Espace parent
+          </button>
+          <button
+            onClick={() => {
+              localStorage.clear();
+              document.cookie = "poulpe_email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+              router.push("/beta");
+            }}
+            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.2)", padding: 0 }}
+          >
+            ↩ Changer de compte
+          </button>
+        </div>
       </div>
     </aside>
 
