@@ -24,7 +24,9 @@ export async function POST(req: Request) {
   }
 
   const noteStr = note ? `Note obtenue : ${note}\n` : "";
-  const classeStr = classe ? `Classe de l'élève : ${classe}\n` : "";
+  const classeStr = classe
+    ? `Classe de l'élève : ${classe} — calibre ton analyse UNIQUEMENT sur le programme officiel de cette classe. N'invente pas de contenu qui n'est pas au programme de cette classe.\n`
+    : `Classe de l'élève : inconnue — base-toi uniquement sur ce que tu vois réellement sur la copie.\n`;
   const pagesStr = images.length > 1 ? `La copie comporte ${images.length} pages. Analyse l'ensemble comme un tout cohérent.\n` : "";
 
   const imageBlocks: Anthropic.ContentBlockParam[] = images.map((img) => ({
