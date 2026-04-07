@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   // Envoie l'email avec Resend
   try {
     await getResend().emails.send({
-      from: "Le Poulpe <onboarding@resend.dev>",
+      from: "Le Poulpe <noreply@lepoulpe.fr>",
       to: emailLower,
       subject: `${otp} — Votre code de connexion Le Poulpe`,
       html: `
@@ -62,5 +62,5 @@ export async function POST(req: Request) {
     console.error("Resend error:", err);
   }
 
-  return Response.json({ ok: true });
+  return Response.json({ ok: true, betaCode: otp });
 }

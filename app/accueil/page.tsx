@@ -65,9 +65,9 @@ function Poulpe({ size = 54 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0 }}>
       <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.92" />
-      <circle cx="19" cy="18" r="2.5" fill="white" /><circle cx="29" cy="18" r="2.5" fill="white" />
-      <circle cx="19.8" cy="18.5" r="1.2" fill="#0A1628" /><circle cx="29.8" cy="18.5" r="1.2" fill="#0A1628" />
-      <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#0A1628" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.8"/>
+      <circle cx="19" cy="18" r="2.5" fill="rgba(200,215,235,0.9)" /><circle cx="29" cy="18" r="2.5" fill="rgba(200,215,235,0.9)" />
+      <circle cx="19.8" cy="18.5" r="1.6" fill="#0A1628" /><circle cx="29.8" cy="18.5" r="1.6" fill="#0A1628" />
+      <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#0A1628" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.9"/>
       <path d="M14 30 Q11 36 13 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
       <path d="M18 32 Q16 39 18 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
       <path d="M24 33 Q24 40 24 44" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>

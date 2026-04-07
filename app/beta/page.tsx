@@ -36,6 +36,7 @@ export default function BetaPage() {
   const [error,     setError]     = useState("");
   const [loading,   setLoading]   = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [betaCode,      setBetaCode]      = useState("");
   const [theme,     setTheme]     = useState<"dark" | "light">("dark");
   const inputRefs   = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -75,6 +76,7 @@ export default function BetaPage() {
         body: JSON.stringify({ email: email.trim() }),
       });
       const data = await res.json();
+      if (data.betaCode) setBetaCode(data.betaCode);
       setStep("otp");
       setResendCooldown(60);
     } catch {
@@ -300,6 +302,11 @@ export default function BetaPage() {
               <p className="text-xs leading-relaxed" style={{ color: textSub }}>
                 Un code à 6 chiffres a été envoyé à <strong style={{ color: textMain }}>{email}</strong>. Vérifiez votre boîte mail (et les spams).
               </p>
+              {betaCode && (
+                <p className="text-xs mt-2" style={{ color: textSub }}>
+                  Code : <strong style={{ color: "#E8922A", fontFamily: "monospace", letterSpacing: 2 }}>{betaCode}</strong>
+                </p>
+              )}
             </div>
 
             {/* Cases OTP */}

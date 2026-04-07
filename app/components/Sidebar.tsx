@@ -9,8 +9,8 @@ function PoulpeLogo() {
       <ellipse cx="24" cy="20" rx="13" ry="14" fill="#E8922A" />
       <circle cx="19" cy="18" r="2.5" fill="white" />
       <circle cx="29" cy="18" r="2.5" fill="white" />
-      <circle cx="19.8" cy="18.5" r="1.2" fill="#0F172A" />
-      <circle cx="29.8" cy="18.5" r="1.2" fill="#0F172A" />
+      <circle cx="19.8" cy="18.5" r="1.6" fill="#0F172A" />
+      <circle cx="29.8" cy="18.5" r="1.6" fill="#0F172A" />
       <path d="M21 22.5 Q24 25 27 22.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
       <path d="M14 30 Q11 36 13 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
       <path d="M18 32 Q16 39 18 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
