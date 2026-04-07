@@ -58,6 +58,7 @@ Pour chaque exercice visible sur la copie :
 - Lis exactement ce que l'élève a écrit comme réponse ou démarche
 - Calcule ou vérifie toi-même si c'est correct
 - Si c'est faux : identifie précisément POURQUOI (mauvaise formule ? erreur de calcul ? concept mal compris ? étape sautée ?)
+⚠️ RÈGLE ABSOLUE : Si tu ne peux pas lire clairement un chiffre ou une fraction, écris [illisible] dans ton analyse. Ne JAMAIS deviner ou inventer un nombre. Une erreur d'analyse basée sur un chiffre mal lu est pire que pas d'analyse du tout.
 Ne généralise pas. Reste ancré dans ce que tu vois réellement sur la copie.
 
 ÉTAPE 2 — Retourne UNIQUEMENT un objet JSON valide (sans markdown, sans backticks) avec cette structure exacte :

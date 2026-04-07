@@ -82,7 +82,7 @@ function resizeImage(file: File, maxPx: number): Promise<string> {
       canvas.height = Math.round(img.height * ratio);
       canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.82));
+      resolve(canvas.toDataURL("image/jpeg", 0.92));
     };
     img.src = url;
   });
@@ -183,7 +183,7 @@ export default function Examens() {
     if (!files.length) return;
     setLastAnalysis(null);
     setError("");
-    const resized = await Promise.all(files.map(f => resizeImage(f, 1024)));
+    const resized = await Promise.all(files.map(f => resizeImage(f, 1800)));
     setPreviews(prev => [...prev, ...resized]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
