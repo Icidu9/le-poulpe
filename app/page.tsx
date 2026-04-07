@@ -476,10 +476,9 @@ export default function Home() {
   const userScrolledUp   = useRef(false);
   const textareaRef      = useRef<HTMLTextAreaElement>(null);
   const fileInputRef     = useRef<HTMLInputElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const isRecordingRef   = useRef(false); // ref synchrone pour éviter le stale closure
-  const audioChunksRef   = useRef<Blob[]>([]);
-  const micStreamRef     = useRef<MediaStream | null>(null);
+  const recognitionRef      = useRef<SpeechRecognition | null>(null);
+  const isRecordingRef      = useRef(false);
+  const inputBeforeSpeechRef = useRef("");
 
   // Charge profil + session + tour au montage
   useEffect(() => {
@@ -1125,88 +1124,77 @@ export default function Home() {
     e.target.value = "";
   }
 
-  // ── Vocal — Web Speech API (100% local, RGPD-compliant) ──────────────────
-  // L'audio est traité par le navigateur (Chrome/Safari), jamais envoyé à Le Poulpe.
+  // ── Vocal — Web Speech API (natif Chrome/Safari, temps réel) ────────────
+  const [micReady, setMicReady] = useState(false);
 
-  const [micReady, setMicReady] = useState(false); // true = micro chaud, parle maintenant
-
-  async function toggleVoice() {
-    // Si enregistrement en cours → arrêter
+  function toggleVoice() {
+    // Arrêter si en cours
     if (isRecordingRef.current) {
-      mediaRecorderRef.current?.stop();
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setTranscribeErrorMsg("Micro non supporté sur ce navigateur. Utilise Chrome ou Safari.");
+      setTimeout(() => setTranscribeErrorMsg(""), 5000);
       return;
     }
 
     setMicError(false);
     setTranscribeErrorMsg("");
-    // Feedback immédiat avant même que le micro soit actif
-    setIsRecording(true);
-    setMicReady(false);
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      micStreamRef.current = stream;
-      audioChunksRef.current = [];
+    const recognition: SpeechRecognition = new SR();
+    recognitionRef.current = recognition;
+    recognition.lang = "fr-FR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
 
-      // Choisit le format supporté par le navigateur
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : MediaRecorder.isTypeSupported("audio/webm")
-        ? "audio/webm"
-        : "audio/mp4";
-
-      const recorder = new MediaRecorder(stream, { mimeType });
-      mediaRecorderRef.current = recorder;
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
-
-      recorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        micStreamRef.current = null;
-        isRecordingRef.current = false;
-        setIsRecording(false);
-        setMicReady(false);
-
-        const blob = new Blob(audioChunksRef.current, { type: mimeType });
-        if (blob.size < 500) return; // trop court, on ignore
-
-        setIsTranscribing(true);
-        try {
-          const fd = new FormData();
-          fd.append("audio", blob, mimeType.includes("mp4") ? "recording.mp4" : "recording.webm");
-          const res = await fetch("/api/transcribe", { method: "POST", body: fd });
-          const data = await res.json();
-          if (data.text) {
-            setInput(data.text);
-          } else {
-            setTranscribeErrorMsg("Transcription impossible, réessaie.");
-            setTimeout(() => setTranscribeErrorMsg(""), 4000);
-          }
-        } catch {
-          setTranscribeErrorMsg("Erreur de transcription.");
-          setTimeout(() => setTranscribeErrorMsg(""), 4000);
-        } finally {
-          setIsTranscribing(false);
-        }
-      };
-
-      recorder.start();
+    recognition.onstart = () => {
+      inputBeforeSpeechRef.current = input;
       isRecordingRef.current = true;
-      setMicReady(true); // MediaRecorder capture dès le start, pas besoin d'attendre
-    } catch {
+      setIsRecording(true);
+      setMicReady(true);
+    };
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let transcript = "";
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      const base = inputBeforeSpeechRef.current;
+      setInput(base ? base + " " + transcript : transcript);
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      if (event.error !== "aborted" && event.error !== "no-speech") {
+        setTranscribeErrorMsg("Erreur micro : " + event.error);
+        setTimeout(() => setTranscribeErrorMsg(""), 4000);
+        setMicError(true);
+        setTimeout(() => setMicError(false), 5000);
+      }
+      isRecordingRef.current = false;
       setIsRecording(false);
-      setMicError(true);
-      setTimeout(() => setMicError(false), 5000);
-    }
+      setMicReady(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.onend = () => {
+      isRecordingRef.current = false;
+      setIsRecording(false);
+      setMicReady(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.start();
   }
 
   // ── Chat ──────────────────────────────────────────────────────────────────
 
   async function sendMessage(quickContent?: string) {
     if (isRecording) {
-      mediaRecorderRef.current?.stop();
+      recognitionRef.current?.stop();
       setIsRecording(false);
     }
 
@@ -1754,15 +1742,6 @@ export default function Home() {
                 </span>
               </div>
             )}
-            {isTranscribing && (
-              <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl"
-                style={{ background: "#FDF0E0", border: "1px solid #EED4AA" }}>
-                <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "#E8922A" }} />
-                <span className="text-xs font-medium" style={{ color: "#C05C2A" }}>
-                  Transcription en cours...
-                </span>
-              </div>
-            )}
             {micError && (
               <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl"
                 style={{ background: "#FDEAEA", border: "1px solid #F0C0C0" }}>
@@ -1806,13 +1785,13 @@ export default function Home() {
               <button type="button"
                 className="flex-shrink-0 mb-0.5 p-1.5 rounded-lg transition-all"
                 style={{
-                  color: isRecording ? "#D94040" : isTranscribing ? "#E8922A" : C.warmGray,
-                  background: isRecording ? "#FDEAEA" : isTranscribing ? "#FDF0E0" : "transparent",
+                  color: isRecording ? "#D94040" : C.warmGray,
+                  background: isRecording ? "#FDEAEA" : "transparent",
                   borderRadius: "8px",
                 }}
                 title={isRecording ? "Arrêter l'enregistrement" : "Parler au lieu d'écrire"}
                 onClick={toggleVoice}
-                disabled={isTranscribing}>
+                >
                 <IconMic recording={isRecording} />
               </button>
               <textarea
@@ -1821,10 +1800,8 @@ export default function Home() {
                 style={{ color: isDark ? "rgba(255,255,255,0.92)" : C.charcoal, minHeight: "24px", maxHeight: "120px", lineHeight: "1.5" }}
                 rows={1}
                 placeholder={
-                  isTranscribing
-                    ? "Transcription en cours..."
-                    : isRecording
-                    ? "Parle, puis appuie à nouveau sur le micro..."
+                  isRecording
+                    ? "Parle maintenant..."
                     : selectedPhotos.length > 0
                     ? "Ajoute un commentaire (optionnel)..."
                     : "Écris ou parle 🎙️..."
