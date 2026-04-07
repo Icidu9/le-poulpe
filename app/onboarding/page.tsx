@@ -557,9 +557,9 @@ export default function Onboarding() {
             <div className="rounded-2xl p-4 text-left space-y-2" style={{ background: C.amberLight, border: `1.5px solid ${C.amber}` }}>
               <p className="text-xs font-semibold" style={{ color: C.terracotta }}>Pourquoi le profil complet ?</p>
               <ul className="text-xs space-y-1" style={{ color: C.charcoal }}>
-                <li>→ Il utilise les passions de votre enfant pour expliquer les concepts difficiles</li>
+                <li>→ Il adapte chaque explication selon comment votre enfant pense et apprend</li>
                 <li>→ Il détecte les signaux de saturation avant que votre enfant décroche</li>
-                <li>→ Un enfant dyslexique et un enfant HPI n'apprennent pas pareil</li>
+                <li>→ Deux enfants dans la même classe n'apprennent jamais de la même façon</li>
               </ul>
             </div>
             <Btn label="Créer le profil de mon enfant →" onClick={() => setPhase("parent")} />
