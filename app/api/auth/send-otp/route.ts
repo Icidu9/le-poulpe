@@ -62,6 +62,5 @@ export async function POST(req: Request) {
     console.error("Resend error:", err);
   }
 
-  // BETA: retourne le code pour affichage écran (à retirer au lancement public)
-  return Response.json({ ok: true, betaCode: otp });
+  return Response.json({ ok: true });
 }
