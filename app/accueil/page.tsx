@@ -66,8 +66,8 @@ function Poulpe({ size = 54 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0 }}>
       <ellipse cx="24" cy="20" rx="13" ry="14" fill="white" fillOpacity="0.92" />
       <circle cx="19" cy="18" r="2.5" fill="white" /><circle cx="29" cy="18" r="2.5" fill="white" />
-      <circle cx="19.8" cy="18.5" r="1.2" fill="#7C2A00" /><circle cx="29.8" cy="18.5" r="1.2" fill="#7C2A00" />
-      <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#7C2A00" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.6"/>
+      <circle cx="19.8" cy="18.5" r="1.2" fill="#0A1628" /><circle cx="29.8" cy="18.5" r="1.2" fill="#0A1628" />
+      <path d="M21 22.5 Q24 25.5 27 22.5" stroke="#0A1628" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.8"/>
       <path d="M14 30 Q11 36 13 40" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
       <path d="M18 32 Q16 39 18 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
       <path d="M24 33 Q24 40 24 44" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.65"/>
@@ -364,8 +364,8 @@ export default function AccueilPage() {
           <div style={{ position: "relative" }}>
             <div className="rounded-3xl p-6 relative overflow-hidden"
               style={{ background: "linear-gradient(135deg, #E8922A 0%, #C05C2A 50%, #0D1B2A 100%)" }}>
-              <div style={{ position: "absolute", top: -50, left: "50%", transform: "translateX(-50%)", width: 180, height: 180, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.07)", pointerEvents: "none" }} />
-              <div style={{ position: "absolute", bottom: -45, right: -30, width: 110, height: 110, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.07)", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", top: -50, left: "50%", transform: "translateX(-50%)", width: 180, height: 180, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.20)", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", bottom: -45, right: -30, width: 110, height: 110, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.20)", pointerEvents: "none" }} />
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1 mr-4">
                   <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
