@@ -359,7 +359,7 @@ export default function BetaPage() {
               Merci d'avoir participé à la bêta du Poulpe. La version gratuite bêta a expiré.
               Pour continuer, contactez-nous pour accéder à la version complète.
             </p>
-            <a href="mailto:contact@lepoulpe.fr"
+            <a href="mailto:diana.sargsyan2103@gmail.com"
               className="inline-block py-3 px-6 rounded-xl font-semibold text-white text-sm transition-all hover:opacity-90"
               style={{ background: "linear-gradient(135deg, #E8922A, #C05C2A)" }}>
               Contactez-nous →
@@ -369,7 +369,7 @@ export default function BetaPage() {
 
         <p className="text-center text-xs mt-5" style={{ color: textSub }}>
           Pas encore d'accès ?{" "}
-          <a href="mailto:contact@lepoulpe.fr" style={{ color: "#E8922A", textDecoration: "none" }}>Contactez-nous.</a>
+          <a href="mailto:diana.sargsyan2103@gmail.com" style={{ color: "#E8922A", textDecoration: "none" }}>Contactez-nous.</a>
         </p>
         <p className="text-center text-xs mt-3">
           <a href="/mentions-legales" style={{ color: textSub, textDecoration: "underline" }}>Mentions légales</a>

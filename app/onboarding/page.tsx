@@ -27,18 +27,21 @@ const C = {
 
 function Poulpe({ size = 64 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <ellipse cx="24" cy="20" rx="13" ry="14" fill={C.terracotta} />
-      <circle cx="19" cy="18" r="2.5" fill="white" />
-      <circle cx="29" cy="18" r="2.5" fill="white" />
-      <circle cx="19.8" cy="18.5" r="1.2" fill={C.charcoal} />
-      <circle cx="29.8" cy="18.5" r="1.2" fill={C.charcoal} />
-      <path d="M14 30 Q11 36 13 40" stroke={C.terracotta} strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M18 32 Q16 39 18 43" stroke={C.terracotta} strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M24 33 Q24 40 24 44" stroke={C.terracotta} strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M30 32 Q32 39 30 43" stroke={C.terracotta} strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <path d="M34 30 Q37 36 35 40" stroke={C.terracotta} strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-    </svg>
+    <div style={{ filter: "drop-shadow(0 0 20px rgba(232,146,42,0.5))" }}>
+      <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+        <ellipse cx="24" cy="20" rx="13" ry="14" fill={C.amber} />
+        <circle cx="19" cy="18" r="2.5" fill="white" />
+        <circle cx="29" cy="18" r="2.5" fill="white" />
+        <circle cx="19.8" cy="18.5" r="1.2" fill="#0F172A" />
+        <circle cx="29.8" cy="18.5" r="1.2" fill="#0F172A" />
+        <path d="M21 22.5 Q24 25 27 22.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+        <path d="M14 30 Q11 36 13 40" stroke={C.amber} strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+        <path d="M18 32 Q16 39 18 43" stroke={C.amber} strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+        <path d="M24 33 Q24 40 24 44" stroke={C.amber} strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+        <path d="M30 32 Q32 39 30 43" stroke={C.amber} strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+        <path d="M34 30 Q37 36 35 40" stroke={C.amber} strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      </svg>
+    </div>
   );
 }
 
@@ -548,15 +551,14 @@ export default function Onboarding() {
             <div>
               <h1 className="text-2xl font-bold" style={{ color: C.charcoal }}>Bienvenue sur Le Poulpe</h1>
               <p className="mt-3 text-sm leading-relaxed" style={{ color: C.warmGray }}>
-                Plus vous renseignez le profil de votre enfant, plus le tuteur s'adapte précisément à lui.
-                Un bon profil change tout — prenez 10 minutes.
+                Ce profil est ce qui rend le Poulpe différent. Plus il connaît votre enfant, plus il s'adapte à lui, pas à un élève moyen. Comptez 10 minutes.
               </p>
             </div>
             <div className="rounded-2xl p-4 text-left space-y-2" style={{ background: C.amberLight, border: `1.5px solid ${C.amber}` }}>
               <p className="text-xs font-semibold" style={{ color: C.terracotta }}>Pourquoi le profil complet ?</p>
               <ul className="text-xs space-y-1" style={{ color: C.charcoal }}>
-                <li>→ Le Poulpe adapte son rythme, ses explications, ses analogies</li>
-                <li>→ Il sait quand ralentir, quand accélérer, comment débloquer</li>
+                <li>→ Il utilise les passions de votre enfant pour expliquer les concepts difficiles</li>
+                <li>→ Il détecte les signaux de saturation avant que votre enfant décroche</li>
                 <li>→ Un enfant dyslexique et un enfant HPI n'apprennent pas pareil</li>
               </ul>
             </div>
@@ -566,7 +568,7 @@ export default function Onboarding() {
               className="w-full py-2 rounded-2xl text-xs font-medium transition-opacity hover:opacity-75"
               style={{ color: C.warmGray }}
             >
-              Démarrage rapide — 2 minutes (profil minimal)
+              Je complète le profil plus tard
             </button>
           </div>
         )}

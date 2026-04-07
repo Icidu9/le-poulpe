@@ -65,7 +65,21 @@ export default function ChartePage() {
       <div className="w-full max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-4xl mb-3">🐙</div>
+          <div className="flex justify-center mb-3" style={{ filter: "drop-shadow(0 0 20px rgba(232,146,42,0.5))" }}>
+            <svg width="72" height="72" viewBox="0 0 48 48" fill="none">
+              <ellipse cx="24" cy="20" rx="13" ry="14" fill="#E8922A" />
+              <circle cx="19" cy="18" r="2.5" fill="white" />
+              <circle cx="29" cy="18" r="2.5" fill="white" />
+              <circle cx="19.8" cy="18.5" r="1.2" fill="#0F172A" />
+              <circle cx="29.8" cy="18.5" r="1.2" fill="#0F172A" />
+              <path d="M21 22.5 Q24 25 27 22.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+              <path d="M14 30 Q11 36 13 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+              <path d="M18 32 Q16 39 18 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+              <path d="M24 33 Q24 40 24 44" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+              <path d="M30 32 Q32 39 30 43" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+              <path d="M34 30 Q37 36 35 40" stroke="#E8922A" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+            </svg>
+          </div>
           <h1 className="text-xl font-bold" style={{ color: D.textMain }}>Charte de participation bêta privée</h1>
           <p className="text-sm mt-1" style={{ color: D.textSub }}>À lire et signer avant d'accéder à l'application</p>
         </div>
