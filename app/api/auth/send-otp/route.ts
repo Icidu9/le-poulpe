@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   // Envoie l'email avec Resend
   try {
     await getResend().emails.send({
-      from: "Le Poulpe <noreply@lepoulpe.fr>",
+      from: "Le Poulpe <onboarding@resend.dev>",
       to: emailLower,
       subject: `${otp} — Votre code de connexion Le Poulpe`,
       html: `
