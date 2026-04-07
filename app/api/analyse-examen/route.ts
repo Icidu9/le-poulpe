@@ -36,8 +36,8 @@ export async function POST(req: Request) {
   }));
 
   const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 1500,
+    model: "claude-sonnet-4-5",
+    max_tokens: 2000,
     messages: [
       {
         role: "user",
@@ -45,24 +45,31 @@ export async function POST(req: Request) {
           ...imageBlocks,
           {
             type: "text",
-            text: `Tu es un expert en pédagogie et en analyse d'erreurs scolaires. Analyse cette copie d'examen d'un élève de 4ème en France.
+            text: `Tu es un expert en pédagogie française et en analyse d'erreurs scolaires. Analyse cette copie d'examen.
 
 Matière : ${matiere}
 ${noteStr}${pagesStr}
-Analyse cette copie et retourne UNIQUEMENT un objet JSON valide (sans markdown, sans backticks) avec cette structure exacte :
+ÉTAPE 1 — LIS CHAQUE EXERCICE EN DÉTAIL :
+Pour chaque exercice visible sur la copie :
+- Identifie ce qui était demandé
+- Lis exactement ce que l'élève a écrit comme réponse ou démarche
+- Calcule ou vérifie toi-même si c'est correct
+- Si c'est faux : identifie précisément POURQUOI (mauvaise formule ? erreur de calcul ? concept mal compris ? étape sautée ?)
+Ne généralise pas. Reste ancré dans ce que tu vois réellement sur la copie.
+
+ÉTAPE 2 — Retourne UNIQUEMENT un objet JSON valide (sans markdown, sans backticks) avec cette structure exacte :
 {
-  "resume": "résumé en 1-2 phrases de ce que révèle cette copie sur le profil de l'élève",
-  "patterns": ["pattern comportemental ou cognitif observé 1", "pattern 2"],
+  "resume": "résumé en 2-3 phrases de ce que révèle cette copie — basé sur les erreurs concrètes observées, pas de généralités",
+  "patterns": ["pattern d'erreur récurrent précis observé — ex: 'inverse systématiquement numérateur et dénominateur' pas 'difficultés en fractions'"],
   "failles": [
-    {"concept": "nom précis du concept non maîtrisé", "criticite": "haute", "description": "pourquoi ce concept est bloquant pour la progression"}
+    {"concept": "nom précis du concept non maîtrisé — ex: 'simplification de fractions' pas 'calcul'", "criticite": "haute", "description": "erreur exacte observée + pourquoi ce concept est bloquant"}
   ],
-  "points_forts": ["ce qui fonctionne bien 1"],
-  "priorite_travail": "description précise de ce sur quoi travailler en priorité absolue dès la prochaine session"
+  "points_forts": ["ce qui est juste ou bien fait, même partiellement"],
+  "priorite_travail": "l'erreur la plus fréquente ou la plus grave observée, avec la notion exacte à retravailler"
 }
 
 Les failles doivent être ordonnées par criticité décroissante (haute, moyenne, faible).
-Sois précis et actionnable — un tuteur doit pouvoir utiliser cette analyse immédiatement.
-Si une partie de la copie est illisible, indique-le dans le résumé sans inventer.`,
+Si une partie est illisible, dis-le dans le résumé. Ne jamais inventer une erreur qui n'est pas visible.`,
           },
         ],
       },
