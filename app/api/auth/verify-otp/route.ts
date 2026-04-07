@@ -54,37 +54,5 @@ export async function POST(req: Request) {
   // Code correct → supprime de Redis
   await redis.del(`otp:${emailLower}`);
 
-  // Vérifie le compte bêta et gère l'expiration
-  const supabase = getSupabase();
-  const { data: betaEntry } = await supabase
-    .from("beta_access")
-    .select("id, active, beta_expires_at")
-    .eq("email", emailLower)
-    .single();
-
-  if (!betaEntry || !betaEntry.active) {
-    return Response.json({ valid: false, error: "Accès non autorisé" });
-  }
-
-  // Vérifie si le compte a expiré
-  if (betaEntry.beta_expires_at && new Date(betaEntry.beta_expires_at) < new Date()) {
-    return Response.json({ valid: false, expired: true, error: "Votre période bêta est terminée." });
-  }
-
-  // Première connexion : fixe la date d'expiration à J+30
-  if (!betaEntry.beta_expires_at) {
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    await supabase
-      .from("beta_access")
-      .update({ beta_expires_at: expiresAt })
-      .eq("id", betaEntry.id);
-  }
-
-  // Calcule les jours restants pour info
-  const expiresAt = betaEntry.beta_expires_at
-    ? new Date(betaEntry.beta_expires_at)
-    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  const daysLeft = Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000));
-
-  return Response.json({ valid: true, daysLeft });
+  return Response.json({ valid: true });
 }

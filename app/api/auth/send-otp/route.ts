@@ -27,18 +27,6 @@ export async function POST(req: Request) {
 
   const emailLower = email.trim().toLowerCase();
 
-  // Vérifie que l'email est dans la liste bêta approuvée
-  const { data: betaEntry } = await getSupabase()
-    .from("beta_access")
-    .select("id, active, beta_expires_at")
-    .eq("email", emailLower)
-    .single();
-
-  if (!betaEntry || !betaEntry.active) {
-    // On retourne quand même ok:true pour ne pas révéler si un email est dans la liste (sécurité)
-    return Response.json({ ok: true });
-  }
-
   // Génère et stocke l'OTP dans Redis (TTL 15 min)
   const otp = generateOTP();
   const redis = getRedis();
