@@ -145,6 +145,7 @@ export default function Examens() {
   const [previews, setPreviews]     = useState<string[]>([]);
   const [matiere, setMatiere]       = useState("");
   const [note, setNote]             = useState("");
+  const [classe, setClasse]         = useState("");
   const [analysing, setAnalysing]   = useState(false);
   const [lastAnalysis, setLastAnalysis] = useState<ExamenAnalysis | null>(null);
   const [error, setError]           = useState("");
@@ -170,6 +171,11 @@ export default function Examens() {
 
     const f = localStorage.getItem("poulpe_failles");
     if (f) setFaillesMap(JSON.parse(f));
+
+    const profileRaw = localStorage.getItem("poulpe_profile");
+    if (profileRaw) {
+      try { const p = JSON.parse(profileRaw); if (p.parent?.pClasse) setClasse(p.parent.pClasse); } catch {}
+    }
   }, [router]);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -201,7 +207,7 @@ export default function Examens() {
       const res = await fetch("/api/analyse-examen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images, matiere, note }),
+        body: JSON.stringify({ images, matiere, note, classe }),
       });
 
       if (!res.ok) {

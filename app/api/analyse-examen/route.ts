@@ -9,7 +9,7 @@ type ValidMime = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { matiere, note } = body;
+  const { matiere, note, classe } = body;
 
   // Supporte l'ancien format (imageBase64 + mimeType) et le nouveau (images array)
   const images: { base64: string; mimeType: string }[] =
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
   }
 
   const noteStr = note ? `Note obtenue : ${note}\n` : "";
+  const classeStr = classe ? `Classe de l'élève : ${classe}\n` : "";
   const pagesStr = images.length > 1 ? `La copie comporte ${images.length} pages. Analyse l'ensemble comme un tout cohérent.\n` : "";
 
   const imageBlocks: Anthropic.ContentBlockParam[] = images.map((img) => ({
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
             text: `Tu es un expert en pédagogie française et en analyse d'erreurs scolaires. Analyse cette copie d'examen.
 
 Matière : ${matiere}
-${noteStr}${pagesStr}
+${classeStr}${noteStr}${pagesStr}
 ÉTAPE 1 — LIS CHAQUE EXERCICE EN DÉTAIL :
 Pour chaque exercice visible sur la copie :
 - Identifie ce qui était demandé
