@@ -478,7 +478,7 @@ export async function POST(req: Request) {
 
           try {
             const stream = await getMistral().chat.stream({
-              model: "mistral-large-latest",
+              model: "mistral-small-latest",
               maxTokens: isQuickMode ? 350 : 1024,
               messages: mistralMessages,
             });

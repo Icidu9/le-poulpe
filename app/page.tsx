@@ -858,8 +858,8 @@ export default function Home() {
   useEffect(() => {
     const key = `poulpe_chat_${matiereActive || "general"}`;
     if (_stream.active && _stream.chatKey === key) {
-      // Un streaming est en cours pour cette matière. On se réabonne.
-      _stream.notify = (text: string) => {
+      // Réabonnement au flux en cours
+      const reconnect = (text: string) => {
         setMessages((prev) => {
           const last = prev[prev.length - 1];
           if (last?.role === "assistant") {
@@ -868,15 +868,10 @@ export default function Home() {
           return [...prev, { role: "assistant", content: text }];
         });
       };
-      // Affiche immédiatement le texte déjà accumulé
+      _stream.notify = reconnect;
+      // Affiche immédiatement le texte déjà accumulé (même si matiereActive n'a pas changé)
       if (_stream.accumulated) {
-        setMessages((prev) => {
-          const last = prev[prev.length - 1];
-          if (last?.role === "assistant") {
-            return [...prev.slice(0, -1), { ...last, content: _stream.accumulated }];
-          }
-          return [...prev, { role: "assistant", content: _stream.accumulated }];
-        });
+        reconnect(_stream.accumulated);
       }
     }
     return () => {
@@ -1401,13 +1396,24 @@ export default function Home() {
               <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{classe} · beta</div>
             </div>
           </div>
-          <button
-            onClick={() => router.push("/parent")}
-            className="w-full text-left mt-3"
-            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.25)", padding: 0 }}
-          >
-            👨‍👩‍👧 Espace parent
-          </button>
+          <div className="flex items-center justify-between mt-3">
+            <button
+              onClick={() => router.push("/parent")}
+              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.4)", padding: 0 }}
+            >
+              Espace parent
+            </button>
+            <button
+              onClick={() => {
+                localStorage.clear();
+                document.cookie = "poulpe_email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                router.push("/beta");
+              }}
+              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.35)", padding: 0, display: "flex", alignItems: "center", gap: 3 }}
+            >
+              Déconnexion →
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -1841,12 +1847,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Poulpe flottant décoratif */}
-      {!tourActive && (
-        <div className="fixed bottom-6 right-6 pointer-events-none" style={{ opacity: 0.15 }}>
-          <Poulpe size={48} />
-        </div>
-      )}
 
       {/* ── TOUR OVERLAY ──────────────────────────────────────────────────── */}
       {tourActive && (
